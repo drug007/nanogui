@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+nanogui.so
+nanogui.dylib
+nanogui.dll
+nanogui.a
+nanogui.lib
+nanogui-test-*
+*.exe
+*.o
+*.obj
+*.lst
+/nanogui

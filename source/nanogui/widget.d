@@ -1,0 +1,583 @@
+module nanogui.widget;
+/*
+    nanogui.widget -- Base class of all widgets
+
+    NanoGUI was developed by Wenzel Jakob <wenzel.jakob@epfl.ch>.
+    The widget drawing code is based on the NanoVG demo application
+    by Mikko Mononen.
+
+    All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE.txt file.
+*/
+import std.container.array;
+
+import nanogui.theme;
+import nanogui.layout;
+import nanogui.common : Cursor, Vector2i, Vector2f;
+public import nanogui.common;
+
+/**
+ * \class Widget widget.h nanogui/widget.h
+ *
+ * \brief Base class of all widgets.
+ *
+ * \ref Widget is the base class of all widgets in \c nanogui. It can
+ * also be used as an panel to arrange an arbitrary number of child
+ * widgets using a layout generator (see \ref Layout).
+ */
+class Widget : Object {
+public:
+    /// Construct a new widget with the given parent widget
+    this(Widget parent)
+    {
+//mParent = null;
+//mTheme  = null; 
+        mLayout = null;
+//mPos(Vector2i::Zero()), 
+//mSize(Vector2i::Zero()),
+//mFixedSize(Vector2i::Zero()), 
+        mVisible = true;
+        mEnabled = true;
+//mFocused(false), 
+//mMouseFocus(false), 
+        mTooltip = ""; 
+        mFontSize = -1;
+        mIconExtraScale = 1.0f; 
+        mCursor = Cursor.Arrow;
+        if (parent)
+            parent.addChild(this);
+    }
+
+    /// Return the parent widget
+    final Widget parent() { return mParent; }
+///// Return the parent widget
+//const Widget parent() const { return mParent; }
+    /// Set the parent widget
+    final void parent(Widget parent) { mParent = parent; }
+
+    /// Return the used \ref Layout generator
+    final Layout layout() { return mLayout; }
+///// Return the used \ref Layout generator
+//const Layout layout() const { return mLayout.get(); }
+    /// Set the used \ref Layout generator
+    final void layout(Layout layout) { mLayout = layout; }
+
+    /// Return the \ref Theme used to draw this widget
+    final const(Theme) theme() const { return mTheme; }
+/// Return the \ref Theme used to draw this widget
+//const Theme theme() const { return mTheme.get(); }
+    /// Set the \ref Theme used to draw this widget
+    void theme(Theme theme)
+    {
+        if (mTheme is theme)
+            return;
+        mTheme = theme;
+        foreach(child; mChildren)
+            child.theme = theme;
+    }
+
+    /// Return the position relative to the parent widget
+    final Vector2i position() const { return mPos; }
+    /// Set the position relative to the parent widget
+    final void position(Vector2i pos) { mPos = pos; }
+
+///// Return the absolute position on screen
+//final Vector2i absolutePosition() const {
+//    return mParent ?
+//        (parent.absolutePosition + mPos) : mPos;
+//}
+
+    /// Return the size of the widget
+    final Vector2i size() const { return mSize; }
+    /// set the size of the widget
+    final void size(Vector2i size) { mSize = size; }
+
+    /// Return the width of the widget
+    final int width() const { return mSize.x; }
+    /// Set the width of the widget
+    final void width(int width) { mSize.x = width; }
+
+    /// Return the height of the widget
+    final int height() const { return mSize.y; }
+    /// Set the height of the widget
+    final void height(int height) { mSize.y = height; }
+
+    /**
+     * \brief Set the fixed size of this widget
+     *
+     * If nonzero, components of the fixed size attribute override any values
+     * computed by a layout generator associated with this widget. Note that
+     * just setting the fixed size alone is not enough to actually change its
+     * size; this is done with a call to \ref setSize or a call to \ref performLayout()
+     * in the parent widget.
+     */
+    final void fixedSize(Vector2i fixedSize) { mFixedSize = fixedSize; }
+
+    /// Return the fixed size (see \ref setFixedSize())
+    final Vector2i fixedSize() const { return mFixedSize; }
+
+    /// Return the fixed width (see \ref setFixedSize())
+    final int fixedWidth() const { return mFixedSize.x; }
+    /// Return the fixed height (see \ref setFixedSize())
+    final int fixedHeight() const { return mFixedSize.y; }
+    /// Set the fixed width (see \ref setFixedSize())
+    final void fixedWidth(int width) { mFixedSize.x = width; }
+    /// Set the fixed height (see \ref setFixedSize())
+    final void fixedHeight(int height) { mFixedSize.y = height; }
+
+    /// Return whether or not the widget is currently visible (assuming all parents are visible)
+    final bool visible() const { return mVisible; }
+    /// Set whether or not the widget is currently visible (assuming all parents are visible)
+    final void visible(bool visible) { mVisible = visible; }
+
+///// Check if this widget is currently visible, taking parent widgets into account
+//final bool visibleRecursive() const {
+//    import std.typecons : Rebindable;
+//    bool visible = true;
+//    Rebindable!(const Widget) widget = this;
+//    while (widget) {
+//        visible &= widget.visible;
+//        widget = widget.parent;
+//    }
+//    return visible;
+//}
+
+    // Return the number of child widgets
+    final int childCount() const
+    {
+        import std.conv : castFrom;
+        return castFrom!size_t.to!int(mChildren.length);
+    }
+
+    /// Return the list of child widgets of the current widget
+    auto children() { return mChildren; }
+    /// ditto
+    auto constChildren() const { return mChildren; }
+
+    ///**
+    // * \brief Add a child widget to the current widget at
+    // * the specified index.
+    // *
+    // * This function almost never needs to be called by hand,
+    // * since the constructor of \ref Widget automatically
+    // * adds the current widget to its parent
+    // */
+    void addChild(int index, Widget widget)
+    {
+        assert(index <= childCount);
+        mChildren.insertBefore(mChildren[index..$], widget);
+        widget.parent = this;
+        widget.theme = mTheme;
+    }
+
+    /// Convenience function which appends a widget at the end
+    void addChild(Widget widget)
+    {
+        addChild(childCount(), widget);
+    }
+
+    /// Remove a child widget by index
+    void removeChild(int index)
+    {
+        import std.range : takeOne;
+        mChildren.linearRemove(mChildren[index..$].takeOne);
+    }
+
+    /// Remove a child widget by value
+    void removeChild(Widget widget)
+    {
+        import std.algorithm : find;
+        import std.range : takeOne;
+        mChildren.linearRemove(mChildren[].find(widget).takeOne);
+    }
+
+///// Retrieves the child at the specific position
+//const Widget* childAt(int index) const { return mChildren[index]; }
+
+///// Retrieves the child at the specific position
+//Widget* childAt(int index) { return mChildren[index]; }
+
+///// Returns the index of a specific child or -1 if not found
+//int childIndex(Widget* widget) const;
+
+///// Variadic shorthand notation to construct and add a child widget
+//template<typename WidgetClass, typename... Args>
+//WidgetClass* add(const Args&... args) {
+//    return new WidgetClass(this, args...);
+//}
+
+    ///// Walk up the hierarchy and return the parent window
+    //final Window window();
+
+    ///// Walk up the hierarchy and return the parent screen
+    //final Screen screen();
+
+///// Associate this widget with an ID value (optional)
+//void setId(const std::string &id) { mId = id; }
+///// Return the ID value associated with this widget, if any
+//const std::string &id() const { return mId; }
+
+    /// Return whether or not this widget is currently enabled
+    final bool enabled() const { return mEnabled; }
+    /// Set whether or not this widget is currently enabled
+    final void enabled(bool enabled) { mEnabled = enabled; }
+
+///// Return whether or not this widget is currently focused
+//bool focused() const { return mFocused; }
+///// Set whether or not this widget is currently focused
+//void setFocused(bool focused) { mFocused = focused; }
+///// Request the focus to be moved to this widget
+//void requestFocus();
+
+//const std::string &tooltip() const { return mTooltip; }
+//void setTooltip(const std::string &tooltip) { mTooltip = tooltip; }
+
+    /// Return current font size. If not set the default of the current theme will be returned
+    final int fontSize() const
+    {
+        return (mFontSize < 0 && mTheme) ? mTheme.mStandardFontSize : mFontSize;
+    }
+    /// Set the font size of this widget
+    final void fontSize(int fontSize) { mFontSize = fontSize; }
+    /// Return whether the font size is explicitly specified for this widget
+    final bool hasFontSize() const { return mFontSize > 0; }
+
+///**
+// * The amount of extra scaling applied to *icon* fonts.
+// * See \ref nanogui::Widget::mIconExtraScale.
+// */
+//float iconExtraScale() const { return mIconExtraScale; }
+
+///**
+// * Sets the amount of extra scaling applied to *icon* fonts.
+// * See \ref nanogui::Widget::mIconExtraScale.
+// */
+//void setIconExtraScale(float scale) { mIconExtraScale = scale; }
+
+///// Return a pointer to the cursor of the widget
+//Cursor cursor() const { return mCursor; }
+///// Set the cursor of the widget
+//void setCursor(Cursor cursor) { mCursor = cursor; }
+
+    /// Check if the widget contains a certain position
+    final bool contains(Vector2i p) const {
+        import std.algorithm : all;
+        // the widget contains a position if its more than
+        // the widget position and less than widget position
+        // + widget size
+        auto d = (p-mPos);
+        return d[].all!"a>=0" && (d-mSize)[].all!"a<=0";
+    }
+
+///// Determine the widget located at the given position value (recursive)
+//Widget *findWidget(const Vector2i &p);
+
+///// Handle a mouse button event (default implementation: propagate to children)
+//virtual bool mouseButtonEvent(const Vector2i &p, int button, bool down, int modifiers);
+
+///// Handle a mouse motion event (default implementation: propagate to children)
+//virtual bool mouseMotionEvent(const Vector2i &p, const Vector2i &rel, int button, int modifiers);
+
+///// Handle a mouse drag event (default implementation: do nothing)
+//virtual bool mouseDragEvent(const Vector2i &p, const Vector2i &rel, int button, int modifiers);
+
+///// Handle a mouse enter/leave event (default implementation: record this fact, but do nothing)
+//virtual bool mouseEnterEvent(const Vector2i &p, bool enter);
+
+///// Handle a mouse scroll event (default implementation: propagate to children)
+//virtual bool scrollEvent(const Vector2i &p, const Vector2f &rel);
+
+///// Handle a focus change event (default implementation: record the focus status, but do nothing)
+//virtual bool focusEvent(bool focused);
+
+///// Handle a keyboard event (default implementation: do nothing)
+//virtual bool keyboardEvent(int key, int scancode, int action, int modifiers);
+
+///// Handle text input (UTF-32 format) (default implementation: do nothing)
+//virtual bool keyboardCharacterEvent(unsigned int codepoint);
+
+    /// Compute the preferred size of the widget
+    Vector2i preferredSize(NVGContext nvg) const
+    {
+        if (mLayout)
+            return mLayout.preferredSize(nvg, this);
+        else
+            return mSize;
+    }
+
+    /// Compute the preferred size of the widget considering its child except
+    /// skipped one (for example button panel of window)
+    final Vector2i preferredSize(NVGContext nvg, const Widget skipped) const
+    {
+        if (mLayout)
+            return mLayout.preferredSize(nvg, this, skipped);
+        else
+            return mSize;
+    }
+
+    /// Invoke the associated layout generator to properly place child widgets, if any
+    void performLayout(NVGContext nvg)
+    {
+        if (mLayout) {
+            mLayout.performLayout(nvg, this);
+        } else {
+            foreach(c; mChildren) {
+                Vector2i pref = c.preferredSize(nvg), fix = c.fixedSize();
+                c.size(Vector2i(
+                    fix[0] ? fix[0] : pref[0],
+                    fix[1] ? fix[1] : pref[1]
+                ));
+                c.performLayout(nvg);
+            }
+        }
+    }
+
+/// Draw the widget (and all child widgets)
+void draw(NVGContext nvg)
+{
+    version(NANOGUI_SHOW_WIDGET_BOUNDS)
+    {
+        nvg.strokeWidth(1.0f);
+        nvg.beginPath;
+        nvg.rect(mPos.x - 0.5f, mPos.y - 0.5f, mSize.x + 1, mSize.y + 1);
+        nvg.strokeColor(Color(255, 0, 0, 255));
+        nvg.stroke;
+    }
+
+    if (mChildren.length == 0)
+        return;
+
+    nvg.save;
+    nvg.translate(mPos.x, mPos.y);
+    foreach(child; mChildren)
+    {
+        if (child.visible)
+        {
+            nvg.save;
+            nvg.intersectScissor(child.mPos.x, child.mPos.y, child.mSize.x, child.mSize.y);
+            child.draw(nvg);
+            nvg.restore;
+        }
+    }
+    nvg.restore;
+
+//    {
+//        //Widget::draw(nvg);
+//auto mPushed = true;
+//auto mCaption = "Caption";
+//auto mTextColor = mTheme.mTextColor;
+
+//        NVGColor gradTop, gradBot;
+//        gradTop.rgba = mTheme.mButtonGradientTopUnfocused[];
+//        gradBot.rgba = mTheme.mButtonGradientBotUnfocused[];
+
+//        if (mPushed)
+//        {
+//            gradTop.rgba = mTheme.mButtonGradientTopPushed[];
+//            gradBot.rgba = mTheme.mButtonGradientBotPushed[];
+//        } 
+//        //else if (mMouseFocus && mEnabled)
+//        //{
+//        //    gradTop = mTheme.mButtonGradientTopFocused;
+//        //    gradBot = mTheme.mButtonGradientBotFocused;
+//        //}
+
+//        nvg.beginPath;
+
+//        nvg.roundedRect(mPos.x + 1, mPos.y + 1.0f, mSize.x - 2,
+//                       mSize.y - 2, mTheme.mButtonCornerRadius - 1);
+
+//        //if (mBackgroundColor.w() != 0) {
+//        //    nvgFillColor(nvg, Color(mBackgroundColor.rgb, 1.f));
+//        //    nvgFill(nvg);
+//        //    if (mPushed) {
+//        //        gradTop.a = gradBot.a = 0.8f;
+//        //    } else {
+//        //        const v = 1 - mBackgroundColor.w();
+//        //        gradTop.a = gradBot.a = mEnabled ? v : v * .5f + .5f;
+//        //    }
+//        //}
+
+//        auto bg = nvg.linearGradient(mPos.x, mPos.y, mPos.x,
+//                                        mPos.y + mSize.y, gradTop, gradBot);
+
+//        nvg.fillPaint(bg);
+//        nvg.fill;
+
+//        nvg.beginPath;
+//        nvg.strokeWidth(1.0f);
+//        nvg.roundedRect(mPos.x + 0.5f, mPos.y + (mPushed ? 0.5f : 1.5f), mSize.x - 1,
+//                       mSize.y - 1 - (mPushed ? 0.0f : 1.0f), mTheme.mButtonCornerRadius);
+//        NVGColor nvg_color = void;
+//        nvg_color.rgba = mTheme.mBorderLight[];
+//        nvg.strokeColor(nvg_color);
+//        nvg.stroke;
+
+//        nvg.beginPath;
+//        nvg.roundedRect(mPos.x + 0.5f, mPos.y + 0.5f, mSize.x - 1,
+//                       mSize.y - 2, mTheme.mButtonCornerRadius);
+//        nvg_color.rgba = mTheme.mBorderDark[];
+//        nvg.strokeColor(nvg_color);
+//        nvg.stroke;
+
+//        const fontSize = mFontSize == -1 ? mTheme.mButtonFontSize : mFontSize;
+//        nvg.fontSize(fontSize);
+//        nvg.fontFace("sans-bold");
+//        const tw = nvg.textBounds(0, 0, mCaption, null);
+
+//        const Vector2f center = mPos + cast(Vector2f) mSize * 0.5f;
+//        const textPos = Vector2f(center.x - tw * 0.5f, center.y - 1);
+//        auto textColor =
+//            mTextColor.w == 0 ? mTheme.mTextColor : mTextColor;
+//        if (!mEnabled)
+//            textColor = mTheme.mDisabledTextColor;
+
+////        if (mIcon) {
+////            auto icon = utf8(mIcon);
+
+////            float iw, ih = fontSize;
+////            if (nvgIsFontIcon(mIcon)) {
+////                ih *= icon_scale();
+////                nvgFontSize(nvg, ih);
+////                nvgFontFace(nvg, "icons");
+////                iw = nvgTextBounds(nvg, 0, 0, icon.data(), nullptr, nullptr);
+////            } else {
+////                int w, h;
+////                ih *= 0.9f;
+////                nvgImageSize(nvg, mIcon, &w, &h);
+////                iw = w * ih / h;
+////            }
+////            if (mCaption != "")
+////                iw += mSize.y * 0.15f;
+////            nvgFillColor(nvg, textColor);
+////            nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
+////            Vector2f iconPos = center;
+////            iconPos.y -= 1;
+
+//////if (mIconPosition == IconPosition::LeftCentered) {
+//////    iconPos.x -= (tw + iw) * 0.5f;
+//////    textPos.x += iw * 0.5f;
+//////} else if (mIconPosition == IconPosition::RightCentered) {
+//////    textPos.x -= iw * 0.5f;
+//////    iconPos.x += tw * 0.5f;
+//////} else if (mIconPosition == IconPosition::Left) {
+//////    iconPos.x = mPos.x + 8;
+//////} else if (mIconPosition == IconPosition::Right) {
+//////    iconPos.x = mPos.x + mSize.x - iw - 8;
+//////}
+
+//////if (nvgIsFontIcon(mIcon)) {
+//////    nvgText(nvg, iconPos.x, iconPos.y+1, icon.data(), nullptr);
+//////} else {
+//////    NVGpaint imgPaint = nvgImagePattern(nvg,
+//////            iconPos.x, iconPos.y - ih/2, iw, ih, 0, mIcon, mEnabled ? 0.5f : 0.25f);
+
+//////    nvgFillPaint(nvg, imgPaint);
+//////    nvgFill(nvg);
+//////}
+////        }
+
+//        nvg.fontSize(fontSize);
+//        nvg.fontFace("sans-bold");
+//        NVGTextAlign align_;
+//        align_.left = true;
+//        align_.middle = true;
+//        nvg.textAlign(align_);
+//        nvg.fillColor(mTheme.mTextColorShadow);
+//        nvg.text(textPos.x, textPos.y, mCaption);
+//        nvg.fillColor(textColor);
+//        nvg.text(textPos.x, textPos.y + 1, mCaption);
+//    }
+}
+
+///// Save the state of the widget into the given \ref Serializer instance
+//virtual void save(Serializer &s) const;
+
+///// Restore the state of the widget from the given \ref Serializer instance
+//virtual bool load(Serializer &s);
+
+protected:
+    /// Free all resources used by the widget and any children
+    ~this()
+    {
+//foreach(child; mChildren) {
+//    if (child)
+//        child.decRef();
+//}
+    }
+
+    /**
+     * Convenience definition for subclasses to get the full icon scale for this
+     * class of Widget.  It simple returns the value
+     * ``mTheme.mIconScale * this.mIconExtraScale``.
+     *
+     * \remark
+     *     See also: \ref nanogui::Theme::mIconScale and
+     *     \ref nanogui::Widget::mIconExtraScale.  This tiered scaling
+     *     strategy may not be appropriate with fonts other than ``entypo.ttf``.
+     */
+    pragma(inline, true)
+    float icon_scale() const { return mTheme.mIconScale * mIconExtraScale; }
+
+//protected:
+    Widget mParent;
+    Theme mTheme;
+    Layout mLayout;
+    string mId;
+    Vector2i mPos, mSize, mFixedSize;
+    Array!Widget mChildren;
+
+    /**
+     * Whether or not this Widget is currently visible.  When a Widget is not
+     * currently visible, no time is wasted executing its drawing method.
+     */
+    bool mVisible;
+
+    /**
+     * Whether or not this Widget is currently enabled.  Various different kinds
+     * of derived types use this to determine whether or not user input will be
+     * accepted.  For example, when ``mEnabled == false``, the state of a
+     * CheckBox cannot be changed, or a TextBox will not allow new input.
+     */
+    bool mEnabled;
+    bool mFocused, mMouseFocus;
+    string mTooltip;
+    int mFontSize;
+
+    /**
+     * \brief The amount of extra icon scaling used in addition the the theme's
+     *        default icon font scale.  Default value is ``1.0``, which implies
+     *        that \ref nanogui::Widget::icon_scale simply returns the value
+     *        of \ref nanogui::Theme::mIconScale.
+     *
+     * Most widgets do not need extra scaling, but some (e.g., CheckBox, TextBox)
+     * need to adjust the Theme's default icon scaling
+     * (\ref nanogui::Theme::mIconScale) to properly display icons within their
+     * bounds (upscale, or downscale).
+     *
+     * \rst
+     * .. note::
+     *
+     *    When using ``nvgFontSize`` for icons in subclasses, make sure to call
+     *    the :func:`nanogui::Widget::icon_scale` function.  Expected usage when
+     *    *drawing* icon fonts is something like:
+     *
+     *    .. code-block:: cpp
+     *
+     *       virtual void draw(NVGcontext *nvg) {
+     *           // fontSize depends on the kind of Widget.  Search for `FontSize`
+     *           // in the Theme class (e.g., standard vs button)
+     *           float ih = fontSize;
+     *           // assuming your Widget has a declared `mIcon`
+     *           if (nvgIsFontIcon(mIcon)) {
+     *               ih *= icon_scale();
+     *               nvgFontFace(nvg, "icons");
+     *               nvgFontSize(nvg, ih);
+     *               /// remaining drawing code (see button.cpp for more)
+     *           }
+     *       }
+     * \endrst
+     */
+    float mIconExtraScale;
+    Cursor mCursor;
+}

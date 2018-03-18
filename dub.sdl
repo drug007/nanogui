@@ -1,0 +1,8 @@
+name "nanogui"
+description "A minimal D application."
+authors "drug"
+copyright "Copyright © 2018, drug"
+license "proprietary"
+dependency "arsd-official:simpledisplay" version="~>2.0.0"
+dependency "arsd-official:nanovega" version="~>2.0.0"
+dependency "gfm" version="~>6.2.0"
