@@ -36,8 +36,8 @@ void main () {
 		screen = new Screen(sdmain.width, sdmain.height);
 
 		window = new Window(screen, "Button demo");
-        window.position(Vector2i(15, 15));
-        window.theme = new Theme(nvg);
+		window.position(Vector2i(15, 15));
+		window.theme = new Theme(nvg);
 		window.size = Vector2i(screen.size.x - 30, screen.size.y - 30);
 		window.layout(new GroupLayout());
 
