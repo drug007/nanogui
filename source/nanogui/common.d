@@ -9,6 +9,23 @@ alias Vector2f = vec2f;
 //alias Color = NVGColor;
 alias Color = vec4f;
 
+enum MouseButton : int
+{
+	None      =  0,
+	Left      =  1,
+	Right     =  2,
+	Middle    =  4,
+	WheelUp   =  8,
+	WheelDown = 16, 
+}
+
+enum MouseAction : int
+{
+	Press   = 0,
+	Release = 1,
+	Motion  = 2,
+}
+
 /// Cursor shapes available to use in GLFW.  Shape of actual cursor determined by Operating System.
 enum Cursor {
 	Arrow = 0,  ///< The arrow cursor.

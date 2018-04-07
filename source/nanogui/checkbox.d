@@ -16,6 +16,7 @@ module nanogui.checkbox;
 
 import nanogui.widget;
 import nanogui.common : Vector2i, Vector2f;
+import nanogui.nanogui : MouseButton;
 
 /**
  * \class CheckBox checkbox.h nanogui/checkbox.h
@@ -79,25 +80,50 @@ public:
 	/// Sets the callback to be executed when this CheckBox is checked / unchecked.
 	final void callback(void delegate(bool) callback) { mCallback = callback; }
 
-///**
-// * The mouse button callback will return ``true`` when all three conditions are met:
-// *
-// * 1. This CheckBox is "enabled" (see \ref nanogui::Widget::mEnabled).
-// * 2. ``p`` is inside this CheckBox.
-// * 3. ``button`` is ``GLFW_MOUSE_BUTTON_1`` (left mouse click).
-// *
-// * Since a mouse button event is issued for both when the mouse is pressed, as well
-// * as released, this function sets \ref nanogui::CheckBox::mPushed to ``true`` when
-// * parameter ``down == true``.  When the second event (``down == false``) is fired,
-// * \ref nanogui::CheckBox::mChecked is inverted and \ref nanogui::CheckBox::mCallback
-// * is called.
-// *
-// * That is, the callback provided is only called when the mouse button is released,
-// * **and** the click location remains within the CheckBox boundaries.  If the user
-// * clicks on the CheckBox and releases away from the bounds of the CheckBox,
-// * \ref nanogui::CheckBox::mPushed is simply set back to ``false``.
-// */
-//override bool mouseButtonEvent(Vector2i p, int button, bool down, int modifiers);
+	/**
+	 * The mouse button callback will return ``true`` when all three conditions are met:
+	 *
+	 * 1. This CheckBox is "enabled" (see \ref nanogui::Widget::mEnabled).
+	 * 2. ``p`` is inside this CheckBox.
+	 * 3. ``button`` is ``GLFW_MOUSE_BUTTON_1`` (left mouse click).
+	 *
+	 * Since a mouse button event is issued for both when the mouse is pressed, as well
+	 * as released, this function sets \ref nanogui::CheckBox::mPushed to ``true`` when
+	 * parameter ``down == true``.  When the second event (``down == false``) is fired,
+	 * \ref nanogui::CheckBox::mChecked is inverted and \ref nanogui::CheckBox::mCallback
+	 * is called.
+	 *
+	 * That is, the callback provided is only called when the mouse button is released,
+	 * **and** the click location remains within the CheckBox boundaries.  If the user
+	 * clicks on the CheckBox and releases away from the bounds of the CheckBox,
+	 * \ref nanogui::CheckBox::mPushed is simply set back to ``false``.
+	 */
+	override bool mouseButtonEvent(Vector2i p, MouseButton button, bool down, int modifiers)
+	{
+		super.mouseButtonEvent(p, button, down, modifiers);
+		if (!mEnabled)
+			return false;
+
+		if (button == MouseButton.Left)
+		{
+			if (down)
+			{
+				mPushed = true;
+			}
+			else if (mPushed)
+			{
+				//if (contains(p))
+				{
+					mChecked = !mChecked;
+					if (mCallback)
+						mCallback(mChecked);
+				}
+				mPushed = false;
+			}
+			return true;
+		}
+		return false;
+	}
 
 	/// The preferred size of this CheckBox.
 	override Vector2i preferredSize(NVGContext nvg) const

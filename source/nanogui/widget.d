@@ -13,7 +13,7 @@ import std.container.array;
 
 import nanogui.theme;
 import nanogui.layout;
-import nanogui.common : Cursor, Vector2i, Vector2f;
+import nanogui.common : Cursor, Vector2i, Vector2f, MouseButton;
 public import nanogui.common;
 
 /**
@@ -38,7 +38,7 @@ public:
 //mFixedSize(Vector2i::Zero()), 
 		mVisible = true;
 		mEnabled = true;
-//mFocused(false), 
+		mFocused = false; 
 //mMouseFocus(false), 
 		mTooltip = ""; 
 		mFontSize = -1;
@@ -222,12 +222,19 @@ public:
 	/// Set whether or not this widget is currently enabled
 	final void enabled(bool enabled) { mEnabled = enabled; }
 
-///// Return whether or not this widget is currently focused
-//bool focused() const { return mFocused; }
-///// Set whether or not this widget is currently focused
-//void setFocused(bool focused) { mFocused = focused; }
-///// Request the focus to be moved to this widget
-//void requestFocus();
+	/// Return whether or not this widget is currently focused
+	bool focused() const { return mFocused; }
+	/// Set whether or not this widget is currently focused
+	void focused(bool focused) { mFocused = focused; }
+	/// Request the focus to be moved to this widget
+	void requestFocus()
+	{
+		import nanogui.nanogui : Screen;
+		Widget widget = this;
+		while (widget.parent())
+			widget = widget.parent();
+		(cast(Screen) widget).updateFocus(this);
+	}
 
 //const std::string &tooltip() const { return mTooltip; }
 //void setTooltip(const std::string &tooltip) { mTooltip = tooltip; }
@@ -272,8 +279,20 @@ public:
 ///// Determine the widget located at the given position value (recursive)
 //Widget *findWidget(const Vector2i &p);
 
-///// Handle a mouse button event (default implementation: propagate to children)
-//virtual bool mouseButtonEvent(const Vector2i &p, int button, bool down, int modifiers);
+	/// Handle a mouse button event (default implementation: propagate to children)
+	bool mouseButtonEvent(Vector2i p, MouseButton button, bool down, int modifiers)
+	{
+		foreach_reverse(ch; mChildren)
+		{
+			Widget child = ch;
+			if (child.visible && //child.contains(p - mPos) &&
+				child.mouseButtonEvent(p - mPos, button, down, modifiers))
+				return true;
+		}
+		if (button == MouseButton.Left && down && !mFocused)
+			requestFocus();
+		return false;
+	}
 
 ///// Handle a mouse motion event (default implementation: propagate to children)
 //virtual bool mouseMotionEvent(const Vector2i &p, const Vector2i &rel, int button, int modifiers);
