@@ -139,7 +139,7 @@ public:
         nvg.fillPaint(bg);
         nvg.fill;
 
-        //if (mChecked)
+        if (mChecked)
         {
             nvg.fontSize(mSize.y * icon_scale());
             nvg.fontFace("icons");

@@ -46,6 +46,7 @@ void main () {
 		checkbox = new CheckBox(window, "Text0123456789", null);
 		checkbox.position = Vector2i(100, 190);
 		checkbox.size = checkbox.preferredSize(nvg);
+		checkbox.checked = true;
 
 		label = new Label(window, "Label");
 		label.position = Vector2i(100, 300);
