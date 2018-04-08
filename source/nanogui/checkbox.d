@@ -112,7 +112,7 @@ public:
 			}
 			else if (mPushed)
 			{
-				//if (contains(p))
+				if (contains(p))
 				{
 					mChecked = !mChecked;
 					if (mCallback)

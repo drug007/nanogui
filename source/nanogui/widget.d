@@ -285,7 +285,7 @@ public:
 		foreach_reverse(ch; mChildren)
 		{
 			Widget child = ch;
-			if (child.visible && //child.contains(p - mPos) &&
+			if (child.visible && child.contains(p - mPos) &&
 				child.mouseButtonEvent(p - mPos, button, down, modifiers))
 				return true;
 		}
@@ -294,14 +294,34 @@ public:
 		return false;
 	}
 
-///// Handle a mouse motion event (default implementation: propagate to children)
-//virtual bool mouseMotionEvent(const Vector2i &p, const Vector2i &rel, int button, int modifiers);
+	/// Handle a mouse motion event (default implementation: propagate to children)
+	bool mouseMotionEvent(Vector2i p, Vector2i rel, MouseButton button, int modifiers)
+	{
+		foreach_reverse(it; mChildren)
+		{
+			Widget child = it;
+			if (!child.visible)
+				continue;
+			const contained = child.contains(p - mPos);
+			const prevContained = child.contains(p - mPos - rel);
+			if (contained != prevContained)
+				child.mouseEnterEvent(p, contained);
+			if ((contained || prevContained) &&
+				child.mouseMotionEvent(p - mPos, rel, button, modifiers))
+				return true;
+		}
+		return false;
+	}
 
 ///// Handle a mouse drag event (default implementation: do nothing)
 //virtual bool mouseDragEvent(const Vector2i &p, const Vector2i &rel, int button, int modifiers);
 
-///// Handle a mouse enter/leave event (default implementation: record this fact, but do nothing)
-//virtual bool mouseEnterEvent(const Vector2i &p, bool enter);
+	/// Handle a mouse enter/leave event (default implementation: record this fact, but do nothing)
+	bool mouseEnterEvent(Vector2i p, bool enter)
+	{
+		mMouseFocus = enter;
+		return false;
+	}
 
 ///// Handle a mouse scroll event (default implementation: propagate to children)
 //virtual bool scrollEvent(const Vector2i &p, const Vector2f &rel);

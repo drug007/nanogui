@@ -111,8 +111,53 @@ class Screen : Widget
 		//    moveWindowToFront(cast(Window) window);
 	}
 
+	bool cursorPosCallbackEvent(double x, double y, long last_interaction)
+	{
+		auto p = Vector2i(cast(int) x, cast(int) y);
+
+		//#if defined(_WIN32) || defined(__linux__)
+		//	p = (p.cast<float>() / mPixelRatio).cast<int>();
+		//#endif
+
+		bool ret;
+		mLastInteraction = last_interaction;
+		try
+		{
+			p -= Vector2i(1, 2);
+
+			//if (!mDragActive) {
+			//	const widget = findWidget(p);
+			//	if (widget !is null && widget.cursor != mCursor)
+			//	{
+			//		mCursor = widget.cursor;
+			//		glfwSetCursor(mGLFWWindow, mCursors[cast(int) mCursor]);
+			//	}
+			//}
+			//else
+			//{
+			//	ret = mDragWidget.mouseDragEvent(
+			//		p - mDragWidget.parent.absolutePosition, p - mMousePos,
+			//		mMouseState, mModifiers);
+			//}
+
+			if (!ret)
+				ret = mouseMotionEvent(p, p - mMousePos, mMouseState, mModifiers);
+
+			mMousePos = p;
+
+			return ret;
+		}
+		catch (Exception e)
+		{
+			import std.stdio : stderr;
+			stderr.writeln("Caught exception in event handler: ", e.msg);
+			return false;
+		}
+	}
+
 protected:
-	Vector2i mMousePos;
-	int      mModifiers;
-	long     mLastInteraction;
+	Vector2i    mMousePos;
+	int         mModifiers;
+	MouseButton mMouseState;
+	long        mLastInteraction;
 }

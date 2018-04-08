@@ -1,4 +1,5 @@
 1. handle sdmain.redrawOpenGlSceneNow()
-2. fake MousePos (Checkbox.mouseButtonEvent & Widget.mouseButtonEvent)
-3. dragndrop support in Screen.mouseButtonCallbackEvent is commented out
-4. Screen.updateFocus is commented out
+2. dragndrop support in Screen.mouseButtonCallbackEvent is commented out
+3. Screen.updateFocus is commented out
+4. Screen.cursorPosCallbackEvent do not handle pixelRatio (commented out)
+5. Screen.cursorPosCallbackEvent do not handle widget dragging (commented out)
