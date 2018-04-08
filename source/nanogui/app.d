@@ -78,6 +78,15 @@ void main () {
 				case arsd.simpledisplay.MouseButton.right:
 					btn = MouseButton.Right;
 				break;
+				case arsd.simpledisplay.MouseButton.middle:
+					btn = MouseButton.Middle;
+				break;
+				case arsd.simpledisplay.MouseButton.wheelUp:
+					btn = MouseButton.WheelUp;
+				break;
+				case arsd.simpledisplay.MouseButton.wheelDown:
+					btn = MouseButton.WheelDown;
+				break;
 				default:
 					btn = MouseButton.None;
 			}
