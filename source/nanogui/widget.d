@@ -351,163 +351,35 @@ public:
 		}
 	}
 
-/// Draw the widget (and all child widgets)
-void draw(NVGContext nvg)
-{
-	version(NANOGUI_SHOW_WIDGET_BOUNDS)
+	/// Draw the widget (and all child widgets)
+	void draw(NVGContext nvg)
 	{
-		nvg.strokeWidth(1.0f);
-		nvg.beginPath;
-		nvg.rect(mPos.x - 0.5f, mPos.y - 0.5f, mSize.x + 1, mSize.y + 1);
-		nvg.strokeColor(Color(255, 0, 0, 255));
-		nvg.stroke;
-	}
-
-	if (mChildren.length == 0)
-		return;
-
-	nvg.save;
-	nvg.translate(mPos.x, mPos.y);
-	foreach(child; mChildren)
-	{
-		if (child.visible)
+		version(NANOGUI_SHOW_WIDGET_BOUNDS)
 		{
-			nvg.save;
-			nvg.intersectScissor(child.mPos.x, child.mPos.y, child.mSize.x, child.mSize.y);
-			child.draw(nvg);
-			nvg.restore;
+			nvg.strokeWidth(1.0f);
+			nvg.beginPath;
+			nvg.rect(mPos.x - 0.5f, mPos.y - 0.5f, mSize.x + 1, mSize.y + 1);
+			nvg.strokeColor(Color(255, 0, 0, 255));
+			nvg.stroke;
 		}
+
+		if (mChildren.length == 0)
+			return;
+
+		nvg.save;
+		nvg.translate(mPos.x, mPos.y);
+		foreach(child; mChildren)
+		{
+			if (child.visible)
+			{
+				nvg.save;
+				nvg.intersectScissor(child.mPos.x, child.mPos.y, child.mSize.x, child.mSize.y);
+				child.draw(nvg);
+				nvg.restore;
+			}
+		}
+		nvg.restore;
 	}
-	nvg.restore;
-
-//    {
-//        //Widget::draw(nvg);
-//auto mPushed = true;
-//auto mCaption = "Caption";
-//auto mTextColor = mTheme.mTextColor;
-
-//        NVGColor gradTop, gradBot;
-//        gradTop.rgba = mTheme.mButtonGradientTopUnfocused[];
-//        gradBot.rgba = mTheme.mButtonGradientBotUnfocused[];
-
-//        if (mPushed)
-//        {
-//            gradTop.rgba = mTheme.mButtonGradientTopPushed[];
-//            gradBot.rgba = mTheme.mButtonGradientBotPushed[];
-//        } 
-//        //else if (mMouseFocus && mEnabled)
-//        //{
-//        //    gradTop = mTheme.mButtonGradientTopFocused;
-//        //    gradBot = mTheme.mButtonGradientBotFocused;
-//        //}
-
-//        nvg.beginPath;
-
-//        nvg.roundedRect(mPos.x + 1, mPos.y + 1.0f, mSize.x - 2,
-//                       mSize.y - 2, mTheme.mButtonCornerRadius - 1);
-
-//        //if (mBackgroundColor.w() != 0) {
-//        //    nvgFillColor(nvg, Color(mBackgroundColor.rgb, 1.f));
-//        //    nvgFill(nvg);
-//        //    if (mPushed) {
-//        //        gradTop.a = gradBot.a = 0.8f;
-//        //    } else {
-//        //        const v = 1 - mBackgroundColor.w();
-//        //        gradTop.a = gradBot.a = mEnabled ? v : v * .5f + .5f;
-//        //    }
-//        //}
-
-//        auto bg = nvg.linearGradient(mPos.x, mPos.y, mPos.x,
-//                                        mPos.y + mSize.y, gradTop, gradBot);
-
-//        nvg.fillPaint(bg);
-//        nvg.fill;
-
-//        nvg.beginPath;
-//        nvg.strokeWidth(1.0f);
-//        nvg.roundedRect(mPos.x + 0.5f, mPos.y + (mPushed ? 0.5f : 1.5f), mSize.x - 1,
-//                       mSize.y - 1 - (mPushed ? 0.0f : 1.0f), mTheme.mButtonCornerRadius);
-//        NVGColor nvg_color = void;
-//        nvg_color.rgba = mTheme.mBorderLight[];
-//        nvg.strokeColor(nvg_color);
-//        nvg.stroke;
-
-//        nvg.beginPath;
-//        nvg.roundedRect(mPos.x + 0.5f, mPos.y + 0.5f, mSize.x - 1,
-//                       mSize.y - 2, mTheme.mButtonCornerRadius);
-//        nvg_color.rgba = mTheme.mBorderDark[];
-//        nvg.strokeColor(nvg_color);
-//        nvg.stroke;
-
-//        const fontSize = mFontSize == -1 ? mTheme.mButtonFontSize : mFontSize;
-//        nvg.fontSize(fontSize);
-//        nvg.fontFace("sans-bold");
-//        const tw = nvg.textBounds(0, 0, mCaption, null);
-
-//        const Vector2f center = mPos + cast(Vector2f) mSize * 0.5f;
-//        const textPos = Vector2f(center.x - tw * 0.5f, center.y - 1);
-//        auto textColor =
-//            mTextColor.w == 0 ? mTheme.mTextColor : mTextColor;
-//        if (!mEnabled)
-//            textColor = mTheme.mDisabledTextColor;
-
-////        if (mIcon) {
-////            auto icon = utf8(mIcon);
-
-////            float iw, ih = fontSize;
-////            if (nvgIsFontIcon(mIcon)) {
-////                ih *= icon_scale();
-////                nvgFontSize(nvg, ih);
-////                nvgFontFace(nvg, "icons");
-////                iw = nvgTextBounds(nvg, 0, 0, icon.data(), nullptr, nullptr);
-////            } else {
-////                int w, h;
-////                ih *= 0.9f;
-////                nvgImageSize(nvg, mIcon, &w, &h);
-////                iw = w * ih / h;
-////            }
-////            if (mCaption != "")
-////                iw += mSize.y * 0.15f;
-////            nvgFillColor(nvg, textColor);
-////            nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-////            Vector2f iconPos = center;
-////            iconPos.y -= 1;
-
-//////if (mIconPosition == IconPosition::LeftCentered) {
-//////    iconPos.x -= (tw + iw) * 0.5f;
-//////    textPos.x += iw * 0.5f;
-//////} else if (mIconPosition == IconPosition::RightCentered) {
-//////    textPos.x -= iw * 0.5f;
-//////    iconPos.x += tw * 0.5f;
-//////} else if (mIconPosition == IconPosition::Left) {
-//////    iconPos.x = mPos.x + 8;
-//////} else if (mIconPosition == IconPosition::Right) {
-//////    iconPos.x = mPos.x + mSize.x - iw - 8;
-//////}
-
-//////if (nvgIsFontIcon(mIcon)) {
-//////    nvgText(nvg, iconPos.x, iconPos.y+1, icon.data(), nullptr);
-//////} else {
-//////    NVGpaint imgPaint = nvgImagePattern(nvg,
-//////            iconPos.x, iconPos.y - ih/2, iw, ih, 0, mIcon, mEnabled ? 0.5f : 0.25f);
-
-//////    nvgFillPaint(nvg, imgPaint);
-//////    nvgFill(nvg);
-//////}
-////        }
-
-//        nvg.fontSize(fontSize);
-//        nvg.fontFace("sans-bold");
-//        NVGTextAlign align_;
-//        align_.left = true;
-//        align_.middle = true;
-//        nvg.textAlign(align_);
-//        nvg.fillColor(mTheme.mTextColorShadow);
-//        nvg.text(textPos.x, textPos.y, mCaption);
-//        nvg.fillColor(textColor);
-//        nvg.text(textPos.x, textPos.y + 1, mCaption);
-//    }
-}
 
 ///// Save the state of the widget into the given \ref Serializer instance
 //virtual void save(Serializer &s) const;
