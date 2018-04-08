@@ -8,6 +8,8 @@ import nanogui.common : Vector2i, MouseButton, MouseAction;
 
 class Screen : Widget
 {
+	import nanogui.window : Window;
+
 	this(int w, int h)
 	{
 		super(null);
@@ -90,25 +92,26 @@ class Screen : Widget
 
 	final void updateFocus(Widget widget)
 	{
-		//foreach (w; mFocusPath)
-		//{
-		//    if (!w.focused())
-		//        continue;
-		//    w.focusEvent(false);
-		//}
-		//mFocusPath.clear();
-		//Widget *window = nullptr;
-		//while (widget) {
-		//    mFocusPath.push_back(widget);
-		//    if (cast(Window)(widget))
-		//        window = widget;
-		//    widget = widget.parent();
-		//}
-		//for (auto it = mFocusPath.rbegin(); it != mFocusPath.rend(); ++it)
-		//    (*it).focusEvent(true);
+		foreach (w; mFocusPath)
+		{
+			if (!w.focused)
+				continue;
+			w.focusEvent(false);
+		}
+		mFocusPath.clear;
+		Widget window;
+		while (widget)
+		{
+			mFocusPath.insertBack(widget);
+			if (cast(Window)(widget))
+				window = widget;
+			widget = widget.parent;
+		}
+		foreach_reverse(it; mFocusPath)
+			it.focusEvent(true);
 
-		//if (window)
-		//    moveWindowToFront(cast(Window) window);
+		if (window)
+			moveWindowToFront(cast(Window) window);
 	}
 
 	bool cursorPosCallbackEvent(double x, double y, long last_interaction)
@@ -155,9 +158,51 @@ class Screen : Widget
 		}
 	}
 
+	void moveWindowToFront(Window window) {
+		// mChildren.erase(std::remove(mChildren.begin(), mChildren.end(), window), mChildren.end());
+		{
+			// non-idiomatic way to implement erase-remove idiom in dlang
+			size_t i;
+			foreach(_; mChildren)
+			{
+				if (mChildren[i] is window)
+					break;
+				i++;
+			}
+			if (i < mChildren.length)
+			{
+				foreach(j; i..mChildren.length-1)
+					mChildren[j] = mChildren[j+1];
+				mChildren.removeBack;
+			}
+		}
+		mChildren.insertBack(window);
+		/* Brute force topological sort (no problem for a few windows..) */
+		bool changed = false;
+		do {
+			size_t baseIndex = 0;
+			for (size_t index = 0; index < mChildren.length; ++index)
+				if (mChildren[index] == window)
+					baseIndex = index;
+			changed = false;
+			//for (size_t index = 0; index < mChildren.size(); ++index)
+			//{
+			//	Popup pw = cast(Popup) mChildren[index];
+			//	if (pw && pw.parentWindow() is window && index < baseIndex) {
+			//		moveWindowToFront(pw);
+			//		changed = true;
+			//		break;
+			//	}
+			//}
+		} while (changed);
+	}
+
 protected:
-	Vector2i    mMousePos;
-	int         mModifiers;
-	MouseButton mMouseState;
-	long        mLastInteraction;
+	import std.container.array : Array;
+
+	Vector2i     mMousePos;
+	int          mModifiers;
+	MouseButton  mMouseState;
+	long         mLastInteraction;
+	Array!Widget mFocusPath;
 }

@@ -326,8 +326,12 @@ public:
 ///// Handle a mouse scroll event (default implementation: propagate to children)
 //virtual bool scrollEvent(const Vector2i &p, const Vector2f &rel);
 
-///// Handle a focus change event (default implementation: record the focus status, but do nothing)
-//virtual bool focusEvent(bool focused);
+	/// Handle a focus change event (default implementation: record the focus status, but do nothing)
+	bool focusEvent(bool focused)
+	{
+		mFocused = focused;
+		return false;
+	}
 
 ///// Handle a keyboard event (default implementation: do nothing)
 //virtual bool keyboardEvent(int key, int scancode, int action, int modifiers);

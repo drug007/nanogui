@@ -62,6 +62,7 @@ public:
 	/// Draw the window
 	override void draw(NVGContext nvg)
 	{
+		assert (mTheme);
 		int ds = mTheme.mWindowDropShadowSize, cr = mTheme.mWindowCornerRadius;
 		int hh = mTheme.mWindowHeaderHeight;
 
@@ -151,7 +152,6 @@ public:
 	/// Compute the preferred size of the widget
 	override Vector2i preferredSize(NVGContext nvg) const
 	{
-		scope (exit) assert(0);
 		Vector2i result = Widget.preferredSize(nvg, mButtonPanel);
 
 		nvg.fontSize(18.0f);

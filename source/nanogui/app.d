@@ -20,9 +20,6 @@ void main () {
 	import nanogui.nanogui : Screen;
 	import nanogui.widget, nanogui.theme, nanogui.checkbox, nanogui.label, nanogui.common, nanogui.window, nanogui.layout;
 
-	Window window;
-	CheckBox checkbox;
-	Label label;
 	Screen screen;
 
 	// this is called just before our window will be shown for the first time.
@@ -34,25 +31,55 @@ void main () {
 		assert(nvg !is null, "cannot initialize NanoGui");
 
 		screen = new Screen(sdmain.width, sdmain.height);
+		screen.theme = new Theme(nvg);
 
-		window = new Window(screen, "Button demo");
-		window.position(Vector2i(15, 15));
-		window.theme = new Theme(nvg);
-		window.size = Vector2i(screen.size.x - 30, screen.size.y - 30);
-		window.layout(new GroupLayout());
+		{
+			auto window = new Window(screen, "Button demo");
+			window.position(Vector2i(15, 15));
+			window.size = Vector2i(screen.size.x - 30, screen.size.y - 30);
+			window.layout(new GroupLayout());
 
-		new Label(window, "Push buttons", "sans-bold");
+			new Label(window, "Push buttons", "sans-bold");
 
-		checkbox = new CheckBox(window, "Text0123456789", (bool value){ sdmain.redrawOpenGlSceneNow(); });
-		checkbox.position = Vector2i(100, 190);
-		checkbox.size = checkbox.preferredSize(nvg);
-		checkbox.checked = true;
+			auto checkbox = new CheckBox(window, "Checkbox #1", (bool value){ sdmain.redrawOpenGlSceneNow(); });
+			checkbox.position = Vector2i(100, 190);
+			checkbox.size = checkbox.preferredSize(nvg);
+			checkbox.checked = true;
 
-		label = new Label(window, "Label");
-		label.position = Vector2i(100, 300);
-		label.size = label.preferredSize(nvg);
+			auto label = new Label(window, "Label");
+			label.position = Vector2i(100, 300);
+			label.size = label.preferredSize(nvg);
+		}
+
+		{
+			auto window = new Window(screen, "Basic widgets");
+			window.position(Vector2i(200, 15));
+			window.layout(new GroupLayout());
+
+			new Label(window, "Message dialog", "sans-bold");
+			new CheckBox(window, "Checkbox #2", (bool value){ sdmain.redrawOpenGlSceneNow(); });
+		}
+
+		{
+			auto window = new Window(screen, "Yet another window");
+			window.position(Vector2i(300, 15));
+			window.layout(new GroupLayout());
+
+			new Label(window, "Message dialog", "sans-bold");
+			new CheckBox(window, "Checkbox #3", (bool value){ sdmain.redrawOpenGlSceneNow(); });
+		}
+
+		{
+			auto window = new Window(screen, "Yet another window");
+			window.position(Vector2i(400, 15));
+			window.layout(new GroupLayout());
+
+			new Label(window, "Message dialog", "sans-bold");
+			new CheckBox(window, "Checkbox #4", (bool value){ sdmain.redrawOpenGlSceneNow(); });
+		}
+
 		// now we should do layout manually yet
-		window.performLayout(nvg);
+		screen.performLayout(nvg);
 	};
 
 	// this callback will be called when we will need to repaint our window
