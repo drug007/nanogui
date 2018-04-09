@@ -66,7 +66,7 @@ void main () {
 			window.layout(new GroupLayout());
 
 			new Label(window, "Message dialog", "sans-bold");
-			new CheckBox(window, "Checkbox #3", (bool value){ sdmain.redrawOpenGlSceneNow(); });
+			new CheckBox(window, "Checkbox #3", (bool value){ });
 		}
 
 		{
@@ -75,7 +75,7 @@ void main () {
 			window.layout(new GroupLayout());
 
 			new Label(window, "Message dialog", "sans-bold");
-			new CheckBox(window, "Checkbox #4", (bool value){ sdmain.redrawOpenGlSceneNow(); });
+			new CheckBox(window, "Checkbox #4", (bool value){ });
 		}
 
 		// now we should do layout manually yet
@@ -93,6 +93,8 @@ void main () {
 		{
 			import std.datetime : Clock;
 			import nanogui.common : MouseButton, MouseAction;
+
+			scope(success) sdmain.redrawOpenGlSceneNow();
 
 			MouseButton btn;
 			MouseAction action;
@@ -132,7 +134,7 @@ void main () {
 				case arsd.simpledisplay.MouseEventType.motion:
 					action = MouseAction.Motion;
 					screen.cursorPosCallbackEvent(event.x, event.y, Clock.currTime.stdTime);
-				break;
+				return;
 			}
 
 			if (event.modifierState & ModifierState.leftButtonDown)

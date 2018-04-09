@@ -13,7 +13,7 @@ module nanogui.window;
 /** \file */
 
 import nanogui.widget;
-import nanogui.common : Vector2i, Vector2f;
+import nanogui.common : Vector2i, Vector2f, MouseButton;
 
 /**
  * \class Window window.h nanogui/window.h
@@ -143,10 +143,40 @@ public:
 		nvg.restore;
 		Widget.draw(nvg);
 	}
-///// Handle window drag events
-//override bool mouseDragEvent(Vector2i p, Vector2i rel, int button, int modifiers);
-///// Handle mouse events recursively and bring the current window to the top
-//override bool mouseButtonEvent(Vector2i p, int button, bool down, int modifiers);
+	/// Handle window drag events
+	override bool mouseDragEvent(Vector2i p, Vector2i rel, MouseButton button, int modifiers)
+	{
+		import std.algorithm : min, max;
+
+		if (mDrag && (button & (1 << MouseButton.Left)) != 0) {
+			mPos += rel;
+			{
+				// mPos = mPos.cwiseMax(Vector2i::Zero());
+				mPos[0] = max(mPos[0], 0);
+				mPos[1] = max(mPos[1], 0);
+			}
+			{
+				// mPos = mPos.cwiseMin(parent()->size() - mSize);
+				auto other = parent.size - mSize;
+				mPos[0] = min(mPos[0], other[0]);
+				mPos[1] = min(mPos[1], other[1]);
+			}
+			return true;
+		}
+		return false;
+	}
+	/// Handle mouse events recursively and bring the current window to the top
+	override bool mouseButtonEvent(Vector2i p, MouseButton button, bool down, int modifiers)
+	{
+		if (super.mouseButtonEvent(p, button, down, modifiers))
+			return true;
+		if (button == MouseButton.Left)
+		{
+			mDrag = down && (p.y - mPos.y) < mTheme.mWindowHeaderHeight;
+			return true;
+		}
+		return false;
+	}
 ///// Accept scroll events and propagate them to the widget under the mouse cursor
 //override bool scrollEvent(Vector2i p, Vector2f rel);
 	/// Compute the preferred size of the widget

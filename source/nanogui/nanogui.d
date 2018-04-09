@@ -31,60 +31,61 @@ class Screen : Widget
 		super.draw(nvg);
 	}
 
-	bool mouseButtonCallbackEvent(MouseButton button, int action, int modifiers, long timestamp)
+	bool mouseButtonCallbackEvent(MouseButton button, MouseAction action, int modifiers, long timestamp)
 	{
 		mModifiers = modifiers;
 		mLastInteraction = timestamp;
-		//try
-		//{
-		//	if (mFocusPath.size() > 1)
-		//	{
-		//		const window = cast(Window) (mFocusPath[mFocusPath.size() - 2]);
-		//		if (window && window.modal)
-		//		{
-		//			if (!window.contains(mMousePos))
-		//				return false;
-		//		}
-		//	}
+		try
+		{
+			if (mFocusPath.length > 1)
+			{
+				const window = cast(Window) (mFocusPath[mFocusPath.length - 2]);
+				if (window && window.modal)
+				{
+					if (!window.contains(mMousePos))
+						return false;
+				}
+			}
 
-		//	if (action == GLFW_PRESS)
-		//		mMouseState |= 1 << button;
-		//	else
-		//		mMouseState &= ~(1 << button);
+			if (action == MouseAction.Press)
+				mMouseState |= 1 << button;
+			else
+				mMouseState &= ~(1 << button);
 
-		//	auto dropWidget = findWidget(mMousePos);
-		//	if (mDragActive && action == GLFW_RELEASE &&
-		//		dropWidget != mDragWidget)
-		//		mDragWidget.mouseButtonEvent(
-		//			mMousePos - mDragWidget.parent().absolutePosition(), button,
-		//			false, mModifiers);
+			const dropWidget = findWidget(mMousePos);
+			if (mDragActive && action == MouseAction.Release &&
+				dropWidget !is mDragWidget)
+				mDragWidget.mouseButtonEvent(
+					mMousePos - mDragWidget.parent.absolutePosition, button,
+					false, mModifiers);
 
-		//	if (dropWidget != nullptr && dropWidget.cursor() != mCursor) {
-		//		mCursor = dropWidget.cursor();
-		//		glfwSetCursor(mGLFWWindow, mCursors[cast(int) mCursor]);
-		//	}
+			//if (dropWidget !is null && dropWidget.cursor != mCursor)
+			//{
+			//	mCursor = dropWidget.cursor;
+			//	glfwSetCursor(mGLFWWindow, mCursors[cast(int) mCursor]);
+			//}
 
-		//	if (action == GLFW_PRESS && (button == GLFW_MOUSE_BUTTON_1 || button == GLFW_MOUSE_BUTTON_2)) {
-		//		mDragWidget = findWidget(mMousePos);
-		//		if (mDragWidget == this)
-		//			mDragWidget = nullptr;
-		//		mDragActive = mDragWidget != nullptr;
-		//		if (!mDragActive)
-		//			updateFocus(nullptr);
-		//	} else {
-		//		mDragActive = false;
-		//		mDragWidget = nullptr;
-		//	}
+			if (action == MouseAction.Press && (button ==MouseButton.Left || button == MouseButton.Right)) {
+				mDragWidget = findWidget(mMousePos);
+				if (mDragWidget is this)
+					mDragWidget = null;
+				mDragActive = mDragWidget !is null;
+				if (!mDragActive)
+					updateFocus(null);
+			} else {
+				mDragActive = false;
+				mDragWidget = null;
+			}
 
 			return mouseButtonEvent(mMousePos, button, action == MouseAction.Press,
 									mModifiers);
-		//}
-		//catch (const exception e)
-		//{
-		//	import std.stdio : stderr;
-		//	stderr.writeln("Caught exception in event handler: ", e.msg);
-		//	return false;
-		//}
+		}
+		catch (Exception e)
+		{
+			import std.stdio : stderr;
+			stderr.writeln("Caught exception in event handler: ", e.msg);
+			return false;
+		}
 	}
 
 	/// Return the last observed mouse position value
@@ -128,20 +129,21 @@ class Screen : Widget
 		{
 			p -= Vector2i(1, 2);
 
-			//if (!mDragActive) {
-			//	const widget = findWidget(p);
-			//	if (widget !is null && widget.cursor != mCursor)
-			//	{
-			//		mCursor = widget.cursor;
-			//		glfwSetCursor(mGLFWWindow, mCursors[cast(int) mCursor]);
-			//	}
-			//}
-			//else
-			//{
-			//	ret = mDragWidget.mouseDragEvent(
-			//		p - mDragWidget.parent.absolutePosition, p - mMousePos,
-			//		mMouseState, mModifiers);
-			//}
+			if (!mDragActive)
+			{
+				//const widget = findWidget(p);
+				//if (widget !is null && widget.cursor != mCursor)
+				//{
+				//	mCursor = widget.cursor;
+				//	glfwSetCursor(mGLFWWindow, mCursors[cast(int) mCursor]);
+				//}
+			}
+			else
+			{
+				ret = mDragWidget.mouseDragEvent(
+				p - mDragWidget.parent.absolutePosition, p - mMousePos,
+				mMouseState, mModifiers);
+			}
 
 			if (!ret)
 				ret = mouseMotionEvent(p, p - mMousePos, mMouseState, mModifiers);
@@ -205,4 +207,6 @@ protected:
 	MouseButton  mMouseState;
 	long         mLastInteraction;
 	Array!Widget mFocusPath;
+    bool         mDragActive;
+    Widget       mDragWidget;
 }

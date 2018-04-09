@@ -1,7 +1,7 @@
 1. handle sdmain.redrawOpenGlSceneNow()
-2. dragndrop support in Screen.mouseButtonCallbackEvent is commented out
+2. Screen.mouseButtonCallbackEvent - commented out cursor changing
 3. Screen.cursorPosCallbackEvent do not handle pixelRatio (commented out)
-4. Screen.cursorPosCallbackEvent do not handle widget dragging (commented out)
+4. Screen.cursorPosCallbackEvent - commented out cursor changing
 5. Screen.moveWindowToFront - non-idiomatic way to implement c++ erase-remove idiom in dlang
 6. there is no resize
 7. there is no key events

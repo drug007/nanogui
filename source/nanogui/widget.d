@@ -50,8 +50,8 @@ public:
 
 	/// Return the parent widget
 	final Widget parent() { return mParent; }
-///// Return the parent widget
-//const Widget parent() const { return mParent; }
+	/// Return the parent widget
+	auto parent() const { return mParent; }
 	/// Set the parent widget
 	final void parent(Widget parent) { mParent = parent; }
 
@@ -81,11 +81,12 @@ public:
 	/// Set the position relative to the parent widget
 	final void position(Vector2i pos) { mPos = pos; }
 
-///// Return the absolute position on screen
-//final Vector2i absolutePosition() const {
-//    return mParent ?
-//        (parent.absolutePosition + mPos) : mPos;
-//}
+	/// Return the absolute position on screen
+	final Vector2i absolutePosition() const
+	{
+		return mParent ?
+			(parent.absolutePosition + mPos) : mPos;
+	}
 
 	/// Return the size of the widget
 	final Vector2i size() const { return mSize; }
@@ -276,8 +277,16 @@ public:
 		return d[].all!"a>=0" && (d-mSize)[].all!"a<=0";
 	}
 
-///// Determine the widget located at the given position value (recursive)
-//Widget *findWidget(const Vector2i &p);
+	/// Determine the widget located at the given position value (recursive)
+	Widget findWidget(Vector2i p)
+	{
+		foreach_reverse(child; mChildren)
+		{
+			if (child.visible() && child.contains(p - mPos))
+				return child.findWidget(p - mPos);
+		}
+		return contains(p) ? this : null;
+	}
 
 	/// Handle a mouse button event (default implementation: propagate to children)
 	bool mouseButtonEvent(Vector2i p, MouseButton button, bool down, int modifiers)
@@ -313,8 +322,11 @@ public:
 		return false;
 	}
 
-///// Handle a mouse drag event (default implementation: do nothing)
-//virtual bool mouseDragEvent(const Vector2i &p, const Vector2i &rel, int button, int modifiers);
+	/// Handle a mouse drag event (default implementation: do nothing)
+	bool mouseDragEvent(Vector2i p, Vector2i rel, MouseButton button, int modifiers)
+	{
+		return false;
+	}
 
 	/// Handle a mouse enter/leave event (default implementation: record this fact, but do nothing)
 	bool mouseEnterEvent(Vector2i p, bool enter)
