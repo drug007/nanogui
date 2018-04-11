@@ -4,4 +4,7 @@
 5. Screen.moveWindowToFront - non-idiomatic way to implement c++ erase-remove idiom in dlang
 6. there is no resize
 7. there is no key events
-8. Screen.moveWindowToFront - support for popup window is commented out
+8. save and load not implemented at all
+9. using dchar[1] for icon should be rethinked
+10. in Button imageSize is commented out (serious drawback)
+11. in Window was forced to make refreshRelativePlacement public instead of protected like in original

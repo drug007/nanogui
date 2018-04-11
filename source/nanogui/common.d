@@ -89,3 +89,18 @@ public void strokeColor (NVGContext ctx, Color color) nothrow @trusted @nogc
 	clr.rgba[] /= 255f;
 	arsd.nanovega.strokeColor(ctx, clr);
 }
+
+/**
+ * \brief Determine whether an icon ID is a font-based icon (e.g. from ``entypo.ttf``).
+ *
+ * \rst
+ * See :func:`nanogui::nvgIsImageIcon` for details.
+ * \endrst
+ *
+ * \param value
+ *     The integral value of the icon.
+ *
+ * \return
+ *     Whether or not this is a font icon (from ``entypo.ttf``).
+ */
+bool isFontIcon(int value) { return value >= 1024; }

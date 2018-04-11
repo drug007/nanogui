@@ -216,9 +216,13 @@ public:
 	}
 //override void save(Serializer &s) const;
 //override bool load(Serializer &s);
+public:
+	/// Internal helper function to maintain nested window position values; overridden in \ref Popup
+	void refreshRelativePlacement()
+	{
+		/* Overridden in \ref Popup */
+	}
 protected:
-///// Internal helper function to maintain nested window position values; overridden in \ref Popup
-//override void refreshRelativePlacement();
 
 	string mTitle;
 	Widget mButtonPanel;

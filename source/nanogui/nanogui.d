@@ -187,15 +187,16 @@ class Screen : Widget
 				if (mChildren[index] == window)
 					baseIndex = index;
 			changed = false;
-			//for (size_t index = 0; index < mChildren.size(); ++index)
-			//{
-			//	Popup pw = cast(Popup) mChildren[index];
-			//	if (pw && pw.parentWindow() is window && index < baseIndex) {
-			//		moveWindowToFront(pw);
-			//		changed = true;
-			//		break;
-			//	}
-			//}
+			for (size_t index = 0; index < mChildren.length; ++index)
+			{
+				import nanogui.popup : Popup;
+				Popup pw = cast(Popup) mChildren[index];
+				if (pw && pw.parentWindow is window && index < baseIndex) {
+					moveWindowToFront(pw);
+					changed = true;
+					break;
+				}
+			}
 		} while (changed);
 	}
 

@@ -18,7 +18,9 @@ void main () {
 	};
 
 	import nanogui.nanogui : Screen;
-	import nanogui.widget, nanogui.theme, nanogui.checkbox, nanogui.label, nanogui.common, nanogui.window, nanogui.layout;
+	import nanogui.widget, nanogui.theme, nanogui.checkbox, nanogui.label, 
+		nanogui.common, nanogui.window, nanogui.layout, nanogui.button,
+		nanogui.popupbutton, nanogui.entypo, nanogui.popup;
 
 	Screen screen;
 
@@ -49,15 +51,44 @@ void main () {
 			auto label = new Label(window, "Label");
 			label.position = Vector2i(100, 300);
 			label.size = label.preferredSize(nvg);
+
+			Popup popup;
+
+			auto btn = new Button(window, "Button");
+			btn.callback = () { 
+				popup.children[0].visible = !popup.children[0].visible; 
+				label.caption = popup.children[0].visible ? 
+					"Popup label is visible" : "Popup label isn't visible";
+			};
+
+			auto popupBtn = new PopupButton(window, "PopupButton", ENTYPO_ICON_EXPORT);
+			popup = popupBtn.popup;
+	        popup.layout(new GroupLayout());
+	        new Label(popup, "Arbitrary widgets can be placed here");
+	        new CheckBox(popup, "A check box", null);
 		}
 
 		{
-			auto window = new Window(screen, "Basic widgets");
+			auto window = new Window(screen, "Button group example");
 			window.position(Vector2i(200, 15));
 			window.layout(new GroupLayout());
 
-			new Label(window, "Message dialog", "sans-bold");
-			new CheckBox(window, "Checkbox #2", (bool value){ sdmain.redrawOpenGlSceneNow(); });
+			auto buttonGroup = ButtonGroup();
+
+			auto btn = new Button(window, "RadioButton1");
+			btn.flags = Button.Flags.RadioButton;
+			btn.buttonGroup = buttonGroup;
+			buttonGroup ~= btn;
+
+			btn = new Button(window, "RadioButton2");
+			btn.flags = Button.Flags.RadioButton;
+			btn.buttonGroup = buttonGroup;
+			buttonGroup ~= btn;
+
+			btn = new Button(window, "RadioButton3");
+			btn.flags = Button.Flags.RadioButton;
+			btn.buttonGroup = buttonGroup;
+			buttonGroup ~= btn;
 		}
 
 		{

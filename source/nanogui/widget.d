@@ -121,17 +121,17 @@ public:
 	/// Set whether or not the widget is currently visible (assuming all parents are visible)
 	final void visible(bool visible) { mVisible = visible; }
 
-///// Check if this widget is currently visible, taking parent widgets into account
-//final bool visibleRecursive() const {
-//    import std.typecons : Rebindable;
-//    bool visible = true;
-//    Rebindable!(const Widget) widget = this;
-//    while (widget) {
-//        visible &= widget.visible;
-//        widget = widget.parent;
-//    }
-//    return visible;
-//}
+	/// Check if this widget is currently visible, taking parent widgets into account
+	final bool visibleRecursive() const {
+		import std.typecons : Rebindable;
+		bool visible = true;
+		Rebindable!(const Widget) widget = this;
+		while (widget) {
+			visible &= widget.visible;
+			widget = widget.parent;
+		}
+		return visible;
+	}
 
 	// Return the number of child widgets
 	final int childCount() const
@@ -197,8 +197,22 @@ public:
 //    return new WidgetClass(this, args...);
 //}
 
-	///// Walk up the hierarchy and return the parent window
-	//final Window window();
+	/// Walk up the hierarchy and return the parent window
+	final Window window()
+	{
+		import std.exception : Exception;
+
+		Widget widget = this;
+		while (true) {
+			if (!widget)
+				throw new Exception(
+					"Widget:internal error (could not find parent window)");
+			Window window = cast(Window)(widget);
+			if (window)
+				return window;
+			widget = widget.parent;
+		}
+	}
 
 	///// Walk up the hierarchy and return the parent screen
 	//final Screen screen();
