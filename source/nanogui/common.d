@@ -37,29 +37,6 @@ enum Cursor {
 	CursorCount ///< Not a cursor --- should always be last: enables a loop over the cursor types.
 }
 
-char[8] utf8(int c) {
-	char[8] seq;
-	int n;
-	if (c < 0x80) n = 1;
-	else if (c < 0x800) n = 2;
-	else if (c < 0x10000) n = 3;
-	else if (c < 0x200000) n = 4;
-	else if (c < 0x4000000) n = 5;
-	else if (c <= 0x7fffffff) n = 6;
-	seq[n] = '\0';
-	switch (n) {
-		default:
-			assert(0);
-		case 6: seq[5] = 0x80 | (c & 0x3f); c = c >> 6; c |= 0x4000000; goto case;
-		case 5: seq[4] = 0x80 | (c & 0x3f); c = c >> 6; c |= 0x200000;  goto case;
-		case 4: seq[3] = 0x80 | (c & 0x3f); c = c >> 6; c |= 0x10000;   goto case;
-		case 3: seq[2] = 0x80 | (c & 0x3f); c = c >> 6; c |= 0x800;     goto case;
-		case 2: seq[1] = 0x80 | (c & 0x3f); c = c >> 6; c |= 0xc0;      goto case;
-		case 1: seq[0] = c & 255;
-	}
-	return seq;
-}
-
 /// Sets current fill style to a solid color.
 /// Group: render_styles
 public void fillColor (NVGContext ctx, Color color) nothrow @trusted @nogc {

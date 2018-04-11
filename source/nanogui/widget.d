@@ -30,16 +30,8 @@ public:
 	/// Construct a new widget with the given parent widget
 	this(Widget parent)
 	{
-//mParent = null;
-//mTheme  = null; 
-		mLayout = null;
-//mPos(Vector2i::Zero()), 
-//mSize(Vector2i::Zero()),
-//mFixedSize(Vector2i::Zero()), 
 		mVisible = true;
 		mEnabled = true;
-		mFocused = false; 
-//mMouseFocus(false), 
 		mTooltip = ""; 
 		mFontSize = -1;
 		mIconExtraScale = 1.0f; 
@@ -64,8 +56,6 @@ public:
 
 	/// Return the \ref Theme used to draw this widget
 	final const(Theme) theme() const { return mTheme; }
-/// Return the \ref Theme used to draw this widget
-//const Theme theme() const { return mTheme.get(); }
 	/// Set the \ref Theme used to draw this widget
 	void theme(Theme theme)
 	{
