@@ -82,9 +82,17 @@ void main () {
 		screen.performLayout(nvg);
 	};
 
+	bool changed;
 	// this callback will be called when we will need to repaint our window
 	sdmain.redrawOpenGlScene = ()=>screen.draw(nvg);
-	sdmain.eventLoop(0, // no pulse timer required
+	sdmain.eventLoop(40, // no pulse timer required
+		() {
+			if (changed)
+			{
+				sdmain.redrawOpenGlSceneNow();
+				changed = false;
+			}
+		},
 		delegate (KeyEvent event)
 		{
 			if (event == "*-Q" || event == "Escape") { sdmain.close(); return; } // quit on Q, Ctrl+Q, and so on
@@ -93,8 +101,6 @@ void main () {
 		{
 			import std.datetime : Clock;
 			import nanogui.common : MouseButton, MouseAction;
-
-			scope(success) sdmain.redrawOpenGlSceneNow();
 
 			MouseButton btn;
 			MouseAction action;
@@ -134,6 +140,7 @@ void main () {
 				case arsd.simpledisplay.MouseEventType.motion:
 					action = MouseAction.Motion;
 					screen.cursorPosCallbackEvent(event.x, event.y, Clock.currTime.stdTime);
+					changed = true;
 				return;
 			}
 
@@ -150,6 +157,7 @@ void main () {
 				event.type == MouseEventType.motion)
 			{
 				screen.mouseButtonCallbackEvent(btn, action, modifiers, Clock.currTime.stdTime);
+				changed = true;
 			}
 		},
 	);

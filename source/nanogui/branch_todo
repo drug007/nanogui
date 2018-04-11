@@ -1,4 +1,3 @@
-1. handle sdmain.redrawOpenGlSceneNow()
 2. Screen.mouseButtonCallbackEvent - commented out cursor changing
 3. Screen.cursorPosCallbackEvent do not handle pixelRatio (commented out)
 4. Screen.cursorPosCallbackEvent - commented out cursor changing
