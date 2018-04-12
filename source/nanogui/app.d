@@ -115,7 +115,10 @@ void main () {
 
 	bool changed;
 	// this callback will be called when we will need to repaint our window
-	sdmain.redrawOpenGlScene = ()=>screen.draw(nvg);
+	sdmain.redrawOpenGlScene = () {
+		screen.size = Vector2i(sdmain.width, sdmain.height);
+		screen.draw(nvg);
+	};
 	sdmain.eventLoop(40, // no pulse timer required
 		() {
 			if (changed)

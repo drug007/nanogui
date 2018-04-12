@@ -200,6 +200,16 @@ class Screen : Widget
 		} while (changed);
 	}
 
+	/// Window resize event handler
+	bool resizeEvent(Vector2i size)
+	{
+		if (mResizeCallback) {
+			mResizeCallback(size);
+			return true;
+		}
+		return false;
+	}
+
 protected:
 	import std.container.array : Array;
 
@@ -208,6 +218,7 @@ protected:
 	MouseButton  mMouseState;
 	long         mLastInteraction;
 	Array!Widget mFocusPath;
-    bool         mDragActive;
-    Widget       mDragWidget;
+	bool         mDragActive;
+	Widget       mDragWidget;
+	void delegate(Vector2i) mResizeCallback;
 }
