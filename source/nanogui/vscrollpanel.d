@@ -88,7 +88,23 @@ public:
         }
     }
 
-    // override bool scrollEvent(Vector2i p, Vector2f rel);
+    override bool scrollEvent(Vector2i p, Vector2f rel)
+    {
+        if (!mChildren.empty && mChildPreferredHeight > mSize.y)
+        {
+            const scrollAmount = rel.y * (mSize.y / 20.0f);
+            float scrollh = height *
+                min(1.0f, height / cast(float)mChildPreferredHeight);
+
+            mScroll = max(cast(float) 0.0f, min(cast(float) 1.0f,
+                    mScroll - scrollAmount / cast(float)(mSize.y - 8 - scrollh)));
+            mUpdateLayout = true;
+            return true;
+        } else {
+            return super.scrollEvent(p, rel);
+        }
+    }
+
     override void draw(NVGContext nvg)
     {
         if (mChildren.empty)

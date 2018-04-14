@@ -339,8 +339,18 @@ public:
 		return false;
 	}
 
-///// Handle a mouse scroll event (default implementation: propagate to children)
-//virtual bool scrollEvent(const Vector2i &p, const Vector2f &rel);
+	/// Handle a mouse scroll event (default implementation: propagate to children)
+	bool scrollEvent(Vector2i p, Vector2f rel)
+	{
+		foreach_reverse (child; mChildren)
+		{
+			if (!child.visible)
+				continue;
+			if (child.contains(p - mPos) && child.scrollEvent(p - mPos, rel))
+				return true;
+		}
+		return false;
+	}
 
 	/// Handle a focus change event (default implementation: record the focus status, but do nothing)
 	bool focusEvent(bool focused)

@@ -6,7 +6,7 @@ import arsd.nanovega;
 public import gfm.math : vec2i;
 
 import nanogui.widget : Widget;
-import nanogui.common : Vector2i, MouseButton, MouseAction;
+import nanogui.common : Vector2i, Vector2f, MouseButton, MouseAction;
 
 class Screen : Widget
 {
@@ -282,6 +282,30 @@ class Screen : Widget
 			}
 		} while (changed);
 		mNeedToDraw = true;
+	}
+
+	bool scrollCallbackEvent(double x, double y, long timestamp)
+	{
+		mLastInteraction = timestamp;
+		try
+		{
+			if (mFocusPath.length > 1)
+			{
+				const window = cast(Window) mFocusPath[mFocusPath.length - 2];
+				if (window && window.modal)
+				{
+					if (!window.contains(mMousePos))
+						return false;
+				}
+			}
+			return scrollEvent(mMousePos, Vector2f(x, y));
+		}
+		catch (Exception e)
+		{
+			import std.stdio : stderr;
+			stderr.writeln("Caught exception in event handler: ", e.msg);
+			return false;
+		}
 	}
 
 	/// Window resize event handler

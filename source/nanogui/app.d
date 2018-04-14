@@ -9,7 +9,7 @@ void main () {
 	// so let's tell simpledisplay about that
 	setOpenGLContextVersion(3, 0);
 	// now create OpenGL window
-	auto sdmain = new SimpleWindow(800, 600, "NanoVega Simple Sample", OpenGlOptions.yes, Resizability.allowResizing);
+	auto sdmain = new SimpleWindow(1000, 800, "NanoVega Simple Sample", OpenGlOptions.yes, Resizability.allowResizing);
 	// we need to destroy NanoVega context on window close
 	// stricly speaking, it is not necessary, as nothing fatal
 	// will happen if you'll forget it, but let's be polite.
@@ -196,9 +196,11 @@ void main () {
 				break;
 				case arsd.simpledisplay.MouseButton.wheelUp:
 					btn = MouseButton.WheelUp;
+					screen.scrollCallbackEvent(0, -1, Clock.currTime.stdTime);
 				break;
 				case arsd.simpledisplay.MouseButton.wheelDown:
 					btn = MouseButton.WheelDown;
+					screen.scrollCallbackEvent(0, 1, Clock.currTime.stdTime);
 				break;
 				default:
 					btn = MouseButton.None;
