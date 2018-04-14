@@ -14,6 +14,7 @@ class Screen : Widget
 	{
 		super(null);
 		size = vec2i(w, h);
+		mNeedToDraw = true;
 	}
 
 	override void draw(NVGContext nvg)
@@ -29,10 +30,13 @@ class Screen : Widget
 		scope(exit) nvg.endFrame(); // and flush render queue on exit
 
 		super.draw(nvg);
+
+		mNeedToDraw = false;
 	}
 
 	bool mouseButtonCallbackEvent(MouseButton button, MouseAction action, int modifiers, long timestamp)
 	{
+		mNeedToDraw = true;
 		mModifiers = modifiers;
 		mLastInteraction = timestamp;
 		try
@@ -93,6 +97,7 @@ class Screen : Widget
 
 	final void updateFocus(Widget widget)
 	{
+		mNeedToDraw = true;
 		foreach (w; mFocusPath)
 		{
 			if (!w.focused)
@@ -117,6 +122,7 @@ class Screen : Widget
 
 	bool cursorPosCallbackEvent(double x, double y, long last_interaction)
 	{
+		mNeedToDraw = true;
 		auto p = Vector2i(cast(int) x, cast(int) y);
 
 		//#if defined(_WIN32) || defined(__linux__)
@@ -198,6 +204,7 @@ class Screen : Widget
 				}
 			}
 		} while (changed);
+		mNeedToDraw = true;
 	}
 
 	/// Window resize event handler
@@ -205,10 +212,13 @@ class Screen : Widget
 	{
 		if (mResizeCallback) {
 			mResizeCallback(size);
+			mNeedToDraw = true;
 			return true;
 		}
 		return false;
 	}
+
+	bool needToDraw() const pure @safe nothrow { return mNeedToDraw; }
 
 protected:
 	import std.container.array : Array;
@@ -220,5 +230,6 @@ protected:
 	Array!Widget mFocusPath;
 	bool         mDragActive;
 	Widget       mDragWidget;
+	bool         mNeedToDraw;
 	void delegate(Vector2i) mResizeCallback;
 }

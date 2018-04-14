@@ -113,7 +113,6 @@ void main () {
 		screen.performLayout(nvg);
 	};
 
-	bool changed;
 	// this callback will be called when we will need to repaint our window
 	sdmain.redrawOpenGlScene = () {
 		screen.size = Vector2i(sdmain.width, sdmain.height);
@@ -121,11 +120,8 @@ void main () {
 	};
 	sdmain.eventLoop(40, // no pulse timer required
 		() {
-			if (changed)
-			{
+			if (screen && screen.needToDraw)
 				sdmain.redrawOpenGlSceneNow();
-				changed = false;
-			}
 		},
 		delegate (KeyEvent event)
 		{
@@ -174,7 +170,6 @@ void main () {
 				case arsd.simpledisplay.MouseEventType.motion:
 					action = MouseAction.Motion;
 					screen.cursorPosCallbackEvent(event.x, event.y, Clock.currTime.stdTime);
-					changed = true;
 				return;
 			}
 
@@ -191,7 +186,6 @@ void main () {
 				event.type == MouseEventType.motion)
 			{
 				screen.mouseButtonCallbackEvent(btn, action, modifiers, Clock.currTime.stdTime);
-				changed = true;
 			}
 		},
 	);
