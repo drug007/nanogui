@@ -22,7 +22,7 @@ void main () {
 	import nanogui.nanogui : Screen;
 	import nanogui.widget, nanogui.theme, nanogui.checkbox, nanogui.label, 
 		nanogui.common, nanogui.window, nanogui.layout, nanogui.button,
-		nanogui.popupbutton, nanogui.entypo, nanogui.popup;
+		nanogui.popupbutton, nanogui.entypo, nanogui.popup, nanogui.vscrollpanel;
 
 	Screen screen;
 
@@ -122,6 +122,33 @@ void main () {
 	        window.tooltip = "Window with checkbox FOUR tooltip";
 		}
 
+		{
+			int width      = 400;
+			int half_width = width / 2;
+			int height     = 200;
+
+			auto window = new Window(screen, "All Icons");
+			window.position(Vector2i(0, 400));
+			window.fixedSize(Vector2i(width, height));
+
+			// attach a vertical scroll panel
+			auto vscroll = new VScrollPanel(window);
+			vscroll.fixedSize(Vector2i(width, height));
+
+			// vscroll should only have *ONE* child. this is what `wrapper` is for
+			auto wrapper = new Widget(vscroll);
+			wrapper.fixedSize(Vector2i(width, height));
+			wrapper.layout(new GridLayout());// defaults: 2 columns
+
+			foreach(i; 0..100)
+			{
+				import std.conv : text;
+				auto item = new Button(wrapper, "item" ~ i.text, ENTYPO_ICON_AIRCRAFT_TAKE_OFF);
+				item.iconPosition(Button.IconPosition.Left);
+				item.fixedWidth(half_width);
+			}
+		}
+
 		// now we should do layout manually yet
 		screen.performLayout(nvg);
 	};
@@ -133,9 +160,13 @@ void main () {
 	};
 	sdmain.eventLoop(40,
 		() {
-			screen.currTime = Clock.currTime.stdTime;
-			if (screen && screen.needToDraw)
-				sdmain.redrawOpenGlSceneNow();
+			// unfortunately screen may be not initialized
+			if (screen)
+			{
+				screen.currTime = Clock.currTime.stdTime;
+				if (screen.needToDraw)
+					sdmain.redrawOpenGlSceneNow();
+			}
 		},
 		delegate (KeyEvent event)
 		{

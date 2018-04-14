@@ -546,6 +546,8 @@ public:
 		/* Compute minimum row / column sizes */
 		Array!(int)[2] grid;
 		computeLayout(nvg, widget, grid, null);
+		if (grid[1].length == 0)
+			return;
 		int[2] dim = [ cast(int) grid[0].length, cast(int) grid[1].length ];
 
 		Vector2i extra;
