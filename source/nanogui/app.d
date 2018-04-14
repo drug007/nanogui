@@ -1,3 +1,5 @@
+import std.datetime : Clock;
+
 import arsd.simpledisplay;
 import arsd.nanovega;
 
@@ -32,7 +34,7 @@ void main () {
 		nvg = nvgCreateContext();
 		assert(nvg !is null, "cannot initialize NanoGui");
 
-		screen = new Screen(sdmain.width, sdmain.height);
+		screen = new Screen(sdmain.width, sdmain.height, Clock.currTime.stdTime);
 		screen.theme = new Theme(nvg);
 
 		{
@@ -66,6 +68,8 @@ void main () {
 	        popup.layout(new GroupLayout());
 	        new Label(popup, "Arbitrary widgets can be placed here");
 	        new CheckBox(popup, "A check box", null);
+
+	        window.tooltip = "Button demo tooltip";
 		}
 
 		{
@@ -78,17 +82,22 @@ void main () {
 			auto btn = new Button(window, "RadioButton1");
 			btn.flags = Button.Flags.RadioButton;
 			btn.buttonGroup = buttonGroup;
+			btn.tooltip = "Radio button ONE";
 			buttonGroup ~= btn;
 
 			btn = new Button(window, "RadioButton2");
 			btn.flags = Button.Flags.RadioButton;
 			btn.buttonGroup = buttonGroup;
+			btn.tooltip = "Radio button TWO";
 			buttonGroup ~= btn;
 
 			btn = new Button(window, "RadioButton3");
 			btn.flags = Button.Flags.RadioButton;
 			btn.buttonGroup = buttonGroup;
+			btn.tooltip = "Radio button THREE";
 			buttonGroup ~= btn;
+
+	        window.tooltip = "Radio button group tooltip";
 		}
 
 		{
@@ -98,6 +107,8 @@ void main () {
 
 			new Label(window, "Message dialog", "sans-bold");
 			new CheckBox(window, "Checkbox #3", (bool value){ });
+
+	        window.tooltip = "Window with checkbox #3 tooltip";
 		}
 
 		{
@@ -107,6 +118,8 @@ void main () {
 
 			new Label(window, "Message dialog", "sans-bold");
 			new CheckBox(window, "Checkbox #4", (bool value){ });
+
+	        window.tooltip = "Window with checkbox FOUR tooltip";
 		}
 
 		// now we should do layout manually yet
@@ -118,8 +131,9 @@ void main () {
 		screen.size = Vector2i(sdmain.width, sdmain.height);
 		screen.draw(nvg);
 	};
-	sdmain.eventLoop(40, // no pulse timer required
+	sdmain.eventLoop(40,
 		() {
+			screen.currTime = Clock.currTime.stdTime;
 			if (screen && screen.needToDraw)
 				sdmain.redrawOpenGlSceneNow();
 		},

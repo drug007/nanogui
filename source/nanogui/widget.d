@@ -241,8 +241,8 @@ public:
 		(cast(Screen) widget).updateFocus(this);
 	}
 
-//const std::string &tooltip() const { return mTooltip; }
-//void setTooltip(const std::string &tooltip) { mTooltip = tooltip; }
+	string tooltip() const { return mTooltip; }
+	void tooltip(string tooltip) { mTooltip = tooltip; }
 
 	/// Return current font size. If not set the default of the current theme will be returned
 	final int fontSize() const

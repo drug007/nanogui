@@ -1,5 +1,7 @@
 module nanogui.nanogui;
 
+import std.algorithm : min;
+
 import arsd.nanovega;
 public import gfm.math : vec2i;
 
@@ -10,12 +12,28 @@ class Screen : Widget
 {
 	import nanogui.window : Window;
 
-	this(int w, int h)
+	this(int w, int h, long timestamp)
 	{
 		super(null);
 		size = vec2i(w, h);
 		mNeedToDraw = true;
+		mLastInteraction = mTimestamp = timestamp;
 	}
+
+	auto currTime() const { return mTimestamp; }
+	void currTime(long value)
+	{
+		mTimestamp = value;
+		auto elapsed = value - mLastInteraction;
+		if (!mTooltipShown && elapsed > 5_000_000)
+		{
+			const widget = findWidget(mMousePos);
+			if (widget && widget.tooltip.length)
+				mNeedToDraw = true;
+		}
+	}
+
+	auto lastInteraction() { return mLastInteraction; }
 
 	override void draw(NVGContext nvg)
 	{
@@ -32,6 +50,65 @@ class Screen : Widget
 		super.draw(nvg);
 
 		mNeedToDraw = false;
+
+		float elapsed = (mTimestamp - mLastInteraction)/10_000_000.0f;
+
+		if (elapsed > 0.5f)
+		{
+			/* Draw tooltips */
+			const widget = findWidget(mMousePos);
+			if (widget && widget.tooltip.length) {
+				int tooltipWidth = 150;
+
+				float[4] bounds;
+				nvg.fontFace("sans");
+				nvg.fontSize(15.0f);
+				NVGTextAlign algn;
+	            algn.left = true;
+	            algn.top = true;
+	            nvg.textAlign(algn);
+				nvg.textLineHeight(1.1f);
+				Vector2i pos = widget.absolutePosition() +
+							   Vector2i(widget.width() / 2, widget.height() + 10);
+
+				nvg.textBounds(pos.x, pos.y,
+								widget.tooltip, bounds);
+				int h = cast(int) (bounds[2] - bounds[0]) / 2;
+
+				if (h > tooltipWidth / 2) {
+					algn.center = true;
+		            algn.top = true;
+		            nvg.textAlign(algn);
+					nvg.textBoxBounds(pos.x, pos.y, tooltipWidth,
+									widget.tooltip, bounds);
+
+					h = cast(int)(bounds[2] - bounds[0]) / 2;
+				}
+				enum threshold = 0.8f;
+				auto alpha = min(1.0, 2 * (elapsed - 0.5f)) * threshold;
+				nvg.globalAlpha(alpha);
+				mTooltipShown = (alpha > threshold - 0.01) ? true : false;
+
+				nvg.beginPath;
+				nvg.fillColor(Color(0, 0, 0, 255));
+				nvg.roundedRect(bounds[0] - 4 - h, bounds[1] - 4,
+							   cast(int) (bounds[2] - bounds[0]) + 8,
+							   cast(int) (bounds[3] - bounds[1]) + 8, 3);
+
+				int px = cast(int) ((bounds[2] + bounds[0]) / 2) - h;
+				nvg.moveTo(px, bounds[1] - 10);
+				nvg.lineTo(px + 7, bounds[1] + 1);
+				nvg.lineTo(px - 7, bounds[1] + 1);
+				nvg.fill();
+
+				nvg.fillColor(Color(255, 255, 255, 255));
+				nvg.fontBlur(0.0f);
+				nvg.textBox(pos.x - h, pos.y, tooltipWidth,
+						   widget.tooltip);
+			}
+		}
+		else
+			mTooltipShown = false;
 	}
 
 	bool mouseButtonCallbackEvent(MouseButton button, MouseAction action, int modifiers, long timestamp)
@@ -231,5 +308,7 @@ protected:
 	bool         mDragActive;
 	Widget       mDragWidget;
 	bool         mNeedToDraw;
+	long         mTimestamp;
+	bool         mTooltipShown;
 	void delegate(Vector2i) mResizeCallback;
 }

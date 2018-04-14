@@ -7,3 +7,6 @@
 9. using dchar[1] for icon should be rethinked
 10. in Button imageSize is commented out (serious drawback)
 11. in Window was forced to make refreshRelativePlacement public instead of protected like in original
+12. backend based on arsd.simpledisplay
+13. backend based on SDL2
+14. backends based on glfw, sfml etc
