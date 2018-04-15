@@ -14,6 +14,7 @@ import std.container.array;
 import nanogui.theme;
 import nanogui.layout;
 import nanogui.common : Cursor, Vector2i, Vector2f, MouseButton;
+import nanogui.nanogui : Screen;
 public import nanogui.common;
 
 /**
@@ -214,8 +215,20 @@ public:
 		}
 	}
 
-	///// Walk up the hierarchy and return the parent screen
-	//final Screen screen();
+	/// Walk up the hierarchy and return the parent screen
+	final Screen screen()
+	{
+		auto widget = this;
+		while (true) {
+			if (!widget)
+				throw new Exception(
+					"Widget:internal error (could not find parent screen)");
+			auto screen = cast(Screen) widget;
+			if (screen)
+				return screen;
+			widget = widget.parent;
+		}
+	}
 
 ///// Associate this widget with an ID value (optional)
 //void setId(const std::string &id) { mId = id; }
@@ -274,7 +287,7 @@ public:
 	/// Check if the widget contains a certain position
 	final bool contains(Vector2i p) const {
 		import std.algorithm : all;
-		// the widget contains a position if its more than
+		// the widget contains a position if it more than
 		// the widget position and less than widget position
 		// + widget size
 		auto d = (p-mPos);
