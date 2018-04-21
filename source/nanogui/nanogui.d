@@ -1,3 +1,4 @@
+///
 module nanogui.nanogui;
 
 import std.algorithm : min;

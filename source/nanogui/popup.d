@@ -1,3 +1,4 @@
+///
 module nanogui.popup;
 /*
     nanogui/popup.h -- Simple popup widget which is attached to another given
@@ -10,18 +11,15 @@ module nanogui.popup;
     All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE.txt file.
 */
-/** \file */
 
 import nanogui.window : Window;
 import nanogui.widget : Widget, NVGContext;
 import nanogui.common : Vector2i;
 
 /**
- * \class Popup popup.h nanogui/popup.h
+ * Popup window for combo boxes, popup buttons, nested dialogs etc.
  *
- * \brief Popup window for combo boxes, popup buttons, nested dialogs etc.
- *
- * Usually the Popup instance is constructed by another widget (e.g. \ref PopupButton)
+ * Usually the Popup instance is constructed by another widget (e.g. `PopupButton`)
  * and does not need to be created by hand.
  */
 class Popup : Window

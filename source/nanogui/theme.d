@@ -112,74 +112,74 @@ public:
 	float mIconScale;
 
 	/* Spacing-related parameters */
-	/// The font size for all widgets other than buttons and textboxes (default: `` 16``).
+	/// The font size for all widgets other than buttons and textboxes (default: ` 16`).
 	int mStandardFontSize;
-	/// The font size for buttons (default: ``20``).
+	/// The font size for buttons (default: `20`).
 	int mButtonFontSize;
-	/// The font size for text boxes (default: ``20``).
+	/// The font size for text boxes (default: `20`).
 	int mTextBoxFontSize;
-	/// Rounding radius for Window widget corners (default: ``2``).
+	/// Rounding radius for Window widget corners (default: `2`).
 	int mWindowCornerRadius;
-	/// Default size of Window widget titles (default: ``30``).
+	/// Default size of Window widget titles (default: `30`).
 	int mWindowHeaderHeight;
-	/// Size of drop shadow rendered behind the Window widgets (default: ``10``).
+	/// Size of drop shadow rendered behind the Window widgets (default: `10`).
 	int mWindowDropShadowSize;
-	/// Rounding radius for Button (and derived types) widgets (default: ``2``).
+	/// Rounding radius for Button (and derived types) widgets (default: `2`).
 	int mButtonCornerRadius;
-	/// The border width for TabHeader widgets (default: ``0.75f``).
+	/// The border width for TabHeader widgets (default: `0.75f`).
 	float mTabBorderWidth;
-	/// The inner margin on a TabHeader widget (default: ``5``).
+	/// The inner margin on a TabHeader widget (default: `5`).
 	int mTabInnerMargin;
-	/// The minimum size for buttons on a TabHeader widget (default: ``20``).
+	/// The minimum size for buttons on a TabHeader widget (default: `20`).
 	int mTabMinButtonWidth;
-	/// The maximum size for buttons on a TabHeader widget (default: ``160``).
+	/// The maximum size for buttons on a TabHeader widget (default: `160`).
 	int mTabMaxButtonWidth;
-	/// Used to help specify what lies "in bound" for a TabHeader widget (default: ``20``).
+	/// Used to help specify what lies "in bound" for a TabHeader widget (default: `20`).
 	int mTabControlWidth;
-	/// The amount of horizontal padding for a TabHeader widget (default: ``10``).
+	/// The amount of horizontal padding for a TabHeader widget (default: `10`).
 	int mTabButtonHorizontalPadding;
-	/// The amount of vertical padding for a TabHeader widget (default: ``2``).
+	/// The amount of vertical padding for a TabHeader widget (default: `2`).
 	int mTabButtonVerticalPadding;
 
 	/* Generic colors */
 	/**
 	 * The color of the drop shadow drawn behind widgets
-	 * (default: intensity=``0``, alpha=``128``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`0`, alpha=`128`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mDropShadow;
 	/**
 	 * The transparency color
-	 * (default: intensity=``0``, alpha=``0``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`0`, alpha=`0`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mTransparent;
 	/**
 	 * The dark border color
-	 * (default: intensity=``29``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`29`, alpha=`255`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mBorderDark;
 	/**
 	 * The light border color
-	 * (default: intensity=``92``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`92`, alpha=`255`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mBorderLight;
 	/**
 	 * The medium border color
-	 * (default: intensity=``35``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`35`, alpha=`255`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mBorderMedium;
 	/**
 	 * The text color
-	 * (default: intensity=``255``, alpha=``160``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`255`, alpha=`160`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mTextColor;
 	/**
 	 * The disable dtext color
-	 * (default: intensity=``255``, alpha=``80``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`255`, alpha=`80`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mDisabledTextColor;
 	/**
 	 * The text shadow color
-	 * (default: intensity=``0``, alpha=``160``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`0`, alpha=`160`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mTextColorShadow;
 	/// The icon color (default: \ref nanogui::Theme::mTextColor).
@@ -188,54 +188,54 @@ public:
 	/* Button colors */
 	/**
 	 * The top gradient color for buttons in focus
-	 * (default: intensity=``64``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`64`, alpha=`255`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mButtonGradientTopFocused;
 	/**
 	 * The bottom gradient color for buttons in focus
-	 * (default: intensity=``48``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`48`, alpha=`255`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mButtonGradientBotFocused;
 	/**
 	 * The top gradient color for buttons not in focus
-	 * (default: intensity=``74``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`74`, alpha=`255`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mButtonGradientTopUnfocused;
 	/**
 	 * The bottom gradient color for buttons not in focus
-	 * (default: intensity=``58``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`58`, alpha=`255`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mButtonGradientBotUnfocused;
 	/**
 	 * The top gradient color for buttons currently pushed
-	 * (default: intensity=``41``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`41`, alpha=`255`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mButtonGradientTopPushed;
 	/**
 	 * The bottom gradient color for buttons currently pushed
-	 * (default: intensity=``29``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`29`, alpha=`255`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mButtonGradientBotPushed;
 
 	/* Window colors */
 	/**
 	 * The fill color for a Window that is not in focus
-	 * (default: intensity=``43``, alpha=``230``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`43`, alpha=`230`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mWindowFillUnfocused;
 	/**
 	 * The fill color for a Window that is in focus
-	 * (default: intensity=``45``, alpha=``230``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`45`, alpha=`230`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mWindowFillFocused;
 	/**
 	 * The title color for a Window that is not in focus
-	 * (default: intensity=``220``, alpha=``160``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`220`, alpha=`160`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mWindowTitleUnfocused;
 	/**
 	 * The title color for a Window that is in focus
-	 * (default: intensity=``255``, alpha=``190``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`255`, alpha=`190`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mWindowTitleFocused;
 
@@ -256,38 +256,38 @@ public:
 
 	/**
 	 * The popup window color
-	 * (default: intensity=``50``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`50`, alpha=`255`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mWindowPopup;
 	/**
 	 * The transparent popup window color
-	 * (default: intensity=``50``, alpha=``0``; see `nanogui.Color.Color(int,int)`).
+	 * (default: intensity=`50`, alpha=`0`; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mWindowPopupTransparent;
 
-	/// Icon to use for CheckBox widgets (default: ``ENTYPO_ICON_CHECK``).
+	/// Icon to use for CheckBox widgets (default: `ENTYPO_ICON_CHECK`).
 	dchar[1] mCheckBoxIcon;
-	/// Icon to use for informational MessageDialog widgets (default: ``ENTYPO_ICON_INFO_WITH_CIRCLE``).
+	/// Icon to use for informational MessageDialog widgets (default: `ENTYPO_ICON_INFO_WITH_CIRCLE`).
 	dchar[1] mMessageInformationIcon;
-	/// Icon to use for interrogative MessageDialog widgets (default: ``ENTYPO_ICON_HELP_WITH_CIRCLE``).
+	/// Icon to use for interrogative MessageDialog widgets (default: `ENTYPO_ICON_HELP_WITH_CIRCLE`).
 	dchar[1] mMessageQuestionIcon;
-	/// Icon to use for warning MessageDialog widgets (default: ``ENTYPO_ICON_WARNING``).
+	/// Icon to use for warning MessageDialog widgets (default: `ENTYPO_ICON_WARNING`).
 	dchar[1] mMessageWarningIcon;
-	/// Icon to use on MessageDialog alt button (default: ``ENTYPO_ICON_CIRCLE_WITH_CROSS``).
+	/// Icon to use on MessageDialog alt button (default: `ENTYPO_ICON_CIRCLE_WITH_CROSS`).
 	dchar[1] mMessageAltButtonIcon;
-	/// Icon to use on MessageDialog primary button (default: ``ENTYPO_ICON_CHECK``).
+	/// Icon to use on MessageDialog primary button (default: `ENTYPO_ICON_CHECK`).
 	dchar[1] mMessagePrimaryButtonIcon;
-	/// Icon to use for PopupButton widgets opening to the right (default: ``ENTYPO_ICON_CHEVRON_RIGHT``).
+	/// Icon to use for PopupButton widgets opening to the right (default: `ENTYPO_ICON_CHEVRON_RIGHT`).
 	dchar[1] mPopupChevronRightIcon;
-	/// Icon to use for PopupButton widgets opening to the left (default: ``ENTYPO_ICON_CHEVRON_LEFT``).
+	/// Icon to use for PopupButton widgets opening to the left (default: `ENTYPO_ICON_CHEVRON_LEFT`).
 	dchar[1] mPopupChevronLeftIcon;
-	/// Icon to indicate hidden tabs to the left on a TabHeader (default: ``ENTYPO_ICON_ARROW_BOLD_LEFT``).
+	/// Icon to indicate hidden tabs to the left on a TabHeader (default: `ENTYPO_ICON_ARROW_BOLD_LEFT`).
 	dchar[1] mTabHeaderLeftIcon;
-	/// Icon to indicate hidden tabs to the right on a TabHeader (default: ``ENTYPO_ICON_ARROW_BOLD_RIGHT``).
+	/// Icon to indicate hidden tabs to the right on a TabHeader (default: `ENTYPO_ICON_ARROW_BOLD_RIGHT`).
 	dchar[1] mTabHeaderRightIcon;
-	/// Icon to use when a TextBox has an up toggle (e.g. IntBox) (default: ``ENTYPO_ICON_CHEVRON_UP``).
+	/// Icon to use when a TextBox has an up toggle (e.g. IntBox) (default: `ENTYPO_ICON_CHEVRON_UP`).
 	dchar[1] mTextBoxUpIcon;
-	/// Icon to use when a TextBox has a down toggle (e.g. IntBox) (default: ``ENTYPO_ICON_CHEVRON_DOWN``).
+	/// Icon to use when a TextBox has a down toggle (e.g. IntBox) (default: `ENTYPO_ICON_CHEVRON_DOWN`).
 	dchar[1] mTextBoxDownIcon;
 
 protected:

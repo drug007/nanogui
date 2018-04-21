@@ -1,3 +1,4 @@
+///
 module nanogui.checkbox;
 
 /*
@@ -8,23 +9,16 @@ module nanogui.checkbox;
 	All rights reserved. Use of this source code is governed by a
 	BSD-style license that can be found in the LICENSE.txt file.
 */
-/**
- * \file nanogui/checkbox.h
- *
- * \brief Two-state check box Widget.
- */
 
 import nanogui.widget;
 import nanogui.common : Vector2i, Vector2f;
 import nanogui.nanogui : MouseButton;
 
 /**
- * \class CheckBox checkbox.h nanogui/checkbox.h
+ * Two-state check box widget.
  *
- * \brief Two-state check box widget.
- *
- * \remark
- *     This class overrides \ref nanogui::Widget::mIconExtraScale to be ``1.2f``,
+ * Remarks:
+ *     This class overrides `nanogui.Widget.mIconExtraScale` to be `1.2f`,
  *     which affects all subclasses of this Widget.  Subclasses must explicitly
  *     set a different value if needed (e.g., in their constructor).
  */
@@ -32,18 +26,14 @@ class CheckBox : Widget
 {
 public:
 	/**
-	 * Adds a CheckBox to the specified ``parent``.
+	 * Adds a CheckBox to the specified `parent`.
 	 *
-	 * \param parent
-	 *     The Widget to add this CheckBox to.
-	 *
-	 * \param caption
-	 *     The caption text of the CheckBox (default ``"Untitled"``).
-	 *
-	 * \param callback
-	 *     If provided, the callback to execute when the CheckBox is checked or
-	 *     unchecked.  Default parameter function does nothing.  See
-	 *     \ref nanogui::CheckBox::mPushed for the difference between "pushed"
+	 * Params:
+	 *     parent   = The Widget to add this CheckBox to.
+	 *     caption  = The caption text of the CheckBox (default `"Untitled"`).
+	 *     callback = If provided, the callback to execute when the CheckBox is 
+	 *     checked or unchecked.  Default parameter function does nothing.  See
+	 *     `nanogui.CheckBox.mPushed` for the difference between "pushed"
 	 *     and "checked".
 	 */
 	this(Widget parent, const string caption, void delegate(bool) callback)
@@ -68,10 +58,10 @@ public:
 	/// Sets whether or not this CheckBox is currently checked.
 	final void checked(bool checked) { mChecked = checked; }
 
-	/// Whether or not this CheckBox is currently pushed.  See \ref nanogui::CheckBox::mPushed.
+	/// Whether or not this CheckBox is currently pushed.  See `nanogui.CheckBox.mPushed`.
 	final bool pushed() const { return mPushed; }
 
-	/// Sets whether or not this CheckBox is currently pushed.  See \ref nanogui::CheckBox::mPushed.
+	/// Sets whether or not this CheckBox is currently pushed.  See `nanogui.CheckBox.mPushed`.
 	final void pushed(bool pushed) { mPushed = pushed; }
 
 	/// Returns the current callback of this CheckBox.
@@ -81,22 +71,22 @@ public:
 	final void callback(void delegate(bool) callback) { mCallback = callback; }
 
 	/**
-	 * The mouse button callback will return ``true`` when all three conditions are met:
+	 * The mouse button callback will return `true` when all three conditions are met:
 	 *
-	 * 1. This CheckBox is "enabled" (see \ref nanogui::Widget::mEnabled).
-	 * 2. ``p`` is inside this CheckBox.
-	 * 3. ``button`` is ``GLFW_MOUSE_BUTTON_1`` (left mouse click).
+	 * 1. This CheckBox is "enabled" (see `nanogui.Widget.mEnabled`).
+	 * 2. `p` is inside this CheckBox.
+	 * 3. `button` is `MouseButton.Left`.
 	 *
 	 * Since a mouse button event is issued for both when the mouse is pressed, as well
-	 * as released, this function sets \ref nanogui::CheckBox::mPushed to ``true`` when
-	 * parameter ``down == true``.  When the second event (``down == false``) is fired,
-	 * \ref nanogui::CheckBox::mChecked is inverted and \ref nanogui::CheckBox::mCallback
+	 * as released, this function sets `nanogui.CheckBox.mPushed` to `true` when
+	 * parameter `down == true`.  When the second event (`down == false`) is fired,
+	 * `nanogui.CheckBox.mChecked` is inverted and `nanogui.CheckBox.mCallback`
 	 * is called.
 	 *
 	 * That is, the callback provided is only called when the mouse button is released,
 	 * **and** the click location remains within the CheckBox boundaries.  If the user
 	 * clicks on the CheckBox and releases away from the bounds of the CheckBox,
-	 * \ref nanogui::CheckBox::mPushed is simply set back to ``false``.
+	 * `nanogui.CheckBox.mPushed` is simply set back to `false`.
 	 */
 	override bool mouseButtonEvent(Vector2i p, MouseButton button, bool down, int modifiers)
 	{
@@ -180,10 +170,10 @@ public:
 		}
 	}
 
-///// Saves this CheckBox to the specified Serializer.
+// // Saves this CheckBox to the specified Serializer.
 //override void save(Serializer &s) const;
 
-///// Loads the state of the specified Serializer to this CheckBox.
+// // Loads the state of the specified Serializer to this CheckBox.
 //override bool load(Serializer &s);
 
 protected:
@@ -192,14 +182,14 @@ protected:
 
 	/**
 	 * Internal tracking variable to distinguish between mouse click and release.
-	 * \ref nanogui::CheckBox::mCallback is only called upon release.  See
-	 * \ref nanogui::CheckBox::mouseButtonEvent for specific conditions.
+	 * `nanogui.CheckBox.mCallback` is only called upon release.  See
+	 * `nanogui.CheckBox.mouseButtonEvent` for specific conditions.
 	 */
 	bool mPushed;
 
 	/// Whether or not this CheckBox is currently checked or unchecked.
 	bool mChecked;
 
-	/// The function to execute when \ref nanogui::CheckBox::mChecked is changed.
+	/// The function to execute when `nanogui.CheckBox.mChecked` is changed.
 	void delegate(bool) mCallback;
 }

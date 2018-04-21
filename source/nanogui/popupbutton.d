@@ -9,7 +9,6 @@ module nanogui.popupbutton;
     All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE.txt file.
 */
-/** \file */
 
 import nanogui.button;
 import nanogui.popup;
@@ -19,12 +18,10 @@ import nanogui.window;
 import nanogui.common;
 
 /**
- * \class PopupButton popupbutton.h nanogui/popupbutton.h
+ * Button which launches a popup widget.
  *
- * \brief Button which launches a popup widget.
- *
- * \remark
- *     This class overrides \ref nanogui::Widget::mIconExtraScale to be ``0.8f``,
+ * Remark:
+ *     This class overrides `nanogui.Widget.mIconExtraScale`` to be `0.8f`,
  *     which affects all subclasses of this Widget.  Subclasses must explicitly
  *     set a different value if needed (e.g., in their constructor).
  */

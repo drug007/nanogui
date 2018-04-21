@@ -1,3 +1,4 @@
+///
 module nanogui.vscrollpanel;
 
 /*
@@ -11,16 +12,13 @@ module nanogui.vscrollpanel;
     All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE.txt file.
 */
-/** \file */
 import std.algorithm : min, max;
 import nanogui.widget;
 import nanogui.common : MouseButton, Vector2f, Vector2i, NVGContext;
 
 /**
- * \class VScrollPanel vscrollpanel.h nanogui/vscrollpanel.h
- *
- * \brief Adds a vertical scrollbar around a widget that is too big to fit into
- *        a certain area.
+ * Adds a vertical scrollbar around a widget that is too big to fit into
+ * a certain area.
  */
 class VScrollPanel : Widget {
 public:

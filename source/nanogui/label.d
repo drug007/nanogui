@@ -1,3 +1,4 @@
+///
 module nanogui.label;
 
 /*
@@ -10,18 +11,15 @@ module nanogui.label;
 	All rights reserved. Use of this source code is governed by a
 	BSD-style license that can be found in the LICENSE.txt file.
 */
-/** \file */
 
 import nanogui.widget;
 import nanogui.common;
 import nanogui.theme;
 
 /**
- * \class Label label.h nanogui/label.h
+ * Text label widget.
  *
- * \brief Text label widget.
- *
- * The font and color can be customized. When \ref Widget::setFixedWidth()
+ * The font and color can be customized. When `Widget.fixedWidth``
  * is used, the text is wrapped when it surpasses the specified width.
  */
 class Label : Widget 
@@ -54,7 +52,7 @@ public:
 	/// Set the label color
 	final void color(Color color) { mColor = color; }
 
-	/// Set the \ref Theme used to draw this widget
+	/// Set the `Theme` used to draw this widget
 	override void theme(Theme theme)
 	{
 		Widget.theme(theme);

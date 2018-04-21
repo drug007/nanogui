@@ -17,24 +17,24 @@ import nanogui.widget;
 	BSD-style license that can be found in the LICENSE.txt file.
 */
 /**
- * \file nanogui/layout.h
- *
- * \brief A collection of useful layout managers.  The \ref nanogui.GridLayout
+ * A collection of useful layout managers.  The \ref nanogui.GridLayout
  *        was contributed by Christian Schueller.
  */
 
 /// The different kinds of alignments a layout can perform.
-enum Alignment : ubyte {
-	Minimum = 0, ///< Take only as much space as is required.
-	Middle,      ///< Center align.
-	Maximum,     ///< Take as much space as is allowed.
-	Fill         ///< Fill according to preferred sizes.
+enum Alignment : ubyte
+{
+	Minimum = 0, /// Take only as much space as is required.
+	Middle,      /// Center align.
+	Maximum,     /// Take as much space as is allowed.
+	Fill         /// Fill according to preferred sizes.
 }
 
 /// The direction of data flow for a layout.
-enum Orientation {
-	Horizontal = 0, ///< Layout expands on horizontal axis.
-	Vertical        ///< Layout expands on vertical axis.
+enum Orientation
+{
+	Horizontal = 0, /// Layout expands on horizontal axis.
+	Vertical        /// Layout expands on vertical axis.
 }
 
 /**
@@ -48,24 +48,20 @@ public:
 	/**
 	 * Performs any and all resizing applicable.
 	 *
-	 * \param nvg
-	 *     The ``NanoVG`` context being used for drawing.
-	 *
-	 * \param widget
-	 *     The Widget this layout is controlling sizing for.
+	 * Params:
+	 *     nvg    = The `NanoVG` context being used for drawing.
+	 *     widget = The Widget this layout is controlling sizing for.
 	 */
 	void performLayout(NVGContext nvg, Widget widget) const;
 
 	/**
 	 * The preferred size for this layout.
 	 *
-	 * \param nvg
-	 *     The ``NanoVG`` context being used for drawing.
+	 * Params:
+	 *     nvg    = The `NanoVG` context being used for drawing.
+	 *     widget = The Widget this layout's preferred size is considering.
 	 *
-	 * \param widget
-	 *     The Widget this layout's preferred size is considering.
-	 *
-	 * \return
+	 * Returns:
 	 *     The preferred size, accounting for things such as spacing, padding
 	 *     for icons, etc.
 	 */
@@ -73,9 +69,7 @@ public:
 }
 
 /**
- * \class BoxLayout layout.h nanogui/layout.h
- *
- * \brief Simple horizontal/vertical box layout
+ * Simple horizontal/vertical box layout
  *
  * This widget stacks up a bunch of widgets horizontally or vertically. It adds
  * margins around the entire container and a custom spacing between adjacent
@@ -85,19 +79,13 @@ class BoxLayout : Layout
 {
 public:
 	/**
-	 * \brief Construct a box layout which packs widgets in the given \c Orientation
+	 * Construct a box layout which packs widgets in the given `Orientation`
 	 *
-	 * \param orientation
-	 *     The Orientation this BoxLayout expands along
-	 *
-	 * \param alignment
-	 *     Widget alignment perpendicular to the chosen orientation
-	 *
-	 * \param margin
-	 *     Margin around the layout container
-	 *
-	 * \param spacing
-	 *     Extra spacing placed between widgets
+	 * Params:
+	 *     orientation = The Orientation this BoxLayout expands along
+	 *     alignment   = Widget alignment perpendicular to the chosen orientation
+	 *     margin      = Margin around the layout container
+	 *     spacing     = Extra spacing placed between widgets
 	 */
 	this(Orientation orientation, Alignment alignment = Alignment.Middle,
 			  int margin = 0, int spacing = 0)
@@ -132,8 +120,8 @@ public:
 	/// Sets the spacing of this BoxLayout.
 	final void setSpacing(int spacing) { mSpacing = spacing; }
 
-	/* Implementation of the layout interface */
-	/// See \ref Layout.preferredSize.
+	/// Implementation of the layout interface
+	/// See `Layout.preferredSize`.
 	override Vector2i preferredSize(NVGContext nvg, const Widget widget, const Widget skipped = null) const
 	{
 		Vector2i size = Vector2i(2*mMargin, 2*mMargin);
@@ -173,7 +161,7 @@ public:
 		return size + Vector2i(0, yOffset);
 	}
 
-	/// See \ref Layout.performLayout.
+	/// See `Layout.performLayout`.
 	override void performLayout(NVGContext nvg, Widget widget) const
 	{
 		Vector2i fs_w = widget.fixedSize();
@@ -259,13 +247,11 @@ protected:
 }
 
 /**
- * \class GroupLayout layout.h nanogui/layout.h
- *
- * \brief Special layout for widgets grouped by labels.
+ * Special layout for widgets grouped by labels.
  *
  * This widget resembles a box layout in that it arranges a set of widgets
  * vertically. All widgets are indented on the horizontal axis except for
- * \ref Label widgets, which are not indented.
+ * `Label` widgets, which are not indented.
  *
  * This creates a pleasing layout where a number of widgets are grouped
  * under some high-level heading.
@@ -276,17 +262,11 @@ public:
 	/**
 	 * Creates a GroupLayout.
 	 *
-	 * \param margin
-	 *     The margin around the widgets added.
-	 *
-	 * \param spacing
-	 *     The spacing between widgets added.
-	 *
-	 * \param groupSpacing
-	 *     The spacing between groups (groups are defined by each Label added).
-	 *
-	 * \param groupIndent
-	 *     The amount to indent widgets in a group (underneath a Label).
+	 * Params:
+	 *     margin       = The margin around the widgets added.
+	 *     spacing      = The spacing between widgets added.
+	 *     groupSpacing = The spacing between groups (groups are defined by each Label added).
+	 *     groupIndent  = The amount to indent widgets in a group (underneath a Label).
 	 */
 	this(int margin = 15, int spacing = 6, int groupSpacing = 14,
 				int groupIndent = 20)
@@ -321,8 +301,8 @@ public:
 	/// Sets the spacing between groups of this GroupLayout.
 	final void setGroupSpacing(int groupSpacing) { mGroupSpacing = groupSpacing; }
 
-	/* Implementation of the layout interface */
-	/// See \ref Layout.preferredSize.
+	/// Implementation of the layout interface
+	/// See `Layout.preferredSize`.
 	override Vector2i preferredSize(NVGContext nvg, const Widget widget, const Widget skipped = null) const
 	{
 		int height = mMargin, width = 2*mMargin;
@@ -360,7 +340,7 @@ public:
 		return Vector2i(width, height);
 	}
 
-	/// See \ref Layout.performLayout.
+	/// See `Layout.performLayout`.
 	override void performLayout(NVGContext nvg, Widget widget) const
 	{
 		int height = mMargin, availableWidth =
@@ -416,11 +396,9 @@ protected:
 }
 
 /**
- * \class GridLayout layout.h nanogui/layout.h
+ * Grid layout.
  *
- * \brief Grid layout.
- *
- * Widgets are arranged in a grid that has a fixed grid resolution \c resolution
+ * Widgets are arranged in a grid that has a fixed grid resolution `resolution`
  * along one of the axes. The layout orientation indicates the fixed dimension;
  * widgets are also appended on this axis. The spacing between items can be
  * specified per axis. The horizontal/vertical alignment can be specified per
@@ -432,20 +410,12 @@ public:
 	/**
 	 * Create a 2-column grid layout by default.
 	 *
-	 * \param orientation
-	 *     The fixed dimension of this GridLayout.
-	 *
-	 * \param resolution
-	 *     The number of rows or columns in the grid (depending on the Orientation).
-	 *
-	 * \param alignment
-	 *     How widgets should be aligned within each grid cell.
-	 *
-	 * \param margin
-	 *     The amount of spacing to add around the border of the grid.
-	 *
-	 * \param spacing
-	 *     The amount of spacing between widgets added to the grid.
+	 * Params:
+	 *     orientation = The fixed dimension of this GridLayout.
+	 *     resolution  = The number of rows or columns in the grid (depending on the Orientation).
+	 *     alignment   = How widgets should be aligned within each grid cell.
+	 *     margin      = The amount of spacing to add around the border of the grid.
+	 *     spacing     = The amount of spacing between widgets added to the grid.
 	 */
 	this(Orientation orientation = Orientation.Horizontal, int resolution = 2,
 			   Alignment alignment = Alignment.Middle,
@@ -512,8 +482,8 @@ public:
 ///// Use this to set variable Alignment for rows.
 //final void setRowAlignment(const std.vector<Alignment> &value) { mAlignment[1] = value; }
 
-	/* Implementation of the layout interface */
-	/// See \ref Layout.preferredSize.
+	/// Implementation of the layout interface
+	/// See `Layout.preferredSize`.
 	override Vector2i preferredSize(NVGContext nvg, const Widget widget, const Widget skipped = null) const
 	{
 		/* Compute minimum row / column sizes */
@@ -535,7 +505,7 @@ public:
 		return size;
 	}
 
-	/// See \ref Layout.performLayout.
+	/// See `Layout.performLayout`.
 	override void performLayout(NVGContext nvg, Widget widget) const
 	{
 		Vector2i fs_w = widget.fixedSize;
