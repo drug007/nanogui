@@ -166,7 +166,7 @@ public:
 			algn.middle = true;
 			nvg.textAlign(algn);
 			nvg.text(mPos.x + mSize.y * 0.5f + 1,
-					mPos.y + mSize.y * 0.5f, mTheme.mCheckBoxIcon);
+					mPos.y + mSize.y * 0.5f, [mTheme.mCheckBoxIcon]);
 		}
 	}
 

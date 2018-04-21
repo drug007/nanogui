@@ -46,7 +46,7 @@ public:
     }
 
     final void chevronIcon(int icon) { mChevronIcon = icon; }
-    final dchar chevronIcon() const { return mChevronIcon[0]; }
+    final dchar chevronIcon() const { return mChevronIcon; }
 
     final void side(Popup.Side popupSide);
     final Popup.Side side() const { return mPopup.side(); }
@@ -62,7 +62,7 @@ public:
         mPopup.visible(mPushed);
         Button.draw(nvg);
 
-        if (mChevronIcon != (dchar[1]).init)
+        if (mChevronIcon != dchar.init)
         {
             auto icon = mChevronIcon;
             auto textColor =
@@ -76,7 +76,7 @@ public:
             algn.middle = true;
             nvg.textAlign(algn);
 
-            float iw = nvg.textBounds(0, 0, icon[], null);
+            float iw = nvg.textBounds(0, 0, [icon], null);
             auto iconPos = Vector2f(0, mPos.y + mSize.y * 0.5f - 1);
 
             if (mPopup.side == Popup.Side.Right)
@@ -84,7 +84,7 @@ public:
             else
                 iconPos[0] = mPos.x + 8;
 
-            nvg.text(iconPos.x, iconPos.y, icon[]);
+            nvg.text(iconPos.x, iconPos.y, [icon]);
         }
     }
     override Vector2i preferredSize(NVGContext nvg) const
@@ -108,5 +108,5 @@ public:
     //virtual bool load(Serializer &s) override;
 protected:
     Popup mPopup;
-    dchar[1] mChevronIcon;
+    dchar mChevronIcon;
 }

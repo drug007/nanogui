@@ -78,7 +78,7 @@ public:
     final void textColor(const Color textColor) { mTextColor = textColor; }
 
     /// Returns the icon of this Button.  See `nanogui.Button.mIcon`.
-    final dchar icon() const { return mIcon[0]; }
+    final dchar icon() const { return mIcon; }
 
     /// Sets the icon of this Button.  See `nanogui.Button.mIcon`.
     final void icon(int icon) { mIcon = icon; }
@@ -128,14 +128,14 @@ public:
         const tw = nvg.textBounds(0,0, mCaption, null);
         float iw = 0.0f, ih = fontSize;
 
-        if (mIcon[0])
+        if (mIcon)
         {
-            if (isFontIcon(mIcon[0]))
+            if (isFontIcon(mIcon))
             {
                 ih *= icon_scale();
                 nvg.fontFace("icons");
                 nvg.fontSize(ih);
-                iw = nvg.textBounds(0, 0, mIcon, null)
+                iw = nvg.textBounds(0, 0, [mIcon], null)
                     + mSize.y * 0.15f;
             }
             else
@@ -291,15 +291,15 @@ public:
         if (!mEnabled)
             textColor = mTheme.mDisabledTextColor;
 
-        if (mIcon[0])
+        if (mIcon)
         {
             float iw, ih = fontSize;
-            if (isFontIcon(mIcon[0]))
+            if (isFontIcon(mIcon))
             {
                 ih *= icon_scale();
                 nvg.fontSize(ih);
                 nvg.fontFace("icons");
-                iw = nvg.textBounds(0, 0, mIcon[], null);
+                iw = nvg.textBounds(0, 0, [mIcon], null);
             }
             else
             {
@@ -338,8 +338,8 @@ public:
                 iconPos.x = mPos.x + mSize.x - iw - 8;
             }
 
-            if (isFontIcon(mIcon[0])) {
-                nvg.text(iconPos.x, iconPos.y+1, mIcon[]);
+            if (isFontIcon(mIcon)) {
+                nvg.text(iconPos.x, iconPos.y+1, [mIcon]);
             } else {
                 //NVGPaint imgPaint = nvg.imagePattern(
                 //        iconPos.x, iconPos.y - ih/2, iw, ih, 0, mIcon[], mEnabled ? 0.5f : 0.25f);
@@ -381,7 +381,7 @@ protected:
      * is determined by the functions `nanogui.common.isImageIcon` and its
      * reciprocal counterpart `nanogui.common.isFontIcon`.
      */
-    dchar[1] mIcon;
+    dchar mIcon;
 
     /// The position to draw the icon at.
     IconPosition mIconPosition;
