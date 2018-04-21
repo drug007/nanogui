@@ -1,3 +1,4 @@
+///
 module nanogui.common;
 
 import gfm.math : vec2i, vec2f, vec4f;
@@ -25,15 +26,14 @@ enum MouseAction : int
 	Motion  = 2,
 }
 
-/// Cursor shapes available to use in GLFW.  Shape of actual cursor determined by Operating System.
+/// Cursor shapes available to use in nanogui.  Shape of actual cursor determined by Operating System.
 enum Cursor {
-	Arrow = 0,  ///< The arrow cursor.
-	IBeam,      ///< The I-beam cursor.
-	Crosshair,  ///< The crosshair cursor.
-	Hand,       ///< The hand cursor.
-	HResize,    ///< The horizontal resize cursor.
-	VResize,    ///< The vertical resize cursor.
-	CursorCount ///< Not a cursor --- should always be last: enables a loop over the cursor types.
+	Arrow = 0,  /// The arrow cursor.
+	IBeam,      /// The I-beam cursor.
+	Crosshair,  /// The crosshair cursor.
+	Hand,       /// The hand cursor.
+	HResize,    /// The horizontal resize cursor.
+	VResize,    /// The vertical resize cursor.
 }
 
 /// Sets current fill style to a solid color.
@@ -90,16 +90,32 @@ public void strokeColor (NVGContext ctx, Color color) nothrow @trusted @nogc
 }
 
 /**
- * \brief Determine whether an icon ID is a font-based icon (e.g. from ``entypo.ttf``).
+ * Determine whether an icon ID is a texture loaded via `nvgImageIcon`.
  *
- * \rst
- * See :func:`nanogui::nvgIsImageIcon` for details.
- * \endrst
+ * The implementation defines all `value < 1024` as image icons, and
+ * everything `>= 1024` as an Entypo icon (see `entypo.d`).
+ * The value `1024` exists to provide a generous buffer on how many images
+ * may have been loaded by NanoVG.
  *
- * \param value
- *     The integral value of the icon.
+ * Params:
+ *     value = The integral value of the icon.
  *
- * \return
- *     Whether or not this is a font icon (from ``entypo.ttf``).
+ * Returns:
+ *     Whether or not this is an image icon.
  */
+pragma(inline, true)
+bool isImageIcon(int value) { return value < 1024; }
+
+/**
+ * Determine whether an icon ID is a font-based icon (e.g. from `entypo.ttf`).
+ *
+ * See `nanogui.common.isImageIcon` for details.
+ *
+ * Params:
+ *     value = The integral value of the icon.
+ *
+ * Returns:
+ *     Whether or not this is a font icon (from `entypo.ttf`).
+ */
+pragma(inline, true)
 bool isFontIcon(int value) { return value >= 1024; }

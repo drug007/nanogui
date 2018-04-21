@@ -2,8 +2,6 @@
 module nanogui.theme;
 
 /*
-	The text box widget was contributed by Christian Schueller.
-
 	NanoGUI was developed by Wenzel Jakob <wenzel.jakob@epfl.ch>.
 	The widget drawing code is based on the NanoVG demo application
 	by Mikko Mononen.
@@ -11,19 +9,12 @@ module nanogui.theme;
 	All rights reserved. Use of this source code is governed by a
 	BSD-style license that can be found in the LICENSE.txt file.
 */
-/**
- * \file nanogui/theme.h
- *
- * \brief Storage class for basic theme-related properties.
- */
 
 import nanogui.common : NVGContext, Color;
 import nanogui.entypo;
 
 /**
- * \class Theme theme.h nanogui/theme.h
- *
- * \brief Storage class for basic theme-related properties.
+ * Storage class for basic theme-related properties.
  */
 class Theme
 {
@@ -100,21 +91,23 @@ public:
 		mFontIcons = nvg.createFontMem("icons", entypo_ttf.ptr,
 									  cast(int) entypo_ttf.length, 0);
 		if (mFontNormal == -1 || mFontBold == -1 || mFontIcons == -1)
-			//throw stdruntime_error("Could not load fonts!");
-			assert(0);
+		{
+			import std.exception : Exception; 
+			throw new Exception("Could not load fonts!");
+		}
 	}
 
 	/* Fonts */
-	/// The standard font face (default: ``"sans"`` from ``resources/roboto_regular.ttf``).
+	/// The standard font face (default: `"sans"` from `resources/roboto_regular.ttf`).
 	int mFontNormal;
-	/// The bold font face (default: ``"sans-bold"`` from ``resources/roboto_regular.ttf``).
+	/// The bold font face (default: `"sans-bold"` from `resources/roboto_regular.ttf`).
 	int mFontBold;
-	/// The icon font face (default: ``"icons"`` from ``resources/entypo.ttf``).
+	/// The icon font face (default: `"icons"` from `resources/entypo.ttf`).
 	int mFontIcons;
 	/**
 	 * The amount of scaling that is applied to each icon to fit the size of
-	 * NanoGUI widgets.  The default value is ``0.77f``, setting to e.g. higher
-	 * than ``1.0f`` is generally discouraged.
+	 * NanoGUI widgets.  The default value is `0.77f`, setting to e.g. higher
+	 * than `1.0f` is generally discouraged.
 	 */
 	float mIconScale;
 
@@ -151,42 +144,42 @@ public:
 	/* Generic colors */
 	/**
 	 * The color of the drop shadow drawn behind widgets
-	 * (default: intensity=``0``, alpha=``128``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``0``, alpha=``128``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mDropShadow;
 	/**
 	 * The transparency color
-	 * (default: intensity=``0``, alpha=``0``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``0``, alpha=``0``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mTransparent;
 	/**
 	 * The dark border color
-	 * (default: intensity=``29``, alpha=``255``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``29``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mBorderDark;
 	/**
 	 * The light border color
-	 * (default: intensity=``92``, alpha=``255``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``92``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mBorderLight;
 	/**
 	 * The medium border color
-	 * (default: intensity=``35``, alpha=``255``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``35``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mBorderMedium;
 	/**
 	 * The text color
-	 * (default: intensity=``255``, alpha=``160``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``255``, alpha=``160``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mTextColor;
 	/**
 	 * The disable dtext color
-	 * (default: intensity=``255``, alpha=``80``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``255``, alpha=``80``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mDisabledTextColor;
 	/**
 	 * The text shadow color
-	 * (default: intensity=``0``, alpha=``160``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``0``, alpha=``160``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mTextColorShadow;
 	/// The icon color (default: \ref nanogui::Theme::mTextColor).
@@ -195,54 +188,54 @@ public:
 	/* Button colors */
 	/**
 	 * The top gradient color for buttons in focus
-	 * (default: intensity=``64``, alpha=``255``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``64``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mButtonGradientTopFocused;
 	/**
 	 * The bottom gradient color for buttons in focus
-	 * (default: intensity=``48``, alpha=``255``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``48``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mButtonGradientBotFocused;
 	/**
 	 * The top gradient color for buttons not in focus
-	 * (default: intensity=``74``, alpha=``255``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``74``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mButtonGradientTopUnfocused;
 	/**
 	 * The bottom gradient color for buttons not in focus
-	 * (default: intensity=``58``, alpha=``255``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``58``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mButtonGradientBotUnfocused;
 	/**
 	 * The top gradient color for buttons currently pushed
-	 * (default: intensity=``41``, alpha=``255``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``41``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mButtonGradientTopPushed;
 	/**
 	 * The bottom gradient color for buttons currently pushed
-	 * (default: intensity=``29``, alpha=``255``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``29``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mButtonGradientBotPushed;
 
 	/* Window colors */
 	/**
 	 * The fill color for a Window that is not in focus
-	 * (default: intensity=``43``, alpha=``230``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``43``, alpha=``230``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mWindowFillUnfocused;
 	/**
 	 * The fill color for a Window that is in focus
-	 * (default: intensity=``45``, alpha=``230``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``45``, alpha=``230``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mWindowFillFocused;
 	/**
 	 * The title color for a Window that is not in focus
-	 * (default: intensity=``220``, alpha=``160``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``220``, alpha=``160``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mWindowTitleUnfocused;
 	/**
 	 * The title color for a Window that is in focus
-	 * (default: intensity=``255``, alpha=``190``; see \ref nanogui::Color::Color(int,int)).
+	 * (default: intensity=``255``, alpha=``190``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mWindowTitleFocused;
 
@@ -256,19 +249,19 @@ public:
 	 * (default: \ref nanogui::Theme::mButtonGradientBotUnfocused).
 	 */
 	Color mWindowHeaderGradientBot;
-	/// The Window header top separation color (default: \ref nanogui::Theme::mBorderLight).
+	/// The Window header top separation color (default: `nanogui.Theme.mBorderLight`).
 	Color mWindowHeaderSepTop;
-	/// The Window header bottom separation color (default: \ref nanogui::Theme::mBorderDark).
+	/// The Window header bottom separation color (default: `nanogui.Theme.mBorderDark`).
 	Color mWindowHeaderSepBot;
 
 	/**
 	 * The popup window color
-	 * (default: intensity=``50``, alpha=``255``; see \ref nanogui::Color::Color(int,int))).
+	 * (default: intensity=``50``, alpha=``255``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mWindowPopup;
 	/**
 	 * The transparent popup window color
-	 * (default: intensity=``50``, alpha=``0``; see \ref nanogui::Color::Color(int,int))).
+	 * (default: intensity=``50``, alpha=``0``; see `nanogui.Color.Color(int,int)`).
 	 */
 	Color mWindowPopupTransparent;
 

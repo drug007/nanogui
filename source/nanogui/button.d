@@ -1,3 +1,4 @@
+///
 module nanogui.button;
 /*
     NanoGUI was developed by Wenzel Jakob <wenzel.jakob@epfl.ch>.
@@ -7,11 +8,6 @@ module nanogui.button;
     All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE.txt file.
 */
-/**
- * \file nanogui/button.h
- *
- * \brief Defines the [Normal/Toggle/Radio/Popup] \ref nanogui::Button widget.
- */
 
 import std.container.array : Array;
 import std.typecons : RefCounted;
@@ -20,15 +16,14 @@ import nanogui.widget;
 import nanogui.common;
 
 /**
- * \class Button button.h nanogui/button.h
- *
- * \brief [Normal/Toggle/Radio/Popup] Button widget.
+ * Defines the [Normal/Toggle/Radio/Popup] `nanogui.Button` widget.
  */
 class Button : Widget
 {
 public:
     /// Flags to specify the button behavior (can be combined with binary OR)
-    enum Flags {
+    enum Flags
+    {
         NormalButton = (1 << 0), ///< A normal Button.
         RadioButton  = (1 << 1), ///< A radio Button.
         ToggleButton = (1 << 2), ///< A toggle Button.
@@ -36,7 +31,8 @@ public:
     }
 
     /// The available icon positions.
-    enum IconPosition {
+    enum IconPosition
+    {
         Left,         ///< Button icon on the far left.
         LeftCentered, ///< Button icon on the left, centered (depends on caption text length).
         RightCentered,///< Button icon on the right, centered (depends on caption text length).
@@ -44,16 +40,12 @@ public:
     }
 
     /**
-     * \brief Creates a button attached to the specified parent.
+     * Creates a button attached to the specified parent.
      *
-     * \param parent
-     *     The \ref nanogui::Widget this Button will be attached to.
-     *
-     * \param caption
-     *     The name of the button (default ``"Untitled"``).
-     *
-     * \param icon
-     *     The icon to display with this Button.  See \ref nanogui::Button::mIcon.
+     * Params:
+     * parent  = The `nanogui.Widget` this Button will be attached to.
+     * caption = The name of the button (default `"Untitled"`).
+     * icon    = The icon to display with this Button. See `nanogui.Button.mIcon`.
      */
     this(Widget parent, string caption = "Untitled", int icon = 0)
     {
@@ -85,16 +77,16 @@ public:
     /// Sets the text color of the caption of this Button.
     final void textColor(const Color textColor) { mTextColor = textColor; }
 
-    /// Returns the icon of this Button.  See \ref nanogui::Button::mIcon.
+    /// Returns the icon of this Button.  See `nanogui.Button.mIcon`.
     final dchar icon() const { return mIcon[0]; }
 
-    /// Sets the icon of this Button.  See \ref nanogui::Button::mIcon.
+    /// Sets the icon of this Button.  See `nanogui.Button.mIcon`.
     final void icon(int icon) { mIcon = icon; }
 
-    /// The current flags of this Button (see \ref nanogui::Button::Flags for options).
+    /// The current flags of this Button (see `nanogui.Button.Flags` for options).
     final int flags() const { return mFlags; }
 
-    /// Sets the flags of this Button (see \ref nanogui::Button::Flags for options).
+    /// Sets the flags of this Button (see `nanogui.Button.Flags` for options).
     final void flags(int buttonFlags) { mFlags = buttonFlags; }
 
     /// The position of the icon for this Button.
@@ -370,10 +362,10 @@ public:
         nvg.text(textPos.x, textPos.y + 1, mCaption);
     }
 
-    ///// Saves the state of this Button provided the given Serializer.
+    // // Saves the state of this Button provided the given Serializer.
     //override void save(Serializer &s) const;
 
-    ///// Sets the state of this Button provided the given Serializer.
+    // // Sets the state of this Button provided the given Serializer.
     //override bool load(Serializer &s);
 
 protected:
@@ -381,15 +373,13 @@ protected:
     string mCaption;
 
     /**
-     * \brief The icon of this Button (``0`` means no icon).
+     * The icon of this Button (`0` means no icon).
      *
-     * \rst
-     * The icon to display with this Button.  If not ``0``, may either be a
+     * The icon to display with this Button.  If not `0`, may either be a
      * picture icon, or one of the icons enumerated in
-     * :ref:`file_nanogui_entypo.h`.  The kind of icon (image or Entypo)
-     * is determined by the functions :func:`nanogui::nvg.isImageIcon` and its
-     * reciprocal counterpart :func:`nanogui::nvg.isFontIcon`.
-     * \endrst
+     * `entypo.d`.  The kind of icon (image or Entypo)
+     * is determined by the functions `nanogui.common.isImageIcon` and its
+     * reciprocal counterpart `nanogui.common.isFontIcon`.
      */
     dchar[1] mIcon;
 
@@ -399,7 +389,7 @@ protected:
     /// Whether or not this Button is currently pushed.
     bool mPushed;
 
-    /// The current flags of this button (see \ref nanogui::Button::Flags for options).
+    /// The current flags of this button (see `nanogui.Button.Flags` for options).
     int mFlags;
 
     /// The background color of this Button.

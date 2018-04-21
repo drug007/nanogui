@@ -524,7 +524,7 @@ protected:
 	 *    the `icon_scale` function.  Expected usage when *drawing* icon fonts
 	 *    is something like:
 	 *
-	 *---
+	 * ---
 	 *
 	 *       void draw(NVGContext nvg)
 	 *       {
@@ -532,14 +532,14 @@ protected:
 	 *           // in the `Theme` class (e.g., standard vs button)
 	 *           float ih = fontSize;
 	 *           // assuming your Widget has a declared `mIcon`
-	 *           if (nvgIsFontIcon(mIcon)) {
+	 *           if (isFontIcon(mIcon)) {
 	 *               ih *= icon_scale();
-	 *               nvgFontFace(nvg, "icons");
-	 *               nvgFontSize(nvg, ih);
+	 *               nvg.fontFace("icons");
+	 *               nvg.fontSize(ih);
 	 *               /// remaining drawing code (see button.d for more)
 	 *           }
 	 *       }
-	 *---
+	 * ---
 	 */
 	float mIconExtraScale;
 	Cursor mCursor;
