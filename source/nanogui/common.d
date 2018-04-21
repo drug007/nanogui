@@ -6,7 +6,6 @@ public import arsd.nanovega;
 
 alias Vector2i = vec2i;
 alias Vector2f = vec2f;
-//alias Color = NVGColor;
 alias Color = vec4f;
 
 enum MouseButton : int

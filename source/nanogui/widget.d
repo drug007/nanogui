@@ -1,14 +1,17 @@
-module nanogui.widget;
 /*
 	nanogui.widget -- Base class of all widgets
 
-	NanoGUI was developed by Wenzel Jakob <wenzel.jakob@epfl.ch>.
+	NanoGUI was developed by Wenzel Jakob <wenzel.jakob@epfl.ch> and
+	ported to D by Alexandr Druzhinin <drug2004@bk.ru>
 	The widget drawing code is based on the NanoVG demo application
 	by Mikko Mononen.
 
 	All rights reserved. Use of this source code is governed by a
 	BSD-style license that can be found in the LICENSE.txt file.
 */
+///
+module nanogui.widget;
+
 import std.container.array;
 
 import nanogui.theme;
@@ -18,15 +21,14 @@ import nanogui.nanogui : Screen;
 public import nanogui.common;
 
 /**
- * \class Widget widget.h nanogui/widget.h
+ * Base class of all widgets.
  *
- * \brief Base class of all widgets.
- *
- * \ref Widget is the base class of all widgets in \c nanogui. It can
+ * Widget is the base class of all widgets in nanogui. It can
  * also be used as an panel to arrange an arbitrary number of child
- * widgets using a layout generator (see \ref Layout).
+ * widgets using a layout generator (see `nanogui.layout.Layout`).
  */
-class Widget : Object {
+class Widget
+{
 public:
 	/// Construct a new widget with the given parent widget
 	this(Widget parent)
@@ -48,16 +50,16 @@ public:
 	/// Set the parent widget
 	final void parent(Widget parent) { mParent = parent; }
 
-	/// Return the used \ref Layout generator
+	/// Return the used `nanogui.layout.Layout` generator
 	final Layout layout() { return mLayout; }
-///// Return the used \ref Layout generator
+///// Return the used `nanogui.layout.Layout` generator
 //const Layout layout() const { return mLayout.get(); }
-	/// Set the used \ref Layout generator
+	/// Set the used `nanogui.layout.Layout` generator
 	final void layout(Layout layout) { mLayout = layout; }
 
-	/// Return the \ref Theme used to draw this widget
+	/// Return the `nanogui.theme.Theme` used to draw this widget
 	final const(Theme) theme() const { return mTheme; }
-	/// Set the \ref Theme used to draw this widget
+	/// Set the `nanogui.theme.Theme` used to draw this widget
 	void theme(Theme theme)
 	{
 		if (mTheme is theme)
@@ -95,26 +97,26 @@ public:
 	final void height(int height) { mSize.y = height; }
 
 	/**
-	 * \brief Set the fixed size of this widget
+	 * Set the fixed size of this widget
 	 *
 	 * If nonzero, components of the fixed size attribute override any values
 	 * computed by a layout generator associated with this widget. Note that
 	 * just setting the fixed size alone is not enough to actually change its
-	 * size; this is done with a call to \ref setSize or a call to \ref performLayout()
+	 * size; this is done with a call to `nanogui.widget.Widget.size` or a call to `nanogui.widget.Widget.performLayout`
 	 * in the parent widget.
 	 */
 	final void fixedSize(Vector2i fixedSize) { mFixedSize = fixedSize; }
 
-	/// Return the fixed size (see \ref setFixedSize())
+	/// Return the fixed size
 	final Vector2i fixedSize() const { return mFixedSize; }
 
-	/// Return the fixed width (see \ref setFixedSize())
+	/// Return the fixed width (see `fixedSize`)
 	final int fixedWidth() const { return mFixedSize.x; }
-	/// Return the fixed height (see \ref setFixedSize())
+	/// Return the fixed height (see `fixedSize`)
 	final int fixedHeight() const { return mFixedSize.y; }
-	/// Set the fixed width (see \ref setFixedSize())
+	/// Set the fixed width (see `fixedSize`)
 	final void fixedWidth(int width) { mFixedSize.x = width; }
-	/// Set the fixed height (see \ref setFixedSize())
+	/// Set the fixed height (see `fixedSize`)
 	final void fixedHeight(int height) { mFixedSize.y = height; }
 
 	/// Return whether or not the widget is currently visible (assuming all parents are visible)
@@ -134,7 +136,7 @@ public:
 		return visible;
 	}
 
-	// Return the number of child widgets
+	/// Return the number of child widgets
 	final int childCount() const
 	{
 		import std.conv : castFrom;
@@ -146,14 +148,14 @@ public:
 	/// ditto
 	auto children() const { return mChildren; }
 
-	///**
-	// * \brief Add a child widget to the current widget at
-	// * the specified index.
-	// *
-	// * This function almost never needs to be called by hand,
-	// * since the constructor of \ref Widget automatically
-	// * adds the current widget to its parent
-	// */
+	/**
+	* Add a child widget to the current widget at
+	* the specified index.
+	*
+	* This function almost never needs to be called by hand,
+	* since the constructor of `Widget` automatically
+	* adds the current widget to its parent
+	*/
 	void addChild(int index, Widget widget)
 	{
 		assert(index <= childCount);
@@ -230,9 +232,9 @@ public:
 		}
 	}
 
-///// Associate this widget with an ID value (optional)
+// // Associate this widget with an ID value (optional)
 //void setId(const std::string &id) { mId = id; }
-///// Return the ID value associated with this widget, if any
+// // Return the ID value associated with this widget, if any
 //const std::string &id() const { return mId; }
 
 	/// Return whether or not this widget is currently enabled
@@ -269,13 +271,13 @@ public:
 
 ///**
 // * The amount of extra scaling applied to *icon* fonts.
-// * See \ref nanogui::Widget::mIconExtraScale.
+// * See `nanogui.Widget.mIconExtraScale`.
 // */
 //float iconExtraScale() const { return mIconExtraScale; }
 
 ///**
 // * Sets the amount of extra scaling applied to *icon* fonts.
-// * See \ref nanogui::Widget::mIconExtraScale.
+// * See `nanogui.Widget.mIconExtraScale`.
 // */
 //void setIconExtraScale(float scale) { mIconExtraScale = scale; }
 
@@ -444,10 +446,10 @@ public:
 		nvg.restore;
 	}
 
-///// Save the state of the widget into the given \ref Serializer instance
+// // Save the state of the widget into the given \ref Serializer instance
 //virtual void save(Serializer &s) const;
 
-///// Restore the state of the widget from the given \ref Serializer instance
+// // Restore the state of the widget from the given \ref Serializer instance
 //virtual bool load(Serializer &s);
 
 protected:
@@ -463,17 +465,15 @@ protected:
 	/**
 	 * Convenience definition for subclasses to get the full icon scale for this
 	 * class of Widget.  It simple returns the value
-	 * ``mTheme.mIconScale * this.mIconExtraScale``.
+	 * `mTheme.mIconScale * this.mIconExtraScale`.
 	 *
-	 * \remark
-	 *     See also: \ref nanogui::Theme::mIconScale and
-	 *     \ref nanogui::Widget::mIconExtraScale.  This tiered scaling
-	 *     strategy may not be appropriate with fonts other than ``entypo.ttf``.
+	 * See_also:
+	 *     `Theme.mIconScale` and `Widget.mIconExtraScale`.  This tiered scaling
+	 *     strategy may not be appropriate with fonts other than `entypo.ttf`.
 	 */
 	pragma(inline, true)
 	float icon_scale() const { return mTheme.mIconScale * mIconExtraScale; }
 
-//protected:
 	Widget mParent;
 	Theme mTheme;
 	Layout mLayout;
@@ -499,38 +499,37 @@ protected:
 	int mFontSize;
 
 	/**
-	 * \brief The amount of extra icon scaling used in addition the the theme's
-	 *        default icon font scale.  Default value is ``1.0``, which implies
-	 *        that \ref nanogui::Widget::icon_scale simply returns the value
-	 *        of \ref nanogui::Theme::mIconScale.
+	 * The amount of extra icon scaling used in addition the the theme's
+	 * default icon font scale.  Default value is ``1.0``, which implies
+	 * that `icon_scale` simply returns the value of `nanogui.Theme.mIconScale`.
 	 *
-	 * Most widgets do not need extra scaling, but some (e.g., CheckBox, TextBox)
+	 * Most widgets do not need extra scaling, but some (e.g., `CheckBox`, `TextBox`)
 	 * need to adjust the Theme's default icon scaling
-	 * (\ref nanogui::Theme::mIconScale) to properly display icons within their
+	 * `nanogui.Theme.mIconScale` to properly display icons within their
 	 * bounds (upscale, or downscale).
 	 *
-	 * \rst
-	 * .. note::
+	 * Summary:
 	 *
-	 *    When using ``nvgFontSize`` for icons in subclasses, make sure to call
-	 *    the :func:`nanogui::Widget::icon_scale` function.  Expected usage when
-	 *    *drawing* icon fonts is something like:
+	 *    When using `nvgFontSize` for icons in subclasses, make sure to call
+	 *    the `icon_scale` function.  Expected usage when *drawing* icon fonts
+	 *    is something like:
 	 *
-	 *    .. code-block:: cpp
+	 *---
 	 *
-	 *       virtual void draw(NVGcontext *nvg) {
-	 *           // fontSize depends on the kind of Widget.  Search for `FontSize`
-	 *           // in the Theme class (e.g., standard vs button)
+	 *       void draw(NVGContext nvg)
+	 *       {
+	 *           // fontSize depends on the kind of `Widget`.  Search for `FontSize`
+	 *           // in the `Theme` class (e.g., standard vs button)
 	 *           float ih = fontSize;
 	 *           // assuming your Widget has a declared `mIcon`
 	 *           if (nvgIsFontIcon(mIcon)) {
 	 *               ih *= icon_scale();
 	 *               nvgFontFace(nvg, "icons");
 	 *               nvgFontSize(nvg, ih);
-	 *               /// remaining drawing code (see button.cpp for more)
+	 *               /// remaining drawing code (see button.d for more)
 	 *           }
 	 *       }
-	 * \endrst
+	 *---
 	 */
 	float mIconExtraScale;
 	Cursor mCursor;

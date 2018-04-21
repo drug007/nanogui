@@ -1,3 +1,4 @@
+///
 module nanogui.layout;
 
 import std.container.array : Array;
@@ -37,9 +38,9 @@ enum Orientation {
 }
 
 /**
- * \class Layout layout.h nanogui/layout.h
+ * interface Layout
  *
- * \brief Basic interface of a layout engine.
+ * Basic interface of a layout engine.
  */
 interface Layout
 {
