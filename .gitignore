@@ -13,3 +13,5 @@ nanogui-test-*
 *.obj
 *.lst
 /nanogui
+*.a
+/example-arsd

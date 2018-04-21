@@ -1,3 +1,5 @@
+module examples.arsd;
+
 import std.datetime : Clock;
 
 import arsd.simpledisplay;

@@ -1,8 +1,18 @@
 name "nanogui"
-description "A minimal D application."
+description "Port of nanogui to dlang."
 authors "drug"
 copyright "Copyright © 2018, drug"
-license "proprietary"
 dependency "arsd-official:simpledisplay" version="~>2.0.0"
 dependency "arsd-official:nanovega" version="~>2.0.0"
 dependency "gfm" version="~>6.2.0"
+
+configuration "lib" {
+	targetType "library"
+}
+
+configuration "arsd" {
+	targetType  "executable"
+	targetName  "example-arsd"
+	sourcePaths "examples/arsd/"
+}
+
