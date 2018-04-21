@@ -13,13 +13,13 @@ import nanogui.common : Vector2i;
 
 class ArsdBackend
 {
-	this()
+	this(int w, int h, string title)
 	{
 		// we need at least OpenGL3 with GLSL to use NanoVega,
 		// so let's tell simpledisplay about that
 		setOpenGLContextVersion(3, 0);
 
-		simple_window = new SimpleWindow(1000, 800, "NanoVega Simple Sample", OpenGlOptions.yes, Resizability.allowResizing);
+		simple_window = new SimpleWindow(w, h, title, OpenGlOptions.yes, Resizability.allowResizing);
 		
 		// we need to destroy NanoVega context on window close
 		// stricly speaking, it is not necessary, as nothing fatal
@@ -43,12 +43,11 @@ class ArsdBackend
 				screen.draw(nvg);
 			};
 
-			if (user_dg !is null)
-				user_dg();
+			onVisibleForTheFirstTime();
 		};
 	}
 
-	void run()
+	final void run()
 	{
 		simple_window.eventLoop(40,
 			() {
@@ -132,14 +131,13 @@ class ArsdBackend
 		flushGui(); // let OS do it's cleanup
 	}
 
-	void visibleForTheFirstTime(void delegate() dg)
-	{
-		user_dg = dg;
-	}
+	/// this is called just before our window will be shown for the first time.
+	/// we must create NanoVega context here, as it needs to initialize
+	/// internal OpenGL subsystem with valid OpenGL context.
+	abstract void onVisibleForTheFirstTime();
 
-// protected:
+protected:
 	NVGContext nvg;
 	SimpleWindow simple_window;
 	Screen screen;
-	void delegate() user_dg;
 }

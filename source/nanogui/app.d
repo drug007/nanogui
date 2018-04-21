@@ -4,36 +4,36 @@ import arsd.simpledisplay;
 import arsd.nanovega;
 import nanogui.arsdbackend : ArsdBackend;
 
-void main () {
-	
-	auto backend = new ArsdBackend();
-
-	import nanogui.screen : Screen;
-	import nanogui.widget, nanogui.theme, nanogui.checkbox, nanogui.label, 
-		nanogui.common, nanogui.window, nanogui.layout, nanogui.button,
-		nanogui.popupbutton, nanogui.entypo, nanogui.popup, nanogui.vscrollpanel;
-
-	// this is called just before our window will be shown for the first time.
-	// we must create NanoVega context here, as it needs to initialize
-	// internal OpenGL subsystem with valid OpenGL context.
-	backend.visibleForTheFirstTime = ()
+class MyGui : ArsdBackend
+{
+	this(int w, int h, string title)
 	{
+		super(w, h, title);
+	}
+
+	override void onVisibleForTheFirstTime()
+	{
+		import nanogui.screen : Screen;
+		import nanogui.widget, nanogui.theme, nanogui.checkbox, nanogui.label, 
+			nanogui.common, nanogui.window, nanogui.layout, nanogui.button,
+			nanogui.popupbutton, nanogui.entypo, nanogui.popup, nanogui.vscrollpanel;
+		
 		{
-			auto window = new Window(backend.screen, "Button demo");
+			auto window = new Window(screen, "Button demo");
 			window.position(Vector2i(15, 15));
-			window.size = Vector2i(backend.screen.size.x - 30, backend.screen.size.y - 30);
+			window.size = Vector2i(screen.size.x - 30, screen.size.y - 30);
 			window.layout(new GroupLayout());
 
 			new Label(window, "Push buttons", "sans-bold");
 
-			auto checkbox = new CheckBox(window, "Checkbox #1", (bool value){ backend.simple_window.redrawOpenGlSceneNow(); });
+			auto checkbox = new CheckBox(window, "Checkbox #1", (bool value){ simple_window.redrawOpenGlSceneNow(); });
 			checkbox.position = Vector2i(100, 190);
-			checkbox.size = checkbox.preferredSize(backend.nvg);
+			checkbox.size = checkbox.preferredSize(nvg);
 			checkbox.checked = true;
 
 			auto label = new Label(window, "Label");
 			label.position = Vector2i(100, 300);
-			label.size = label.preferredSize(backend.nvg);
+			label.size = label.preferredSize(nvg);
 
 			Popup popup;
 
@@ -54,7 +54,7 @@ void main () {
 		}
 
 		{
-			auto window = new Window(backend.screen, "Button group example");
+			auto window = new Window(screen, "Button group example");
 			window.position(Vector2i(200, 15));
 			window.layout(new GroupLayout());
 
@@ -82,7 +82,7 @@ void main () {
 		}
 
 		{
-			auto window = new Window(backend.screen, "Yet another window");
+			auto window = new Window(screen, "Yet another window");
 			window.position(Vector2i(300, 15));
 			window.layout(new GroupLayout());
 
@@ -93,7 +93,7 @@ void main () {
 		}
 
 		{
-			auto window = new Window(backend.screen, "Yet another window");
+			auto window = new Window(screen, "Yet another window");
 			window.position(Vector2i(400, 15));
 			window.layout(new GroupLayout());
 
@@ -108,7 +108,7 @@ void main () {
 			int half_width = width / 2;
 			int height     = 200;
 
-			auto window = new Window(backend.screen, "All Icons");
+			auto window = new Window(screen, "All Icons");
 			window.position(Vector2i(0, 400));
 			window.fixedSize(Vector2i(width, height));
 
@@ -131,8 +131,12 @@ void main () {
 		}
 		
 		// now we should do layout manually yet
-		backend.screen.performLayout(backend.nvg);
-	};
+		screen.performLayout(nvg);
+	}
+}
+
+void main () {
 	
-	backend.run();
+	auto gui = new MyGui(1000, 800, "NanoVega Simple Sample");
+	gui.run();
 }
