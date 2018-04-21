@@ -17,7 +17,7 @@ import std.container.array;
 import nanogui.theme;
 import nanogui.layout;
 import nanogui.common : Cursor, Vector2i, Vector2f, MouseButton;
-import nanogui.nanogui : Screen;
+import nanogui.screen : Screen;
 public import nanogui.common;
 
 /**
@@ -253,7 +253,7 @@ public:
 	/// Request the focus to be moved to this widget
 	void requestFocus()
 	{
-		import nanogui.nanogui : Screen;
+		import nanogui.screen : Screen;
 		Widget widget = this;
 		while (widget.parent())
 			widget = widget.parent();

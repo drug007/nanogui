@@ -19,7 +19,7 @@ void main () {
 		nvg.kill;
 	};
 
-	import nanogui.nanogui : Screen;
+	import nanogui.screen : Screen;
 	import nanogui.widget, nanogui.theme, nanogui.checkbox, nanogui.label, 
 		nanogui.common, nanogui.window, nanogui.layout, nanogui.button,
 		nanogui.popupbutton, nanogui.entypo, nanogui.popup, nanogui.vscrollpanel;

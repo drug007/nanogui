@@ -1,5 +1,5 @@
 ///
-module nanogui.nanogui;
+module nanogui.screen;
 
 import std.algorithm : min;
 
