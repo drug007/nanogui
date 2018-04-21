@@ -52,8 +52,8 @@ public:
 
 	/// Return the used `nanogui.layout.Layout` generator
 	final Layout layout() { return mLayout; }
-///// Return the used `nanogui.layout.Layout` generator
-//const Layout layout() const { return mLayout.get(); }
+	/// Return the used `nanogui.layout.Layout` generator
+	auto layout() const { return mLayout; }
 	/// Set the used `nanogui.layout.Layout` generator
 	final void layout(Layout layout) { mLayout = layout; }
 
@@ -185,20 +185,24 @@ public:
 		mChildren.linearRemove(mChildren[].find(widget).takeOne);
 	}
 
-///// Retrieves the child at the specific position
-//const Widget* childAt(int index) const { return mChildren[index]; }
+	/// Retrieves the child at the specific position
+	auto childAt(int index) const { return mChildren[index]; }
 
-///// Retrieves the child at the specific position
-//Widget* childAt(int index) { return mChildren[index]; }
+	/// Retrieves the child at the specific position
+	auto childAt(int index) { return mChildren[index]; }
 
-///// Returns the index of a specific child or -1 if not found
-//int childIndex(Widget* widget) const;
+	/// Returns the index of a specific child or -1 if not found
+	int childIndex(Widget widget) const
+	{
+		import std.algorithm : countUntil;
+		return cast(int) countUntil!(a=>a is widget)(mChildren[]);
+	}
 
-///// Variadic shorthand notation to construct and add a child widget
-//template<typename WidgetClass, typename... Args>
-//WidgetClass* add(const Args&... args) {
-//    return new WidgetClass(this, args...);
-//}
+	/// Variadic shorthand notation to construct and add a child widget
+	auto add(W, Args...)(Args args)
+	{
+		return new WidgetClass(this, args);
+	}
 
 	/// Walk up the hierarchy and return the parent window
 	final Window window()
@@ -232,10 +236,10 @@ public:
 		}
 	}
 
-// // Associate this widget with an ID value (optional)
-//void setId(const std::string &id) { mId = id; }
-// // Return the ID value associated with this widget, if any
-//const std::string &id() const { return mId; }
+	/// Associate this widget with an ID value (optional)
+	void setId(string id) { mId = id; }
+	/// Return the ID value associated with this widget, if any
+	auto id() const { return mId; }
 
 	/// Return whether or not this widget is currently enabled
 	final bool enabled() const { return mEnabled; }
@@ -269,22 +273,22 @@ public:
 	/// Return whether the font size is explicitly specified for this widget
 	final bool hasFontSize() const { return mFontSize > 0; }
 
-///**
-// * The amount of extra scaling applied to *icon* fonts.
-// * See `nanogui.Widget.mIconExtraScale`.
-// */
-//float iconExtraScale() const { return mIconExtraScale; }
+	/**
+	* The amount of extra scaling applied to *icon* fonts.
+	* See `nanogui.Widget.mIconExtraScale`.
+	*/
+	float iconExtraScale() const { return mIconExtraScale; }
 
-///**
-// * Sets the amount of extra scaling applied to *icon* fonts.
-// * See `nanogui.Widget.mIconExtraScale`.
-// */
-//void setIconExtraScale(float scale) { mIconExtraScale = scale; }
+	/**
+	* Sets the amount of extra scaling applied to *icon* fonts.
+	* See `nanogui.Widget.mIconExtraScale`.
+	*/
+	void iconExtraScale(float scale) { mIconExtraScale = scale; }
 
-///// Return a pointer to the cursor of the widget
-//Cursor cursor() const { return mCursor; }
-///// Set the cursor of the widget
-//void setCursor(Cursor cursor) { mCursor = cursor; }
+	/// Return a pointer to the cursor of the widget
+	Cursor cursor() const { return mCursor; }
+	/// Set the cursor of the widget
+	void cursor(Cursor cursor) { mCursor = cursor; }
 
 	/// Check if the widget contains a certain position
 	final bool contains(Vector2i p) const {
@@ -374,11 +378,17 @@ public:
 		return false;
 	}
 
-///// Handle a keyboard event (default implementation: do nothing)
-//virtual bool keyboardEvent(int key, int scancode, int action, int modifiers);
+	/// Handle a keyboard event (default implementation: do nothing)
+	bool keyboardEvent(int key, int scancode, int action, int modifiers)
+	{
+		return false;
+	}
 
-///// Handle text input (UTF-32 format) (default implementation: do nothing)
-//virtual bool keyboardCharacterEvent(unsigned int codepoint);
+	/// Handle text input (UTF-32 format) (default implementation: do nothing)
+	bool keyboardCharacterEvent(dchar codepoint)
+	{
+		return false;
+	}
 
 	/// Compute the preferred size of the widget
 	Vector2i preferredSize(NVGContext nvg) const
