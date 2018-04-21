@@ -63,7 +63,7 @@ void main () {
 					"Popup label is visible" : "Popup label isn't visible";
 			};
 
-			auto popupBtn = new PopupButton(window, "PopupButton", ENTYPO_ICON_EXPORT);
+			auto popupBtn = new PopupButton(window, "PopupButton", Entypo.ICON_EXPORT);
 			popup = popupBtn.popup;
 	        popup.layout(new GroupLayout());
 	        new Label(popup, "Arbitrary widgets can be placed here");
@@ -143,7 +143,7 @@ void main () {
 			foreach(i; 0..100)
 			{
 				import std.conv : text;
-				auto item = new Button(wrapper, "item" ~ i.text, ENTYPO_ICON_AIRCRAFT_TAKE_OFF);
+				auto item = new Button(wrapper, "item" ~ i.text, Entypo.ICON_AIRCRAFT_TAKE_OFF);
 				item.iconPosition(Button.IconPosition.Left);
 				item.fixedWidth(half_width);
 			}

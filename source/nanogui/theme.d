@@ -69,18 +69,18 @@ public:
 		mWindowPopup                      = Color(50, 50, 50, 255);
 		mWindowPopupTransparent           = Color(50, 50, 50, 0);
 
-		mCheckBoxIcon                     = [ENTYPO_ICON_CHECK];
-		mMessageInformationIcon           = [ENTYPO_ICON_INFO_WITH_CIRCLE];
-		mMessageQuestionIcon              = [ENTYPO_ICON_HELP_WITH_CIRCLE];
-		mMessageWarningIcon               = [ENTYPO_ICON_WARNING];
-		mMessageAltButtonIcon             = [ENTYPO_ICON_CIRCLE_WITH_CROSS];
-		mMessagePrimaryButtonIcon         = [ENTYPO_ICON_CHECK];
-		mPopupChevronRightIcon            = [ENTYPO_ICON_CHEVRON_RIGHT];
-		mPopupChevronLeftIcon             = [ENTYPO_ICON_CHEVRON_LEFT];
-		mTabHeaderLeftIcon                = [ENTYPO_ICON_ARROW_BOLD_LEFT];
-		mTabHeaderRightIcon               = [ENTYPO_ICON_ARROW_BOLD_RIGHT];
-		mTextBoxUpIcon                    = [ENTYPO_ICON_CHEVRON_UP];
-		mTextBoxDownIcon                  = [ENTYPO_ICON_CHEVRON_DOWN];
+		mCheckBoxIcon                     = [Entypo.ICON_CHECK];
+		mMessageInformationIcon           = [Entypo.ICON_INFO_WITH_CIRCLE];
+		mMessageQuestionIcon              = [Entypo.ICON_HELP_WITH_CIRCLE];
+		mMessageWarningIcon               = [Entypo.ICON_WARNING];
+		mMessageAltButtonIcon             = [Entypo.ICON_CIRCLE_WITH_CROSS];
+		mMessagePrimaryButtonIcon         = [Entypo.ICON_CHECK];
+		mPopupChevronRightIcon            = [Entypo.ICON_CHEVRON_RIGHT];
+		mPopupChevronLeftIcon             = [Entypo.ICON_CHEVRON_LEFT];
+		mTabHeaderLeftIcon                = [Entypo.ICON_ARROW_BOLD_LEFT];
+		mTabHeaderRightIcon               = [Entypo.ICON_ARROW_BOLD_RIGHT];
+		mTextBoxUpIcon                    = [Entypo.ICON_CHEVRON_UP];
+		mTextBoxDownIcon                  = [Entypo.ICON_CHEVRON_DOWN];
 
 		import arsd.nanovega : createFontMem;
 		import nanogui.resources;
@@ -265,29 +265,29 @@ public:
 	 */
 	Color mWindowPopupTransparent;
 
-	/// Icon to use for CheckBox widgets (default: `ENTYPO_ICON_CHECK`).
+	/// Icon to use for CheckBox widgets (default: `Entypo.ICON_CHECK`).
 	dchar[1] mCheckBoxIcon;
-	/// Icon to use for informational MessageDialog widgets (default: `ENTYPO_ICON_INFO_WITH_CIRCLE`).
+	/// Icon to use for informational MessageDialog widgets (default: `Entypo.ICON_INFO_WITH_CIRCLE`).
 	dchar[1] mMessageInformationIcon;
-	/// Icon to use for interrogative MessageDialog widgets (default: `ENTYPO_ICON_HELP_WITH_CIRCLE`).
+	/// Icon to use for interrogative MessageDialog widgets (default: `Entypo.ICON_HELP_WITH_CIRCLE`).
 	dchar[1] mMessageQuestionIcon;
-	/// Icon to use for warning MessageDialog widgets (default: `ENTYPO_ICON_WARNING`).
+	/// Icon to use for warning MessageDialog widgets (default: `Entypo.ICON_WARNING`).
 	dchar[1] mMessageWarningIcon;
-	/// Icon to use on MessageDialog alt button (default: `ENTYPO_ICON_CIRCLE_WITH_CROSS`).
+	/// Icon to use on MessageDialog alt button (default: `Entypo.ICON_CIRCLE_WITH_CROSS`).
 	dchar[1] mMessageAltButtonIcon;
-	/// Icon to use on MessageDialog primary button (default: `ENTYPO_ICON_CHECK`).
+	/// Icon to use on MessageDialog primary button (default: `Entypo.ICON_CHECK`).
 	dchar[1] mMessagePrimaryButtonIcon;
-	/// Icon to use for PopupButton widgets opening to the right (default: `ENTYPO_ICON_CHEVRON_RIGHT`).
+	/// Icon to use for PopupButton widgets opening to the right (default: `Entypo.ICON_CHEVRON_RIGHT`).
 	dchar[1] mPopupChevronRightIcon;
-	/// Icon to use for PopupButton widgets opening to the left (default: `ENTYPO_ICON_CHEVRON_LEFT`).
+	/// Icon to use for PopupButton widgets opening to the left (default: `Entypo.ICON_CHEVRON_LEFT`).
 	dchar[1] mPopupChevronLeftIcon;
-	/// Icon to indicate hidden tabs to the left on a TabHeader (default: `ENTYPO_ICON_ARROW_BOLD_LEFT`).
+	/// Icon to indicate hidden tabs to the left on a TabHeader (default: `Entypo.ICON_ARROW_BOLD_LEFT`).
 	dchar[1] mTabHeaderLeftIcon;
-	/// Icon to indicate hidden tabs to the right on a TabHeader (default: `ENTYPO_ICON_ARROW_BOLD_RIGHT`).
+	/// Icon to indicate hidden tabs to the right on a TabHeader (default: `Entypo.ICON_ARROW_BOLD_RIGHT`).
 	dchar[1] mTabHeaderRightIcon;
-	/// Icon to use when a TextBox has an up toggle (e.g. IntBox) (default: `ENTYPO_ICON_CHEVRON_UP`).
+	/// Icon to use when a TextBox has an up toggle (e.g. IntBox) (default: `Entypo.ICON_CHEVRON_UP`).
 	dchar[1] mTextBoxUpIcon;
-	/// Icon to use when a TextBox has a down toggle (e.g. IntBox) (default: `ENTYPO_ICON_CHEVRON_DOWN`).
+	/// Icon to use when a TextBox has a down toggle (e.g. IntBox) (default: `Entypo.ICON_CHEVRON_DOWN`).
 	dchar[1] mTextBoxDownIcon;
 
 protected:
