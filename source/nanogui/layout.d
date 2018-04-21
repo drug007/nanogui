@@ -149,7 +149,7 @@ public:
 		bool first = true;
 		int axis1 = cast(int) mOrientation;
 		int axis2 = (cast(int) mOrientation + 1)%2;
-		foreach (w; widget.constChildren)
+		foreach (w; widget.children)
 		{
 			if (!w.visible || w is skipped)
 				continue;
@@ -332,7 +332,7 @@ public:
 			height += widget.theme.mWindowHeaderHeight - mMargin/2;
 
 		bool first = true, indent = false;
-		foreach (c; widget.constChildren) {
+		foreach (c; widget.children) {
 			if (!c.visible || c is skipped)
 				continue;
 			import nanogui.label : Label;
@@ -635,8 +635,8 @@ protected:
 					   ref Array!(int)[2] grid, const Widget skipped) const
 	{
 		int axis1 = cast(int) mOrientation, axis2 = (axis1 + 1) % 2;
-		size_t numChildren = widget.constChildren.length, visibleChildren = 0;
-		foreach (w; widget.constChildren)
+		size_t numChildren = widget.children.length, visibleChildren = 0;
+		foreach (w; widget.children)
 			visibleChildren += w.visible ? 1 : 0;
 
 		Vector2i dim;
@@ -654,7 +654,7 @@ protected:
 				do {
 					if (child >= numChildren)
 						return;
-					w = widget.constChildren[child++];
+					w = widget.children[child++];
 				} while (!w.visible || w is skipped);
 
 				Vector2i ps = w.preferredSize(nvg);

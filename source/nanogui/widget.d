@@ -144,7 +144,7 @@ public:
 	/// Return the list of child widgets of the current widget
 	auto children() { return mChildren; }
 	/// ditto
-	auto constChildren() const { return mChildren; }
+	auto children() const { return mChildren; }
 
 	///**
 	// * \brief Add a child widget to the current widget at
