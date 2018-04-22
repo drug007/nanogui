@@ -175,8 +175,13 @@ public:
 		}
 		return false;
 	}
-///// Accept scroll events and propagate them to the widget under the mouse cursor
-//override bool scrollEvent(Vector2i p, Vector2f rel);
+	/// Accept scroll events and propagate them to the widget under the mouse cursor
+	override bool scrollEvent(Vector2i p, Vector2f rel)
+	{
+		Widget.scrollEvent(p, rel);
+		return true;
+	}
+
 	/// Compute the preferred size of the widget
 	override Vector2i preferredSize(NVGContext nvg) const
 	{
