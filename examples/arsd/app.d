@@ -18,7 +18,8 @@ class MyGui : ArsdBackend
 		import nanogui.screen : Screen;
 		import nanogui.widget, nanogui.theme, nanogui.checkbox, nanogui.label, 
 			nanogui.common, nanogui.window, nanogui.layout, nanogui.button,
-			nanogui.popupbutton, nanogui.entypo, nanogui.popup, nanogui.vscrollpanel;
+			nanogui.popupbutton, nanogui.entypo, nanogui.popup, nanogui.vscrollpanel,
+			nanogui.combobox;
 		
 		{
 			auto window = new Window(screen, "Button demo");
@@ -95,14 +96,19 @@ class MyGui : ArsdBackend
 		}
 
 		{
-			auto window = new Window(screen, "Yet another window");
+			auto window = new Window(screen, "Combobox window");
 			window.position(Vector2i(400, 15));
 			window.layout(new GroupLayout());
 
 			new Label(window, "Message dialog", "sans-bold");
-			new CheckBox(window, "Checkbox #4", (bool value){ });
+			import std.algorithm : map;
+			import std.range : iota;
+			import std.array : array;
+			import std.conv : text;
+			auto items = 15.iota.map!(a=>text("items", a)).array;
+			new ComboBox(window, items);
 
-			window.tooltip = "Window with checkbox FOUR tooltip";
+			window.tooltip = "Window with ComboBox tooltip";
 		}
 
 		{
