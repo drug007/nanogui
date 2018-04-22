@@ -281,25 +281,25 @@ public:
 	final int margin() const { return mMargin; }
 
 	/// Sets the margin of this GroupLayout.
-	final void setMargin(int margin) { mMargin = margin; }
+	final void margin(int margin) { mMargin = margin; }
 
 	/// The spacing between widgets of this GroupLayout.
 	final int spacing() const { return mSpacing; }
 
 	/// Sets the spacing between widgets of this GroupLayout.
-	final void setSpacing(int spacing) { mSpacing = spacing; }
+	final void spacing(int spacing) { mSpacing = spacing; }
 
 	/// The indent of widgets in a group (underneath a Label) of this GroupLayout.
 	final int groupIndent() const { return mGroupIndent; }
 
 	/// Sets the indent of widgets in a group (underneath a Label) of this GroupLayout.
-	final void setGroupIndent(int groupIndent) { mGroupIndent = groupIndent; }
+	final void groupIndent(int groupIndent) { mGroupIndent = groupIndent; }
 
 	/// The spacing between groups of this GroupLayout.
 	final int groupSpacing() const { return mGroupSpacing; }
 
 	/// Sets the spacing between groups of this GroupLayout.
-	final void setGroupSpacing(int groupSpacing) { mGroupSpacing = groupSpacing; }
+	final void groupSpacing(int groupSpacing) { mGroupSpacing = groupSpacing; }
 
 	/// Implementation of the layout interface
 	/// See `Layout.preferredSize`.
@@ -433,7 +433,7 @@ public:
 	final Orientation orientation() const { return mOrientation; }
 
 	/// Sets the Orientation of this GridLayout.
-	final void setOrientation(Orientation orientation) {
+	final void orientation(Orientation orientation) {
 		mOrientation = orientation;
 	}
 
@@ -441,22 +441,22 @@ public:
 	final int resolution() const { return mResolution; }
 
 	/// Sets the number of rows or columns (depending on the Orientation) of this GridLayout.
-	final void setResolution(int resolution) { mResolution = resolution; }
+	final void resolution(int resolution) { mResolution = resolution; }
 
 	/// The spacing at the specified axis (row or column number, depending on the Orientation).
 	final int spacing(int axis) const { return mSpacing[axis]; }
 
 	/// Sets the spacing for a specific axis.
-	final void setSpacing(int axis, int spacing) { mSpacing[axis] = spacing; }
+	final void spacing(int axis, int spacing) { mSpacing[axis] = spacing; }
 
 	/// Sets the spacing for all axes.
-	final void setSpacing(int spacing) { mSpacing[0] = mSpacing[1] = spacing; }
+	final void spacing(int spacing) { mSpacing[0] = mSpacing[1] = spacing; }
 
 	/// The margin around this GridLayout.
 	final int margin() const { return mMargin; }
 
 	/// Sets the margin of this GridLayout.
-	final void setMargin(int margin) { mMargin = margin; }
+	final void margin(int margin) { mMargin = margin; }
 
 	/**
 	 * The Alignment of the specified axis (row or column number, depending on
@@ -471,16 +471,16 @@ public:
 	}
 
 	/// Sets the Alignment of the columns.
-	final void setColAlignment(Alignment value) { mDefaultAlignment[0] = value; }
+	final void colAlignment(Alignment value) { mDefaultAlignment[0] = value; }
 
 	/// Sets the Alignment of the rows.
-	final void setRowAlignment(Alignment value) { mDefaultAlignment[1] = value; }
+	final void rowAlignment(Alignment value) { mDefaultAlignment[1] = value; }
 
-///// Use this to set variable Alignment for columns.
-//final void setColAlignment(const std.vector<Alignment> &value) { mAlignment[0] = value; }
+	/// Use this to set variable Alignment for columns.
+	final void colAlignment(Array!Alignment value) { mAlignment[0] = value; }
 
-///// Use this to set variable Alignment for rows.
-//final void setRowAlignment(const std.vector<Alignment> &value) { mAlignment[1] = value; }
+	/// Use this to set variable Alignment for rows.
+	final void rowAlignment(Array!Alignment value) { mAlignment[1] = value; }
 
 	/// Implementation of the layout interface
 	/// See `Layout.preferredSize`.
