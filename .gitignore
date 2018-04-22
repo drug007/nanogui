@@ -15,3 +15,4 @@ nanogui-test-*
 /nanogui
 *.a
 /example-arsd
+/example-sdl

@@ -4,7 +4,7 @@ authors "drug"
 copyright "Copyright © 2018, drug"
 dependency "arsd-official:simpledisplay" version="~>2.0.0"
 dependency "arsd-official:nanovega" version="~>2.0.0"
-dependency "gfm" version="~>6.2.0"
+dependency "gfm:math" version="~>6.2.0"
 
 configuration "lib" {
 	targetType "library"
@@ -14,5 +14,15 @@ configuration "arsd" {
 	targetType  "executable"
 	targetName  "example-arsd"
 	sourcePaths "examples/arsd/"
+	excludedSourceFiles "source/nanogui/sdlbackend.d"
+}
+
+configuration "sdl" {
+	targetType  "executable"
+	targetName  "example-sdl"
+	sourcePaths "examples/sdl/"
+	excludedSourceFiles "source/nanogui/arsdbackend.d"
+	dependency "gfm:opengl" version="~>6.2.0"
+	dependency "gfm:sdl2" version="~>6.2.0"
 }
 

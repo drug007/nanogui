@@ -1,12 +1,12 @@
-module examples.arsd;
+module examples.sdl;
 
 import std.datetime : Clock;
 
 import arsd.simpledisplay;
 import arsd.nanovega;
-import nanogui.arsdbackend : ArsdBackend;
+import nanogui.sdlbackend : SdlBackend;
 
-class MyGui : ArsdBackend
+class MyGui : SdlBackend
 {
 	this(int w, int h, string title)
 	{
@@ -28,7 +28,7 @@ class MyGui : ArsdBackend
 
 			new Label(window, "Push buttons", "sans-bold");
 
-			auto checkbox = new CheckBox(window, "Checkbox #1", (bool value){ simple_window.redrawOpenGlSceneNow(); });
+			auto checkbox = new CheckBox(window, "Checkbox #1", null);//(bool value){ simple_window.redrawOpenGlSceneNow(); });
 			checkbox.position = Vector2i(100, 190);
 			checkbox.size = checkbox.preferredSize(nvg);
 			checkbox.checked = true;
@@ -139,6 +139,6 @@ class MyGui : ArsdBackend
 
 void main () {
 	
-	auto gui = new MyGui(1000, 800, "Nanogui using arsd.simpledisplay");
+	auto gui = new MyGui(1000, 800, "Nanogui using SDL2 backend");
 	gui.run();
 }
