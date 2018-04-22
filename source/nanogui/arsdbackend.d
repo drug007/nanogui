@@ -87,11 +87,11 @@ class ArsdBackend
 					break;
 					case arsd.simpledisplay.MouseButton.wheelUp:
 						btn = MouseButton.WheelUp;
-						screen.scrollCallbackEvent(0, -1, Clock.currTime.stdTime);
+						screen.scrollCallbackEvent(0, +1, Clock.currTime.stdTime);
 					break;
 					case arsd.simpledisplay.MouseButton.wheelDown:
 						btn = MouseButton.WheelDown;
-						screen.scrollCallbackEvent(0, 1, Clock.currTime.stdTime);
+						screen.scrollCallbackEvent(0, -1, Clock.currTime.stdTime);
 					break;
 					default:
 						btn = MouseButton.None;

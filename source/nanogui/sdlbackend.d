@@ -31,7 +31,7 @@ import gfm.sdl2: SDL2, SDL2Window, SDL_GL_SetAttribute, SharedLibVersion,
 import arsd.nanovega : NVGContext, nvgCreateContext, kill, NVGContextFlag;
 import nanogui.screen : Screen;
 import nanogui.theme : Theme;
-import nanogui.common : Vector2i;
+import nanogui.common : Vector2i, MouseButton, MouseAction;
 
 class SdlBackend
 {
@@ -133,8 +133,9 @@ protected:
 	int width;
 	int height;
 
-	int mouse_x, mouse_y;
-	int leftButton, rightButton, middleButton;
+	MouseButton btn;
+	MouseAction action;
+	int modifiers;
 
 	Logger _log;
 	OpenGL _gl;
@@ -155,17 +156,39 @@ protected:
 
 	public void onMouseWheel(ref const(SDL_Event) event)
 	{
-		
+		if (event.wheel.y > 0)
+		{
+			btn = MouseButton.WheelUp;
+			screen.scrollCallbackEvent(0, +1, Clock.currTime.stdTime);
+		}
+		else if (event.wheel.y < 0)
+		{
+			btn = MouseButton.WheelDown;
+			screen.scrollCallbackEvent(0, -1, Clock.currTime.stdTime);
+		}
 	}
 	
 	public void onMouseMotion(ref const(SDL_Event) event)
 	{
-		mouse_x = event.motion.x;
-		mouse_y = height - event.motion.y;
+		auto mouse_x = event.motion.x;
+		auto mouse_y = event.motion.y;
 
-		leftButton   = (event.motion.state & SDL_BUTTON_LMASK);
-		rightButton  = (event.motion.state & SDL_BUTTON_RMASK);
-		middleButton = (event.motion.state & SDL_BUTTON_MMASK);
+		if (event.motion.state & SDL_BUTTON_LMASK)
+			btn = MouseButton.Left;
+		else if (event.motion.state & SDL_BUTTON_RMASK)
+			btn = MouseButton.Right;
+		else if (event.motion.state & SDL_BUTTON_MMASK)
+			btn = MouseButton.Middle;
+
+		if (event.motion.state & SDL_BUTTON_LMASK)
+			modifiers |= MouseButton.Left;
+		if (event.motion.state & SDL_BUTTON_RMASK)
+			modifiers |= MouseButton.Right;
+		if (event.motion.state & SDL_BUTTON_MMASK)
+			modifiers |= MouseButton.Middle;
+
+		action = MouseAction.Motion;
+		screen.cursorPosCallbackEvent(mouse_x, mouse_y, Clock.currTime.stdTime);
 	}
 
 	public void onMouseUp(ref const(SDL_Event) event)
@@ -173,16 +196,18 @@ protected:
 		switch(event.button.button)
 		{
 			case SDL_BUTTON_LEFT:
-				leftButton = 0;
+				btn = MouseButton.Left;
 			break;
 			case SDL_BUTTON_RIGHT:
-				rightButton = 0;
+				btn = MouseButton.Right;
 			break;
 			case SDL_BUTTON_MIDDLE:
-				middleButton = 0;
+				btn = MouseButton.Middle;
 			break;
 			default:
 		}
+		action = MouseAction.Release;
+		screen.mouseButtonCallbackEvent(btn, action, modifiers, Clock.currTime.stdTime);
 	}
 
 	public void onMouseDown(ref const(SDL_Event) event)
@@ -190,15 +215,17 @@ protected:
 		switch(event.button.button)
 		{
 			case SDL_BUTTON_LEFT:
-				leftButton = 1;
+				btn = MouseButton.Left;
 			break;
 			case SDL_BUTTON_RIGHT:
-				rightButton = 1;
+				btn = MouseButton.Right;
 			break;
 			case SDL_BUTTON_MIDDLE:
-				middleButton = 1;
+				btn = MouseButton.Middle;
 			break;
 			default:
 		}
+		action = MouseAction.Press;
+		screen.mouseButtonCallbackEvent(btn, action, modifiers, Clock.currTime.stdTime);
 	}
 }
