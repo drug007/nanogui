@@ -1,5 +1,6 @@
 name "nanogui"
 description "Port of nanogui to dlang."
+license "BSD-like"
 authors "drug"
 copyright "Copyright © 2018, drug"
 dependency "arsd-official:simpledisplay" version="~>2.0.0"
