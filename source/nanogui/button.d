@@ -316,6 +316,7 @@ public:
             textColor = mTheme.mDisabledTextColor;
 
         float iw, ih;
+        float d = (mPushed ? 1.0f : 0.0f);
         if (mIcon)
         {
             ih = fontSize*icon_scale;
@@ -364,12 +365,12 @@ public:
 
             if (mIcon)
             {
-                nvg.text(iconPos.x, iconPos.y+1, [mIcon]);
+                nvg.text(iconPos.x, iconPos.y + d + 1, [mIcon]);
             }
             else
             {
                 NVGPaint imgPaint = nvg.imagePattern(
-                       iconPos.x, iconPos.y - ih/2, iw, ih, 0, mImage, mEnabled ? 0.5f : 0.25f);
+                       iconPos.x, iconPos.y + d - ih/2, iw, ih, 0, mImage, mEnabled ? 0.5f : 0.25f);
 
                 nvg.fillPaint(imgPaint);
                 nvg.fill;
@@ -383,9 +384,9 @@ public:
         algn.middle = true;
         nvg.textAlign(algn);
         nvg.fillColor(mTheme.mTextColorShadow);
-        nvg.text(textPos.x, textPos.y, mCaption,);
+        nvg.text(textPos.x, textPos.y + d, mCaption,);
         nvg.fillColor(textColor);
-        nvg.text(textPos.x, textPos.y + 1, mCaption);
+        nvg.text(textPos.x, textPos.y + d + 1, mCaption);
     }
 
     // // Saves the state of this Button provided the given Serializer.
