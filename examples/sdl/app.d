@@ -87,7 +87,7 @@ class MyGui : SdlBackend
 			window.position(Vector2i(400, 15));
 			window.layout(new GroupLayout());
 
-			auto image = nvg.createImage("resources/icons/start.jpeg", null);
+			auto image = nvg.createImage("resources/icons/start.jpeg", [NVGImageFlags.ClampToBorderX, NVGImageFlags.ClampToBorderY]);
 			auto btn = new Button(window, "Start", image);
 			// some optional height, not font size, not icon height
 			btn.fixedHeight = 130;
