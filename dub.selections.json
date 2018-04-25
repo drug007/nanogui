@@ -1,7 +1,7 @@
 {
 	"fileVersion": 1,
 	"versions": {
-		"arsd-official": "2.0.0",
+		"arsd-official": {"path":"arsd/"},
 		"derelict-gl3": "1.0.24",
 		"derelict-sdl2": "1.9.7",
 		"derelict-util": "2.0.6",

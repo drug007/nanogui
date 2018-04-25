@@ -1,0 +1,3 @@
+[submodule "arsd"]
+	path = arsd
+	url = ../../adamdruppe/arsd.git
