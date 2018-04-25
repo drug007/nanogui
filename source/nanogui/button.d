@@ -45,18 +45,46 @@ public:
      * Params:
      * parent  = The `nanogui.Widget` this Button will be attached to.
      * caption = The name of the button (default `"Untitled"`).
-     * icon    = The icon to display with this Button. See `nanogui.Button.mIcon`.
      */
-    this(Widget parent, string caption = "Untitled", int icon = 0)
+    this(Widget parent, string caption = "Untitled")
     {
         super(parent);
         mCaption = caption;
-        mIcon = icon;
+        mIcon = 0;
+        mImage = NVGImage();
         mIconPosition = IconPosition.LeftCentered;
         mPushed = false;
         mFlags = Flags.NormalButton;
         mBackgroundColor = Color(0, 0, 0, 0);
         mTextColor = Color(0, 0, 0, 0);
+    }
+    
+    /**
+     * Creates a button attached to the specified parent.
+     *
+     * Params:
+     * parent  = The `nanogui.Widget` this Button will be attached to.
+     * caption = The name of the button (default `"Untitled"`).
+     * icon    = The icon to display with this Button. See `nanogui.Button.mIcon`.
+     */
+    this(Widget parent, string caption, dchar icon)
+    {
+        this(parent, caption);
+        mIcon = icon;
+    }
+    
+    /**
+     * Creates a button attached to the specified parent.
+     *
+     * Params:
+     * parent  = The `nanogui.Widget` this Button will be attached to.
+     * caption = The name of the button (default `"Untitled"`).
+     * image   = The image to display with this Button. See `nanogui.Button.mImage`.
+     */
+    this(Widget parent, string caption, ref const(NVGImage) image)
+    {
+        this(parent, caption);
+        mImage = NVGImage(image);
     }
 
     /// Returns the caption of this Button.
@@ -130,22 +158,18 @@ public:
 
         if (mIcon)
         {
-            if (isFontIcon(mIcon))
-            {
-                ih *= icon_scale();
-                nvg.fontFace("icons");
-                nvg.fontSize(ih);
-                iw = nvg.textBounds(0, 0, [mIcon], null)
-                    + mSize.y * 0.15f;
-            }
-            else
-            {
-                //int w, h;
-                //ih *= 0.9f;
-                //nvg.imageSize(mIcon[], &w, &h);
-                //iw = w * ih / h;
-                assert(0);
-            }
+            ih *= icon_scale();
+            nvg.fontFace("icons");
+            nvg.fontSize(ih);
+            iw = nvg.textBounds(0, 0, [mIcon], null)
+                + mSize.y * 0.15f;
+        }
+        else if (mImage.valid)
+        {
+            int w, h;
+            ih *= 0.9f;
+            nvg.imageSize(mImage, w, h);
+            iw = w * ih / h;
         }
         return Vector2i(cast(int)(tw + iw) + 20, fontSize + 10);
     }
@@ -291,24 +315,24 @@ public:
         if (!mEnabled)
             textColor = mTheme.mDisabledTextColor;
 
+        float iw, ih;
         if (mIcon)
         {
-            float iw, ih = fontSize;
-            if (isFontIcon(mIcon))
-            {
-                ih *= icon_scale();
-                nvg.fontSize(ih);
-                nvg.fontFace("icons");
-                iw = nvg.textBounds(0, 0, [mIcon], null);
-            }
-            else
-            {
-                //int w, h;
-                //ih *= 0.9f;
-                //nvg.imageSize(mIcon, &w, &h);
-                //iw = w * ih / h;
-                assert (0);
-            }
+            ih = fontSize*icon_scale;
+            nvg.fontSize(ih);
+            nvg.fontFace("icons");
+            iw = nvg.textBounds(0, 0, [mIcon], null);
+        } else if (mImage.valid)
+        {
+            int w, h;
+            nvg.imageSize(mImage, w, h);
+            import std.algorithm : min;
+            ih = min(h*0.9f, height);
+            iw = w * ih / h;
+        }
+        import std.math : isNaN;
+        if (!iw.isNaN)
+        {
             if (mCaption != "")
                 iw += mSize.y * 0.15f;
             nvg.fillColor(textColor);
@@ -338,15 +362,17 @@ public:
                 iconPos.x = mPos.x + mSize.x - iw - 8;
             }
 
-            if (isFontIcon(mIcon)) {
+            if (mIcon)
+            {
                 nvg.text(iconPos.x, iconPos.y+1, [mIcon]);
-            } else {
-                //NVGPaint imgPaint = nvg.imagePattern(
-                //        iconPos.x, iconPos.y - ih/2, iw, ih, 0, mIcon[], mEnabled ? 0.5f : 0.25f);
+            }
+            else
+            {
+                NVGPaint imgPaint = nvg.imagePattern(
+                       iconPos.x, iconPos.y - ih/2, iw, ih, 0, mImage, mEnabled ? 0.5f : 0.25f);
 
-                //nvg.fillPaint(imgPaint);
-                //nvg.fill;
-                assert(0);
+                nvg.fillPaint(imgPaint);
+                nvg.fill;
             }
         }
 
@@ -372,16 +398,11 @@ protected:
     /// The caption of this Button.
     string mCaption;
 
-    /**
-     * The icon of this Button (`0` means no icon).
-     *
-     * The icon to display with this Button.  If not `0`, may either be a
-     * picture icon, or one of the icons enumerated in
-     * `entypo.d`.  The kind of icon (image or Entypo)
-     * is determined by the functions `nanogui.common.isImageIcon` and its
-     * reciprocal counterpart `nanogui.common.isFontIcon`.
-     */
+    /// The icon to display with this Button (`0` means icon is represented by mImage).
     dchar mIcon;
+    /// The icon to display with this Button (it's used if mIcon is `0` and mImage.valid
+    /// returns `true`).
+    NVGImage mImage;
 
     /// The position to draw the icon at.
     IconPosition mIconPosition;

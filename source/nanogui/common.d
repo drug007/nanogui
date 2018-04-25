@@ -88,34 +88,3 @@ public void strokeColor (NVGContext ctx, Color color) nothrow @trusted @nogc
 	clr.rgba[] /= 255f;
 	arsd.nanovega.strokeColor(ctx, clr);
 }
-
-/**
- * Determine whether an icon ID is a texture loaded via `nvgImageIcon`.
- *
- * The implementation defines all `value < 1024` as image icons, and
- * everything `>= 1024` as an Entypo icon (see `entypo.d`).
- * The value `1024` exists to provide a generous buffer on how many images
- * may have been loaded by NanoVG.
- *
- * Params:
- *     value = The integral value of the icon.
- *
- * Returns:
- *     Whether or not this is an image icon.
- */
-pragma(inline, true)
-bool isImageIcon(int value) { return value < 1024; }
-
-/**
- * Determine whether an icon ID is a font-based icon (e.g. from `entypo.ttf`).
- *
- * See `nanogui.common.isImageIcon` for details.
- *
- * Params:
- *     value = The integral value of the icon.
- *
- * Returns:
- *     Whether or not this is a font icon (from `entypo.ttf`).
- */
-pragma(inline, true)
-bool isFontIcon(int value) { return value >= 1024; }

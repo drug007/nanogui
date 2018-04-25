@@ -58,7 +58,7 @@ class MyGui : ArsdBackend
 
 		{
 			auto window = new Window(screen, "Button group example");
-			window.position(Vector2i(200, 15));
+			window.position(Vector2i(220, 15));
 			window.layout(new GroupLayout());
 
 			auto buttonGroup = ButtonGroup();
@@ -85,19 +85,24 @@ class MyGui : ArsdBackend
 		}
 
 		{
-			auto window = new Window(screen, "Yet another window");
-			window.position(Vector2i(300, 15));
+			auto window = new Window(screen, "Button with image window");
+			window.position(Vector2i(400, 15));
 			window.layout(new GroupLayout());
 
-			new Label(window, "Message dialog", "sans-bold");
-			new CheckBox(window, "Checkbox #3", (bool value){ });
+			auto image = nvg.createImage("resources/icons/start.jpeg", null);
+			auto btn = new Button(window, "Start", image);
+			// some optional height, not font size, not icon height
+			btn.fixedHeight = 130;
 
-			window.tooltip = "Window with checkbox #3 tooltip";
+			// yet another Button with the same image but default size
+			new Button(window, "Start", image);
+
+			window.tooltip = "Window with button that has image as an icon";
 		}
 
 		{
 			auto window = new Window(screen, "Combobox window");
-			window.position(Vector2i(400, 15));
+			window.position(Vector2i(600, 15));
 			window.layout(new GroupLayout());
 
 			new Label(window, "Message dialog", "sans-bold");
