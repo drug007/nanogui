@@ -311,10 +311,17 @@ class Screen : Widget
 
 	override bool keyboardEvent(int key, int scancode, KeyAction action, int modifiers)
 	{
-		if (mFocusPath.length > 0) {
-			foreach_reverse(it; mFocusPath)
-				if (it.focused && it.keyboardEvent(key, scancode, action, modifiers))
+import std.stdio;
+writeln(mFocusPath.length);
+		if (mFocusPath.length > 0)
+		{
+			foreach_reverse(w; mFocusPath)
+			{
+writeln(w);
+				if (w.focused && 
+				    w.keyboardEvent(key, scancode, action, modifiers))
 					return true;
+			}
 		}
 
 		return false;

@@ -151,7 +151,9 @@ protected:
 
 	public void onKeyUp(ref const(SDL_Event) event)
 	{
-		
+		import nanogui.common : KeyAction;
+		int modifiers;
+		screen.keyboardEvent(event.key.keysym.sym, event.key.keysym.scancode, KeyAction.Press, modifiers);
 	}
 
 	public void onMouseWheel(ref const(SDL_Event) event)
