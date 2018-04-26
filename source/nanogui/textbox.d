@@ -219,7 +219,7 @@ public:
 	override bool focusEvent(bool focused)
     {
 import std.stdio;
-writeln(__PRETTY_FUNCTION__);
+writeln(__PRETTY_FUNCTION__, " ", focused);
         super.focusEvent(focused);
 
         string backup = mValue;

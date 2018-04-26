@@ -146,14 +146,18 @@ protected:
 
 	public void onKeyDown(ref const(SDL_Event) event)
 	{
-		
+		import nanogui.common : KeyAction;
+		int modifiers;
+		screen.keyboardEvent(event.key.keysym.sym, event.key.keysym.scancode, KeyAction.Press, modifiers);
+import std.stdio;
+with(event.key.keysym)
+	writefln("scancode: %s, sym: %s, mod: %s, unicode: %s", scancode, sym, mod, unicode);
+		screen.keyboardCharacterEvent(event.key.keysym.sym);
 	}
 
 	public void onKeyUp(ref const(SDL_Event) event)
 	{
-		import nanogui.common : KeyAction;
-		int modifiers;
-		screen.keyboardEvent(event.key.keysym.sym, event.key.keysym.scancode, KeyAction.Press, modifiers);
+		
 	}
 
 	public void onMouseWheel(ref const(SDL_Event) event)
