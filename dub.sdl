@@ -5,7 +5,7 @@ authors "drug"
 copyright "Copyright © 2018, drug"
 dependency "arsd-official:nanovega" version="~>2.0.0" path="./arsd/"
 dependency "gfm:math" version="~>7.0.0"
-excludedSourceFiles "source/nanogui/sdlbackend.d" "source/nanogui/arsdbackend.d"
+excludedSourceFiles "source/nanogui/sdlbackend.d" "source/nanogui/arsdbackend.d" "source/nanogui/glfwbackend.d"
 
 configuration "lib" {
 	targetType "library"
@@ -25,4 +25,13 @@ configuration "sdl" {
 	mainSourceFile "source/nanogui/sdlbackend.d"
 	dependency "gfm:opengl" version="~>7.0.0"
 	dependency "gfm:sdl2" version="~>7.0.0"
+}
+
+configuration "glfw" {
+	targetType  "executable"
+	targetName  "example-glfw"
+	sourcePaths "examples/glfw/"
+	mainSourceFile "source/nanogui/glfwbackend.d"
+	dependency "gfm:opengl" version="~>7.0.0"
+	dependency "derelict-glfw3" version="~>4.0.0-beta.1"
 }
