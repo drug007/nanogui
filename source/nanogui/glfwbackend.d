@@ -314,6 +314,7 @@ import std.stdio;
 
 		/// Fixes retina display-related font rendering issue (#185)
 		mNVGContext.beginFrame(size[0], size[1], mPixelRatio);
+		onVisibleForTheFirstTime();
 		mNVGContext.endFrame();
 	}
 
@@ -334,7 +335,7 @@ import std.stdio;
 			reasonably low */
 			refresh_thread = new Thread({
 				import std.datetime : dur;
-				auto time = dur!("msecs")(50);
+				auto time = dur!("msecs")(1500);
 				while (mMainloopActive) {
 					Thread.sleep(time);
 					glfwPostEmptyEvent();
