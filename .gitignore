@@ -16,3 +16,4 @@ nanogui-test-*
 *.a
 /example-arsd
 /example-sdl
+/example-glfw

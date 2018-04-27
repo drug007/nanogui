@@ -7,7 +7,7 @@ import std.string : toStringz;
 import std.format : format;
 
 import std.experimental.logger: Logger, FileLogger;
-import gfm.opengl;
+import derelict.opengl;
 import derelict.glfw3.glfw3;
 import arsd.nanovega;
 
@@ -17,25 +17,24 @@ import nanogui.common : Vector2i, Color, MouseButton, Cursor;
 
 private __gshared Screen[GLFWwindow*] __nanogui_screens;
 
-extern(C) void error_callback(int error, const char *descr) nothrow {
-	import core.stdc.stdio : stderr, fprintf;
-	if (error == GLFW_NOT_INITIALIZED)
-		fprintf(stderr, "GLFW is not initialized!\n");
-	else
-		fprintf(stderr, "GLFW error %d: %s\n", error, descr);
-}
-
 class GlfwBackend : Screen
 {
 	this(int w, int h, string title)
 	{
 		super(w, h, Clock.currStdTime);
 
+		DerelictGL3.load();
 		// Load the GLFW 3 library.
     	DerelictGLFW3.load();
 
 		glfwSetErrorCallback(
-			&error_callback
+			(error, descr) {
+				import core.stdc.stdio : stderr, fprintf;
+				if (error == GLFW_NOT_INITIALIZED)
+					fprintf(stderr, "GLFW is not initialized!\n");
+				else
+					fprintf(stderr, "GLFW error %d: %s\n", error, descr);
+			}
 		);
 
 		if (!glfwInit())
@@ -67,7 +66,7 @@ class GlfwBackend : Screen
 		glfwWindowHint(GLFW_ALPHA_BITS, alphaBits);
 		glfwWindowHint(GLFW_STENCIL_BITS, stencilBits);
 		glfwWindowHint(GLFW_DEPTH_BITS, depthBits);
-		glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+		glfwWindowHint(GLFW_VISIBLE, GL_TRUE);
 		glfwWindowHint(GLFW_RESIZABLE, resizable ? GL_TRUE : GL_FALSE);
 
 		if (fullscreen) {
@@ -85,6 +84,7 @@ class GlfwBackend : Screen
 				format("Could not create an OpenGL %d.%d context!", glMajor, glMinor));
 
 		glfwMakeContextCurrent(mGLFWWindow);
+		DerelictGL3.reload();
 
 	// #if defined(NANOGUI_GLAD)
 	// 	if (!gladInitialized) {
@@ -96,7 +96,7 @@ class GlfwBackend : Screen
 	// #endif
 		import std.stdio : stdout;
 		mLog = new FileLogger(stdout);
-		mGl = new OpenGL(mLog);
+		// mGl = new OpenGL(mLog);
 
 		glfwGetFramebufferSize(mGLFWWindow, &mFBSize[0], &mFBSize[1]);
 		glViewport(0, 0, mFBSize[0], mFBSize[1]);
@@ -139,20 +139,43 @@ class GlfwBackend : Screen
 			}
 
 			/* Propagate GLFW events to the appropriate Screen instance */
-			glfwSetCursorPosCallback(mGLFWWindow, &callback);
+			glfwSetCursorPosCallback(mGLFWWindow,
+				(window, x, y) {
+				// auto it = __nanogui_screens.find(w);
+				// if (it == __nanogui_screens.end())
+				// 	return;
+				// Screen *s = it.second;
+				// if (!s.mProcessEvents)
+				// 	return;
+				// s.cursorPosCallbackEvent(x, y);
+				try
+				{
+					auto screen = __nanogui_screens.get(window, null);
+					if (screen is null)
+						return;
+					if (!screen.processEvents)
+						return;
+					screen.cursorPosCallbackEvent(x, y, Clock.currTime.stdTime);
+				}
+				catch(Exception e)
+				{
+					// do nothing
+				}
+			}
+			);
 		}
 
-	// 	glfwSetMouseButtonCallback(mGLFWWindow,
-	// 		[](GLFWwindow *w, int button, int action, int modifiers) {
-	// 			auto it = __nanogui_screens.find(w);
-	// 			if (it == __nanogui_screens.end())
-	// 				return;
-	// 			Screen *s = it.second;
-	// 			if (!s.mProcessEvents)
-	// 				return;
-	// 			s.mouseButtonCallbackEvent(button, action, modifiers);
-	// 		}
-	// 	);
+		glfwSetMouseButtonCallback(mGLFWWindow,
+			(w, button, action, modifiers) nothrow {
+				// auto it = __nanogui_screens.find(w);
+				// if (it == __nanogui_screens.end())
+				// 	return;
+				// Screen *s = it.second;
+				// if (!s.mProcessEvents)
+				// 	return;
+				// s.mouseButtonCallbackEvent(button, action, modifiers);
+			}
+		);
 
 	// 	glfwSetKeyCallback(mGLFWWindow,
 	// 		[](GLFWwindow *w, int key, int scancode, int action, int mods) {
@@ -286,8 +309,6 @@ import std.stdio;
 		mLastInteraction = Clock.currStdTime;
 		mProcessEvents = true;
 		__nanogui_screens[mGLFWWindow] = this;
-import std.stdio;
-writeln(__nanogui_screens);
 
 		for (int i=cast(int) Cursor.min; i < cast(int) Cursor.max; ++i)
 			mCursors[i] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR + i);
@@ -327,8 +348,6 @@ writeln(__nanogui_screens);
 			while (mMainloopActive) {
 				int numScreens = 0;
 
-import std.stdio;
-writeln(__nanogui_screens);
 				foreach(k, v; __nanogui_screens)
 				{
 					auto screen = v;
@@ -343,12 +362,16 @@ writeln(__nanogui_screens);
 						screen.visible = false;
 						continue;
 					}
-					glClearColor(mBackground[0], mBackground[1], mBackground[2], mBackground[3]);
-					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+					if (backend) 
+					{
+						// glfwMakeContextCurrent(backend.mGLFWWindow);
+						glClearColor(mBackground[0], mBackground[1], mBackground[2], mBackground[3]);
+						glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-					backend.draw(backend.mNVGContext);
+						backend.draw(backend.mNVGContext);
 
-					if (backend) glfwSwapBuffers(backend.mGLFWWindow);
+						glfwSwapBuffers(backend.mGLFWWindow);
+					}
 					numScreens++;
 				}
 
@@ -381,14 +404,26 @@ writeln(__nanogui_screens);
 	/// internal OpenGL subsystem with valid OpenGL context.
 	abstract void onVisibleForTheFirstTime();
 
-	auto mScreen() { return cast(Screen) this; }
+	// override void visible(bool visible)
+	// {
+	// 	if (mVisible != visible) {
+	// 		mVisible = visible;
+
+	// 		if (visible)
+	// 			glfwShowWindow(mGLFWWindow);
+	// 		else
+	// 			glfwHideWindow(mGLFWWindow);
+	// 	}
+	// }
+
+	auto mScreen() { return cast(Screen) this; } //TODO this shouldn't be public
 
 protected:
 	NVGContext mNVGContext;
 	GLFWwindow* mGLFWWindow;
 	Vector2i mFBSize;
     Color mBackground;
-	OpenGL mGl;
+	// OpenGL mGl;
 	Logger mLog;
 	bool mShutdownGLFWOnDestruct;
 	bool mMainloopActive;

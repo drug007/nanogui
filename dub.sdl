@@ -34,4 +34,5 @@ configuration "glfw" {
 	mainSourceFile "source/nanogui/glfwbackend.d"
 	dependency "gfm:opengl" version="~>7.0.0"
 	dependency "derelict-glfw3" version="~>4.0.0-beta.1"
+	dependency "derelict-gl3" version="~>2.0.0-beta.6"
 }
