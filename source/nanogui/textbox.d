@@ -260,8 +260,6 @@ writeln(__PRETTY_FUNCTION__, " ", focused);
 
 	override bool keyboardEvent(int key, int scancode, KeyAction action, int modifiers)
     {
-import std.stdio;
-writeln(key);
         if (mEditable && focused)
         {
             if (action == KeyAction.Press || action == KeyAction.Repeat)

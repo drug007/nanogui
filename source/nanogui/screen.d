@@ -19,6 +19,7 @@ class Screen : Widget
 		size = vec2i(w, h);
 		mNeedToDraw = true;
 		mLastInteraction = mTimestamp = timestamp;
+		mProcessEvents = true;
 	}
 
 	auto currTime() const { return mTimestamp; }
@@ -33,6 +34,8 @@ class Screen : Widget
 				mNeedToDraw = true;
 		}
 	}
+
+	auto processEvents() { return mProcessEvents; }
 
 	auto lastInteraction() { return mLastInteraction; }
 
@@ -327,8 +330,6 @@ class Screen : Widget
 
 	override bool keyboardCharacterEvent(dchar codepoint)
 	{
-import std.stdio;
-writeln(codepoint);
 		if (mFocusPath.length)
 		{
 			foreach_reverse(w; mFocusPath)
@@ -368,5 +369,7 @@ protected:
 	bool         mNeedToDraw;
 	long         mTimestamp;
 	bool         mTooltipShown;
+	bool         mProcessEvents;
+    float        mPixelRatio;
 	void delegate(Vector2i) mResizeCallback;
 }
