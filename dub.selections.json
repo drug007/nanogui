@@ -2,9 +2,10 @@
 	"fileVersion": 1,
 	"versions": {
 		"arsd-official": {"path":"arsd/"},
-		"derelict-gl3": "1.0.24",
-		"derelict-sdl2": "1.9.7",
-		"derelict-util": "2.0.6",
-		"gfm": "6.2.13"
+		"derelict-gl3": "2.0.0-beta.6",
+		"derelict-glfw3": "4.0.0-beta.1",
+		"derelict-sdl2": "3.1.0-alpha.3",
+		"derelict-util": "3.0.0-beta.2",
+		"gfm": "7.0.0"
 	}
 }
