@@ -6,7 +6,6 @@ import std.exception : enforce;
 import std.string : toStringz;
 import std.format : format;
 
-import std.experimental.logger: Logger, FileLogger;
 import derelict.opengl;
 import derelict.glfw3.glfw3;
 import arsd.nanovega;
@@ -38,7 +37,10 @@ class GlfwBackend : Screen
 		);
 
 		if (!glfwInit())
+		{
+			glfwTerminate();
 			throw new Exception("Could not initialize GLFW!");
+		}
 
 		int  colorBits   = 8;
 		int  alphaBits   = 8;
@@ -94,9 +96,6 @@ class GlfwBackend : Screen
 	// 		glGetError(); // pull and ignore unhandled errors like GL_INVALID_ENUM
 	// 	}
 	// #endif
-		import std.stdio : stdout;
-		mLog = new FileLogger(stdout);
-		// mGl = new OpenGL(mLog);
 
 		glfwGetFramebufferSize(mGLFWWindow, &mFBSize[0], &mFBSize[1]);
 		glViewport(0, 0, mFBSize[0], mFBSize[1]);
@@ -423,8 +422,6 @@ protected:
 	GLFWwindow* mGLFWWindow;
 	Vector2i mFBSize;
     Color mBackground;
-	// OpenGL mGl;
-	Logger mLog;
 	bool mShutdownGLFWOnDestruct;
 	bool mMainloopActive;
 	GLFWcursor*[Cursor.max-Cursor.min] mCursors;
