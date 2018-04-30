@@ -11,8 +11,7 @@ module nanogui.checkbox;
 */
 
 import nanogui.widget;
-import nanogui.common : Vector2i, Vector2f;
-import nanogui.screen : MouseButton;
+import nanogui.common : Vector2i, Vector2f, MouseButton;
 
 /**
  * Two-state check box widget.

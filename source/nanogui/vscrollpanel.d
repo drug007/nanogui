@@ -37,8 +37,6 @@ public:
 
     override void performLayout(NVGContext nvg)
     {
-        import std.exception : Exception;
-
         super.performLayout(nvg);
 
         if (mChildren.empty)

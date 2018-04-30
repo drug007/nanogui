@@ -207,8 +207,6 @@ public:
 	/// Walk up the hierarchy and return the parent window
 	final Window window()
 	{
-		import std.exception : Exception;
-
 		Widget widget = this;
 		while (true) {
 			if (!widget)

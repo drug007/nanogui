@@ -92,7 +92,6 @@ public:
 									  cast(int) entypo_ttf.length, 0);
 		if (mFontNormal == -1 || mFontBold == -1 || mFontIcons == -1)
 		{
-			import std.exception : Exception; 
 			throw new Exception("Could not load fonts!");
 		}
 	}
