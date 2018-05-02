@@ -17,7 +17,7 @@ class MyGui : SdlBackend
 		import nanogui.widget, nanogui.theme, nanogui.checkbox, nanogui.label, 
 			nanogui.common, nanogui.window, nanogui.layout, nanogui.button,
 			nanogui.popupbutton, nanogui.entypo, nanogui.popup, nanogui.vscrollpanel,
-			nanogui.combobox;
+			nanogui.combobox, nanogui.textbox;
 		
 		{
 			auto window = new Window(screen, "Button demo");
@@ -112,6 +112,9 @@ class MyGui : SdlBackend
 			new ComboBox(window, items);
 
 			window.tooltip = "Window with ComboBox tooltip";
+
+			auto tb = new TextBox(window, "Edit me!");
+			tb.editable = true;
 		}
 
 		{

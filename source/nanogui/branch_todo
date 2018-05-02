@@ -2,7 +2,10 @@
 3. Screen.cursorPosCallbackEvent do not handle pixelRatio (commented out)
 4. Screen.cursorPosCallbackEvent - commented out cursor changing
 5. Screen.moveWindowToFront - non-idiomatic way to implement c++ erase-remove idiom in dlang
-7. there is no key events
 8. save and load not implemented at all
 11. in Window was forced to make refreshRelativePlacement public instead of protected like in original
 14. backends based on glfw, sfml etc
+15. only sdl backend support keyboard
+16. no clipboard
+17. no text selecting using modifiers (Shift)
+18. double clicking not implemented

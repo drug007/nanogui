@@ -79,9 +79,12 @@ class SdlBackend
 	auto run()
 	{
 		import gfm.sdl2: SDL_GetTicks, SDL_QUIT, SDL_KEYDOWN, SDL_KEYDOWN, SDL_KEYUP, SDL_MOUSEBUTTONDOWN,
-			SDL_MOUSEBUTTONUP, SDL_MOUSEMOTION, SDL_MOUSEWHEEL, SDLK_ESCAPE;
+			SDL_MOUSEBUTTONUP, SDL_MOUSEMOTION, SDL_MOUSEWHEEL, SDLK_ESCAPE, SDL_TEXTINPUT, SDL_TEXTEDITING,
+			SDL_StartTextInput;
 
 		onVisibleForTheFirstTime();
+
+		SDL_StartTextInput();
 
 		while(!_sdl2.keyboard.isPressed(SDLK_ESCAPE)) 
 		{
@@ -102,6 +105,17 @@ class SdlBackend
 					case SDL_MOUSEMOTION:     onMouseMotion(event);
 					break;
 					case SDL_MOUSEWHEEL:      onMouseWheel(event);
+					break;
+					case SDL_TEXTINPUT:
+						import core.stdc.string : strlen;
+						auto len = strlen(&event.text.text[0]);
+						if (!len)
+							break;
+						assert(len < event.text.text.sizeof);
+						auto txt = event.text.text[0..len];
+						import std.utf : byDchar;
+						foreach(ch; txt.byDchar)
+							screen.keyboardCharacterEvent(ch);
 					break;
 					default:
 				}
@@ -134,7 +148,11 @@ protected:
 
 	public void onKeyDown(ref const(SDL_Event) event)
 	{
-		
+		import nanogui.common : KeyAction;
+		int modifiers;
+
+		auto key = event.key.keysym.sym.convertSdlKeyToNanoguiKey;
+		screen.keyboardEvent(key, event.key.keysym.scancode, KeyAction.Press, modifiers);
 	}
 
 	public void onKeyUp(ref const(SDL_Event) event)
@@ -222,4 +240,43 @@ protected:
 		action = MouseAction.Press;
 		screen.mouseButtonCallbackEvent(btn, action, modifiers, Clock.currTime.stdTime);
 	}
+}
+
+private auto convertSdlKeyToNanoguiKey(int sdlkey)
+{
+	import gfm.sdl2;
+	import nanogui.common : KeyAction, Key;
+
+	int nanogui_key;
+	switch(sdlkey)
+	{
+		case SDLK_LEFT:
+			nanogui_key = Key.Left;
+		break;
+		case SDLK_RIGHT:
+			nanogui_key = Key.Right;
+		break;
+		case SDLK_UP:
+			nanogui_key = Key.Up;
+		break;
+		case SDLK_DOWN:
+			nanogui_key = Key.Down;
+		break;
+		case SDLK_BACKSPACE:
+			nanogui_key = Key.Backspace;
+		break;
+		case SDLK_DELETE:
+			nanogui_key = Key.Delete;
+		break;
+		case SDLK_HOME:
+			nanogui_key = Key.Home;
+		break;
+		case SDLK_END:
+			nanogui_key = Key.End;
+		break;
+		default:
+			nanogui_key = sdlkey;
+	}
+
+	return nanogui_key;
 }
