@@ -7,7 +7,7 @@ import arsd.nanovega;
 public import gfm.math : vec2i;
 
 import nanogui.widget : Widget;
-import nanogui.common : Vector2i, Vector2f, MouseButton, MouseAction;
+import nanogui.common : Vector2i, Vector2f, MouseButton, MouseAction, KeyAction;
 
 class Screen : Widget
 {
@@ -307,6 +307,37 @@ class Screen : Widget
 			stderr.writeln("Caught exception in event handler: ", e.msg);
 			return false;
 		}
+	}
+
+	override bool keyboardEvent(int key, int scancode, KeyAction action, int modifiers)
+	{
+		if (mFocusPath.length > 0)
+		{
+			foreach_reverse(w; mFocusPath)
+			{
+				if (w is this)
+					continue;
+				if (w.focused && w.keyboardEvent(key, scancode, action, modifiers))
+					return true;
+			}
+		}
+
+		return false;
+	}
+
+	override bool keyboardCharacterEvent(dchar codepoint)
+	{
+		if (mFocusPath.length)
+		{
+			foreach_reverse(w; mFocusPath)
+			{
+				if (w is this)
+					continue;
+				if (w.focused && w.keyboardCharacterEvent(codepoint))
+					return true;
+			}
+		}
+		return false;
 	}
 
 	/// Window resize event handler

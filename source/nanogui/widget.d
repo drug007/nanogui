@@ -16,7 +16,7 @@ import std.container.array;
 
 import nanogui.theme;
 import nanogui.layout;
-import nanogui.common : Cursor, Vector2i, Vector2f, MouseButton;
+import nanogui.common : Cursor, Vector2i, Vector2f, MouseButton, KeyAction;
 import nanogui.screen : Screen;
 public import nanogui.common;
 
@@ -377,7 +377,7 @@ public:
 	}
 
 	/// Handle a keyboard event (default implementation: do nothing)
-	bool keyboardEvent(int key, int scancode, int action, int modifiers)
+	bool keyboardEvent(int key, int scancode, KeyAction action, int modifiers)
 	{
 		return false;
 	}

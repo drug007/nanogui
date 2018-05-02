@@ -26,6 +26,39 @@ enum MouseAction : int
 	Motion  = 2,
 }
 
+enum KeyAction : int
+{
+	Press   = 0,
+	Release = 1,
+	Repeat  = 2,
+}
+
+enum KeyMod : int
+{
+	Shift = 1,
+	Alt,
+	Ctrl,
+}
+
+enum Key : int
+{
+	Left,
+	Right,
+	Up,
+	Down,
+	Home,
+	End,
+	Backspace,
+	Delete,
+	Enter,
+	Shift,
+	System,
+	A,
+	X,
+	C,
+	V,
+}
+
 /// Cursor shapes available to use in nanogui.  Shape of actual cursor determined by Operating System.
 enum Cursor {
 	Arrow = 0,  /// The arrow cursor.
