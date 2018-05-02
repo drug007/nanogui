@@ -8,25 +8,11 @@ import std.path: dirName, buildPath;
 import std.range: iota;
 import std.datetime : Clock;
 
-import std.experimental.logger: Logger, NullLogger, FileLogger;
+import std.experimental.logger: Logger, NullLogger, FileLogger, globalLogLevel, LogLevel;
 
 import gfm.math: mat4f, vec3f, vec4f;
-import gfm.opengl: OpenGL, GLProgram, GLBuffer, VertexSpecification, GLVAO,
-	glClearColor, glEnable, glBlendFunc, glDisable, glViewport, glClear,
-	glDrawArrays, glDrawElements, glPointSize, 
-	GL_ARRAY_BUFFER, GL_BLEND, GL_TRIANGLES, GL_POINTS, GL_STATIC_DRAW, 
-	GL_COLOR_BUFFER_BIT, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_DEPTH_TEST,
-	GL_DEPTH_BUFFER_BIT, GL_LINE_STRIP, GL_UNSIGNED_INT;
-import gfm.sdl2: SDL2, SDL2Window, SDL_GL_SetAttribute, SharedLibVersion,
-	SDL_Event,
-	SDL_WINDOWPOS_UNDEFINED, SDL_INIT_VIDEO, SDL_GL_CONTEXT_MAJOR_VERSION,
-	SDL_INIT_EVENTS, SDL_WINDOW_OPENGL, SDL_GL_CONTEXT_MINOR_VERSION,
-	SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE, SDLK_ESCAPE,
-	SDLK_LEFT, SDLK_RIGHT, SDLK_KP_PLUS, SDLK_KP_MINUS, SDLK_KP_MULTIPLY,
-	SDL_WINDOW_FULLSCREEN_DESKTOP, SDL_BUTTON_LMASK, SDL_BUTTON_RMASK, 
-	SDL_BUTTON_MMASK, SDL_QUIT, SDL_KEYDOWN, SDL_MOUSEBUTTONDOWN,
-	SDL_MOUSEBUTTONUP, SDL_MOUSEMOTION, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT,
-	SDL_BUTTON_MIDDLE, SDLK_SPACE, SDL_MOUSEWHEEL, SDL_KEYUP, SDL_GL_STENCIL_SIZE;
+import gfm.opengl: OpenGL;
+import gfm.sdl2: SDL2, SDL2Window, SDL_Event;
 
 import arsd.nanovega : NVGContext, nvgCreateContext, kill, NVGContextFlag;
 import nanogui.screen : Screen;
@@ -37,6 +23,8 @@ class SdlBackend
 {
 	this(int w, int h, string title)
 	{
+		import gfm.sdl2;
+
 		this.width = w;
 		this.height = h;
 
@@ -46,8 +34,8 @@ class SdlBackend
 
 		// load dynamic libraries
 		_sdl2 = new SDL2(_log, SharedLibVersion(2, 0, 0));
-		_gl = new OpenGL(_log); // отключаем лог, потому что на одной из машин
-								// сыпется в консоль очень подробный лог
+		_gl = new OpenGL(_log);
+		globalLogLevel = LogLevel.error;
 
 		// You have to initialize each SDL subsystem you want by hand
 		_sdl2.subSystemInit(SDL_INIT_VIDEO);
@@ -170,6 +158,8 @@ protected:
 	
 	public void onMouseMotion(ref const(SDL_Event) event)
 	{
+		import gfm.sdl2 : SDL_BUTTON_LMASK, SDL_BUTTON_RMASK, SDL_BUTTON_MMASK;
+
 		auto mouse_x = event.motion.x;
 		auto mouse_y = event.motion.y;
 
@@ -193,6 +183,8 @@ protected:
 
 	public void onMouseUp(ref const(SDL_Event) event)
 	{
+		import gfm.sdl2 : SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT, SDL_BUTTON_MIDDLE;
+
 		switch(event.button.button)
 		{
 			case SDL_BUTTON_LEFT:
@@ -212,6 +204,8 @@ protected:
 
 	public void onMouseDown(ref const(SDL_Event) event)
 	{
+		import gfm.sdl2 : SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT, SDL_BUTTON_MIDDLE;
+
 		switch(event.button.button)
 		{
 			case SDL_BUTTON_LEFT:
