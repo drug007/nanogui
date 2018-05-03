@@ -112,9 +112,6 @@ class MyGui : SdlBackend
 			new ComboBox(window, items);
 
 			window.tooltip = "Window with ComboBox tooltip";
-
-			auto tb = new TextBox(window, "Edit me!");
-			tb.editable = true;
 		}
 
 		{
@@ -142,6 +139,40 @@ class MyGui : SdlBackend
 				item.iconPosition(Button.IconPosition.Left);
 				item.fixedWidth(half_width);
 			}
+		}
+
+		{
+			auto asian_theme = new Theme(nvg);
+
+			{
+				// sorta hack because loading font in nvg results in
+				// conflicting font id
+				auto nvg2 = nvgCreateContext(NVGContextFlag.Debug);
+				scope(exit) nvg2.kill;
+				nvg2.createFont("chihaya", "./resources/fonts/n_chihaya_font.ttf");
+				nvg.addFontsFrom(nvg2);
+				asian_theme.mFontNormal = nvg.findFont("chihaya");
+			}
+
+			auto window = new Window(screen, "Textbox window");
+			window.position = Vector2i(750, 15);
+			window.fixedSize = Vector2i(200, 350);
+			window.layout(new GroupLayout());
+			window.tooltip = "Window with TextBoxes";
+
+			auto tb = new TextBox(window, "Россия");
+			tb.editable = true;
+
+			tb = new TextBox(window, "England");
+			tb.editable = true;
+
+			tb = new TextBox(window, "日本");
+			tb.theme = asian_theme;
+			tb.editable = true;
+
+			tb = new TextBox(window, "中国");
+			tb.theme = asian_theme;
+			tb.editable = true;
 		}
 		
 		// now we should do layout manually yet

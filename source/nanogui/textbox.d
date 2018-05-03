@@ -480,7 +480,11 @@ public:
         nvg.stroke;
 
         nvg.fontSize(fontSize());
-        nvg.fontFace("sans");
+        if (mTheme !is null)
+            nvg.fontFaceId(mTheme.mFontNormal);
+        else
+            nvg.fontFace("sans");
+
         auto draw_pos = Vector2i(mPos.x, cast(int) (mPos.y + mSize.y * 0.5f + 1));
 
         float xSpacing = mSize.y * 0.3f;
