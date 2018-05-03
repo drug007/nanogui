@@ -25,6 +25,16 @@ import nanogui.theme : Theme;
 import nanogui.common : Vector2i, MouseAction, MouseButton, Cursor, 
     Color, boxGradient, fillColor, Vector2f, Key, KeyAction, KeyMod;
 
+private auto squeezeGlyphs(T)(T[] glyphs_buffer, T[] glyphs)
+{
+    import std.algorithm : uniq;
+    size_t i;
+    foreach(e; glyphs.uniq!"a.x==b.x")
+        glyphs_buffer[i++] = e;
+
+    return glyphs_buffer[0..i];
+}
+
 /**
  * Fancy text box with builtin regular expression-based validation.
  *
@@ -261,7 +271,8 @@ public:
         {
             if (action == KeyAction.Press || action == KeyAction.Repeat)
             {
-                import std.utf : count;
+                import std.uni : byGrapheme;
+                import std.range : walkLength;
 
                 if (key == Key.Left)
                 {
@@ -286,7 +297,7 @@ public:
                     else
                         mSelectionPos = -1;
 
-                    if (mCursorPos < cast(int) mValueTemp.count)
+                    if (mCursorPos < cast(int) mValueTemp.byGrapheme.walkLength)
                         mCursorPos++;
                 }
                 else if (key == Key.Home)
@@ -311,7 +322,7 @@ public:
                     else
                         mSelectionPos = -1;
 
-                    mCursorPos = cast(int) mValueTemp.count;
+                    mCursorPos = cast(int) mValueTemp.byGrapheme.walkLength;
                 }
                 else if (key == Key.Backspace)
                 {
@@ -330,7 +341,7 @@ public:
                 {
                     if (!deleteSelection())
                     {
-                        if (mCursorPos < cast(int) mValueTemp.count)
+                        if (mCursorPos < cast(int) mValueTemp.byGrapheme.walkLength)
                         {
                             auto begin = symbolLengthToBytes(mValueTemp, mCursorPos);
                             auto end   = symbolLengthToBytes(mValueTemp, mCursorPos+1);
@@ -345,7 +356,7 @@ public:
                 }
                 else if (key == Key.A && modifiers == KeyMod.Ctrl)
                 {
-                    mCursorPos = cast(int) mValueTemp.count;
+                    mCursorPos = cast(int) mValueTemp.byGrapheme.walkLength;
                     mSelectionPos = 0;
                 }
                 else if (key == Key.X && modifiers == KeyMod.Ctrl)
@@ -602,6 +613,7 @@ public:
             auto glyphs =
                 nvg.textGlyphPositions(draw_pos.x, draw_pos.y,
                                     mValueTemp, glyphs_buffer);
+            glyphs = squeezeGlyphs(glyphs_buffer[], glyphs);
             updateCursor(nvg, textBound[2], glyphs);
 
             // compute text offset
@@ -625,6 +637,7 @@ public:
             // recompute cursor positions
             glyphs = nvg.textGlyphPositions(draw_pos.x, draw_pos.y,
                     mValueTemp, glyphs_buffer);
+            glyphs = squeezeGlyphs(glyphs_buffer[], glyphs);
 
             if (mCursorPos > -1) {
                 if (mSelectionPos > -1) {
