@@ -114,28 +114,28 @@ class GlfwBackend : Screen
 	// #endif
 
 		{
-			extern(C) void callback(GLFWwindow *w, double x, double y) nothrow {
-				// auto it = __nanogui_screens.find(w);
-				// if (it == __nanogui_screens.end())
-				// 	return;
-				// Screen *s = it.second;
-				// if (!s.mProcessEvents)
-				// 	return;
-				// s.cursorPosCallbackEvent(x, y);
-				try
-				{
-					auto screen = __nanogui_screens.get(w, null);
-					if (screen is null)
-						return;
-					if (!screen.processEvents)
-						return;
-					screen.cursorPosCallbackEvent(x, y, Clock.currTime.stdTime);
-				}
-				catch(Exception e)
-				{
-					// do nothing
-				}
-			}
+			// extern(C) void callback(GLFWwindow *w, double x, double y) nothrow {
+			// 	// auto it = __nanogui_screens.find(w);
+			// 	// if (it == __nanogui_screens.end())
+			// 	// 	return;
+			// 	// Screen *s = it.second;
+			// 	// if (!s.mProcessEvents)
+			// 	// 	return;
+			// 	// s.cursorPosCallbackEvent(x, y);
+			// 	try
+			// 	{
+			// 		auto screen = __nanogui_screens.get(w, null);
+			// 		if (screen is null)
+			// 			return;
+			// 		if (!screen.processEvents)
+			// 			return;
+			// 		screen.cursorPosCallbackEvent(x, y, Clock.currTime.stdTime);
+			// 	}
+			// 	catch(Exception e)
+			// 	{
+			// 		// do nothing
+			// 	}
+			// }
 
 			/* Propagate GLFW events to the appropriate Screen instance */
 			glfwSetCursorPosCallback(mGLFWWindow,
@@ -312,10 +312,11 @@ import std.stdio;
 		for (int i=cast(int) Cursor.min; i < cast(int) Cursor.max; ++i)
 			mCursors[i] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR + i);
 
+		onVisibleForTheFirstTime();
 		/// Fixes retina display-related font rendering issue (#185)
 		mNVGContext.beginFrame(size[0], size[1], mPixelRatio);
-		onVisibleForTheFirstTime();
 		mNVGContext.endFrame();
+		glfwSwapBuffers(mGLFWWindow);
 	}
 
 	final void run()
@@ -362,16 +363,16 @@ import std.stdio;
 						screen.visible = false;
 						continue;
 					}
-					if (backend) 
-					{
-						// glfwMakeContextCurrent(backend.mGLFWWindow);
-						glClearColor(mBackground[0], mBackground[1], mBackground[2], mBackground[3]);
-						glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+					// if (backend) 
+					// {
+					// 	// glfwMakeContextCurrent(backend.mGLFWWindow);
+					// 	glClearColor(mBackground[0], mBackground[1], mBackground[2], mBackground[3]);
+					// 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-						backend.draw(backend.mNVGContext);
+					// 	backend.draw(backend.mNVGContext);
 
-						glfwSwapBuffers(backend.mGLFWWindow);
-					}
+					// 	glfwSwapBuffers(backend.mGLFWWindow);
+					// }
 					numScreens++;
 				}
 
