@@ -144,6 +144,8 @@ class SdlBackend : Screen
 				}
 			}
 
+			currTime = Clock.currTime.stdTime;
+
 			if (needToDraw)
 			{
 				size = Vector2i(width, height);
