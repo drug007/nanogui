@@ -7,7 +7,7 @@ The port is incomplete - not all widgets are ported, but all ported widgets are 
 There is difference with origin. For example:
 - instead of const references passing by value is used
 - as a color and vector implementation gfm.math is used (in origin eigen used as a vector implementation and own implementation of color type)
-- no locking on glfw, instead two backends are available - arsd.simpledisplay (no external dependencies) and SDL2 (depends on SDL2 library obviously)
+- no locking on glfw, instead two backends are available - arsd.simpledisplay (no external dependencies) and SDL2 (depends on SDL2 library obviously), SDL backend is more developed than arsd one (due to lack of time). Other backend like glfw, sfml etc can be easily added, nanogui is agnostic to underlying layer.
 
 ## Cloning source
 

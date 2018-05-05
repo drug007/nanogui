@@ -680,6 +680,13 @@ public:
 // override void save(Serializer &s) const;
 // override bool load(Serializer &s);
 protected:
+
+    // hide method
+    override void cursor(Cursor value)
+    {
+        super.cursor(value);
+    }
+
 	bool checkFormat(string input, string format)
     {
         if (!format.length)

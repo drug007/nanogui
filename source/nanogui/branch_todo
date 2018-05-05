@@ -1,6 +1,6 @@
-2. Screen.mouseButtonCallbackEvent - commented out cursor changing
+2. [non sdlbackend ] Screen.mouseButtonCallbackEvent - commented out cursor changing
 3. Screen.cursorPosCallbackEvent do not handle pixelRatio (commented out)
-4. Screen.cursorPosCallbackEvent - commented out cursor changing
+4. [non sdlbackend] Screen.cursorPosCallbackEvent - commented out cursor changing
 5. Screen.moveWindowToFront - non-idiomatic way to implement c++ erase-remove idiom in dlang
 8. save and load not implemented at all
 11. in Window was forced to make refreshRelativePlacement public instead of protected like in original
@@ -9,3 +9,4 @@
 16. no clipboard
 17. no text selecting using modifiers (Shift)
 18. double clicking not implemented
+19. sdlbackend do not show tooltips

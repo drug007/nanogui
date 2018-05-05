@@ -109,7 +109,9 @@ class MyGui : SdlBackend
 			import std.array : array;
 			import std.conv : text;
 			auto items = 15.iota.map!(a=>text("items", a)).array;
-			new ComboBox(window, items);
+			auto cb = new ComboBox(window, items);
+			cb.cursor = Cursor.Hand;
+			cb.tooltip = "This widget has custom cursor value - Cursor.Hand";
 
 			window.tooltip = "Window with ComboBox tooltip";
 		}
