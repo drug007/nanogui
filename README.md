@@ -31,3 +31,7 @@ Directory `examples` contains two packages, providing examples for `arsd` and `s
 cd examples/sdl
 dub
 ```
+
+# Screenshot
+
+![Screenshot](https://github.com/drug007/nanogui/blob/cursor/resources/readme/nanogui_001.gif)
