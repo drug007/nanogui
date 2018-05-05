@@ -12,7 +12,8 @@ import std.experimental.logger: Logger, NullLogger, FileLogger, globalLogLevel, 
 
 import gfm.math: mat4f, vec3f, vec4f;
 import gfm.opengl: OpenGL;
-import gfm.sdl2: SDL2, SDL2Window, SDL_Event, SDL_Cursor, SDL_SetCursor, SDL_FreeCursor;
+import gfm.sdl2: SDL2, SDL2Window, SDL_Event, SDL_Cursor, SDL_SetCursor, 
+	SDL_FreeCursor, SDL_Delay;
 
 import arsd.nanovega : NVGContext, nvgCreateContext, kill, NVGContextFlag;
 import nanogui.screen : Screen;
@@ -100,8 +101,16 @@ class SdlBackend : Screen
 
 		SDL_StartTextInput();
 
+		enum FramesPerSec = 10;
+		uint next_tick = SDL_GetTicks() + (1000/FramesPerSec);
 		while(!_sdl2.keyboard.isPressed(SDLK_ESCAPE)) 
 		{
+			auto this_tick = SDL_GetTicks();
+			if ( this_tick < next_tick )
+				SDL_Delay(next_tick-this_tick);
+
+			next_tick = this_tick + (1000/FramesPerSec);
+
 			SDL_Event event;
 			while(_sdl2.pollEvent(&event))
 			{
@@ -135,10 +144,13 @@ class SdlBackend : Screen
 				}
 			}
 
-			size = Vector2i(width, height);
-			super.draw(nvg);
+			if (needToDraw)
+			{
+				size = Vector2i(width, height);
+				super.draw(nvg);
 
-			window.swapBuffers();
+				window.swapBuffers();
+			}
 		}
 	}
 
