@@ -11,5 +11,5 @@ matrix:
         - d: ldc-1.6.0
 
 script:
-  - dub build --config=sdl --compiler=${DC}
-  - dub build --config=arsd --compiler=${DC}
+  - pushd examples/sdl  && dub build --compiler=${DC} && popd
+  - pushd examples/arsd && dub build --compiler=${DC} && popd

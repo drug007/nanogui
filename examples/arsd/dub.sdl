@@ -1,0 +1,12 @@
+name "nanogui-arsd"
+description "Example of nanogui using arsd backend"
+authors "drug"
+copyright "Copyright © 2018, drug"
+license "BSL"
+
+targetType  "executable"
+targetName  "example-sdl"
+
+dependency "nanogui" path="../.."
+dependency "arsd-official:nanovega" path="../../arsd/"
+

@@ -26,6 +26,8 @@ git submodule update --init
 
 # Examples
 
-Two examples added:
-- arsd.simpledisplay based, run it using `dub --config=arsd`
-- SDL2 based, run it using `dub --config=sdl`
+Directory `examples` contains two packages, providing examples for `arsd` and `sdl` backends. To run example `cd` to corresponding directory and run `dub` command. For example:
+```
+cd examples/sdl
+dub
+```

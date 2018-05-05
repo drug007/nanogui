@@ -27,7 +27,7 @@ class MyGui : SdlBackend
 
 			new Label(window, "Push buttons", "sans-bold");
 
-			auto checkbox = new CheckBox(window, "Checkbox #1", null);//(bool value){ simple_window.redrawOpenGlSceneNow(); });
+			auto checkbox = new CheckBox(window, "Checkbox #1", null);
 			checkbox.position = Vector2i(100, 190);
 			checkbox.size = checkbox.preferredSize(nvg);
 			checkbox.checked = true;

@@ -18,3 +18,4 @@ nanogui-test-*
 /example-sdl
 /dub.selections.json
 /.vscode/
+/examples/arsd/example-sdl
