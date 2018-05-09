@@ -12,3 +12,4 @@ arsd-test-*
 *.o
 *.obj
 *.lst
+/example-arsd

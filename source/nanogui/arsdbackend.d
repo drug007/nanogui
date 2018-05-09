@@ -9,7 +9,35 @@ import arsd.nanovega;
 
 import nanogui.screen : Screen;
 import nanogui.theme : Theme;
-import nanogui.common : Vector2i;
+import nanogui.common : Vector2i, Cursor;
+
+// Unfortunately ArsdBackend cannot inherit Screen directly
+// because full initialization of simpledisplay occurs in
+// `onVisibleForTheFirstTime`, not in ctor
+class ArsdScreen : Screen
+{
+public:
+	this(int w, int h, long timestamp)
+	{
+		super(w, h, Clock.currTime.stdTime);
+	}
+
+	MouseCursor[6] mCursorSet;
+
+	override void cursor(Cursor value)
+	{
+		mCursor = value;
+		if (wnd)
+			wnd.cursor = mCursorSet[mCursor];
+	}
+
+	override Cursor cursor() const
+	{
+		return mCursor;
+	}
+	
+	SimpleWindow wnd;
+}
 
 class ArsdBackend
 {
@@ -34,7 +62,7 @@ class ArsdBackend
 			nvg = nvgCreateContext();
 			enforce(nvg !is null, "cannot initialize NanoGui");
 
-			screen = new Screen(simple_window.width, simple_window.height, Clock.currTime.stdTime);
+			screen = new ArsdScreen(simple_window.width, simple_window.height, Clock.currTime.stdTime);
 			screen.theme = new Theme(nvg);
 
 			// this callback will be called when we will need to repaint our window
@@ -42,6 +70,15 @@ class ArsdBackend
 				screen.size = Vector2i(simple_window.width, simple_window.height);
 				screen.draw(nvg);
 			};
+
+			screen.mCursorSet[Cursor.Arrow]     = GenericCursor.Default;
+			screen.mCursorSet[Cursor.IBeam]     = GenericCursor.Text;
+			screen.mCursorSet[Cursor.Crosshair] = GenericCursor.Cross;
+			screen.mCursorSet[Cursor.Hand]      = GenericCursor.Hand;
+			screen.mCursorSet[Cursor.HResize]   = GenericCursor.SizeWe; // FIX ME
+			screen.mCursorSet[Cursor.VResize]   = GenericCursor.SizeNs; // FIX ME
+
+			screen.wnd = simple_window;
 
 			onVisibleForTheFirstTime();
 		};
@@ -139,5 +176,5 @@ class ArsdBackend
 protected:
 	NVGContext nvg;
 	SimpleWindow simple_window;
-	Screen screen;
+	ArsdScreen screen;
 }

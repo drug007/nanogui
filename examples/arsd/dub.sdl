@@ -5,7 +5,7 @@ copyright "Copyright © 2018, drug"
 license "BSL"
 
 targetType  "executable"
-targetName  "example-sdl"
+targetName  "example-arsd"
 
 dependency "nanogui" path="../.."
 dependency "arsd-official:nanovega" path="../../arsd/"
