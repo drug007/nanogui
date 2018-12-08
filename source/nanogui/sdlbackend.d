@@ -106,8 +106,14 @@ class SdlBackend : Screen
 		SDL_PumpEvents();
 		SDL_PeepEvents(&event, 1, SDL_PEEKEVENT, SDL_FIRSTEVENT, SDL_SYSWMEVENT);
 
+		uint prev_tick = SDL_GetTicks();
 		while (SDL_QUIT != event.type)
 		{
+			const this_tick = SDL_GetTicks();
+			if ( this_tick - prev_tick < 1)
+				SDL_Delay(1);
+			prev_tick = this_tick;
+
 			if (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_SYSWMEVENT))
 			{
 				switch (event.type)
