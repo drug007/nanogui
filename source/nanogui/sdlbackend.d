@@ -99,59 +99,148 @@ class SdlBackend : Screen
 
 		onVisibleForTheFirstTime();
 
-		SDL_StartTextInput();
+		import gfm.sdl2;
 
-		enum FramesPerSec = 10;
-		uint next_tick = SDL_GetTicks() + (1000/FramesPerSec);
-		while(!_sdl2.keyboard.isPressed(SDLK_ESCAPE)) 
+		SDL_Event event;
+
+		SDL_PumpEvents();
+		SDL_PeepEvents(&event, 1, SDL_PEEKEVENT, SDL_FIRSTEVENT, SDL_SYSWMEVENT);
+
+		while (SDL_QUIT != event.type)
 		{
-			auto this_tick = SDL_GetTicks();
-			if ( this_tick < next_tick )
-				SDL_Delay(next_tick-this_tick);
-
-			next_tick = this_tick + (1000/FramesPerSec);
-
-			SDL_Event event;
-			while(_sdl2.pollEvent(&event))
+			if (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_SYSWMEVENT))
 			{
-				switch(event.type)
+				switch (event.type)
 				{
-					case SDL_QUIT:            return;
-					case SDL_KEYDOWN:         onKeyDown(event);
-					break;
-					case SDL_KEYUP:           onKeyUp(event);
-					break;
-					case SDL_MOUSEBUTTONDOWN: onMouseDown(event);
-					break;
-					case SDL_MOUSEBUTTONUP:   onMouseUp(event);
-					break;
-					case SDL_MOUSEMOTION:     onMouseMotion(event);
-					break;
-					case SDL_MOUSEWHEEL:      onMouseWheel(event);
-					break;
-					case SDL_TEXTINPUT:
-						import core.stdc.string : strlen;
-						auto len = strlen(&event.text.text[0]);
-						if (!len)
-							break;
-						assert(len < event.text.text.sizeof);
-						auto txt = event.text.text[0..len];
-						import std.utf : byDchar;
-						foreach(ch; txt.byDchar)
-							super.keyboardCharacterEvent(ch);
-					break;
+					case SDL_WINDOWEVENT:
+					{
+						switch (event.window.event)
+						{
+							case SDL_WINDOWEVENT_MOVED:
+								// window has been moved to other position
+								break;
+
+							case SDL_WINDOWEVENT_RESIZED:
+							case SDL_WINDOWEVENT_SIZE_CHANGED:
+							{
+								// window size has been resized
+								break;
+							}
+
+							case SDL_WINDOWEVENT_SHOWN:
+							case SDL_WINDOWEVENT_FOCUS_GAINED:
+							case SDL_WINDOWEVENT_RESTORED:
+							case SDL_WINDOWEVENT_MAXIMIZED:
+								// window has been activated
+								break;
+
+							case SDL_WINDOWEVENT_HIDDEN:
+							case SDL_WINDOWEVENT_FOCUS_LOST:
+							case SDL_WINDOWEVENT_MINIMIZED:
+								// window has been deactivated
+								break;
+
+							case SDL_WINDOWEVENT_ENTER:
+								// mouse cursor has entered window
+								// for example default cursor can be disable
+								// using SDL_ShowCursor(SDL_FALSE);
+								break;
+
+							case SDL_WINDOWEVENT_LEAVE:
+								// mouse cursor has left window
+								// for example default cursor can be disable
+								// using SDL_ShowCursor(SDL_TRUE);
+								break;
+
+							case SDL_WINDOWEVENT_CLOSE:
+								event.type = SDL_QUIT;
+								break;
+							default:
+						}
+						break;
+					}
 					default:
 				}
 			}
 
-			currTime = Clock.currTime.stdTime;
-
-			if (needToDraw)
 			{
-				size = Vector2i(width, height);
-				super.draw(nvg);
+				currTime = Clock.currTime.stdTime;
 
-				window.swapBuffers();
+				if (needToDraw)
+				{
+					size = Vector2i(width, height);
+					super.draw(nvg);
+
+					window.swapBuffers();
+				}
+			}
+			SDL_PumpEvents();
+
+			// mouse update
+			{
+				SDL_PumpEvents();
+
+				while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_MOUSEMOTION, SDL_MOUSEWHEEL))
+				{
+					switch (event.type)
+					{
+					case SDL_MOUSEBUTTONDOWN:
+						onMouseDown(event);
+						break;
+					case SDL_MOUSEBUTTONUP:
+						onMouseUp(event);
+						break;
+					case SDL_MOUSEMOTION:
+						onMouseMotion(event);
+						break;
+					case SDL_MOUSEWHEEL:
+						onMouseWheel(event);
+						break;
+					default:
+					}
+				}
+			}
+
+			// keyboard update
+			{
+				SDL_PumpEvents();
+
+				while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_KEYDOWN, SDL_KEYUP))
+				{
+					switch (event.type)
+					{
+						case SDL_KEYDOWN:
+							onKeyDown(event);
+							break;
+						case SDL_KEYUP:
+							onKeyUp(event);
+							break;
+						default:
+					}
+				}
+			}
+
+			// text update
+			{
+				while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_TEXTINPUT, SDL_TEXTINPUT))
+				{
+					switch (event.type)
+					{
+						case SDL_TEXTINPUT:
+							import core.stdc.string : strlen;
+							auto len = strlen(&event.text.text[0]);
+							if (!len)
+								break;
+							assert(len < event.text.text.sizeof);
+							auto txt = event.text.text[0..len];
+							import std.utf : byDchar;
+							foreach(ch; txt.byDchar)
+								super.keyboardCharacterEvent(ch);
+							break;
+						default:
+							break;
+					}
+				}
 			}
 		}
 	}
