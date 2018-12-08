@@ -112,6 +112,21 @@ public NVGPaint linearGradient (NVGContext ctx, in float sx, in float sy, in flo
 	return arsd.nanovega.linearGradient(ctx, sx, sy, ex, ey, clr1, clr2);
 }
 
+/** Creates and returns a radial gradient. Parameters (cx, cy) specify the center, inr and outr specify
+ * the inner and outer radius of the gradient, icol specifies the start color and ocol the end color.
+ * The gradient is transformed by the current transform when it is passed to [fillPaint] or [strokePaint].
+ *
+ * Group: paints
+ */
+public NVGPaint radialGradient (NVGContext ctx, in float cx, in float cy, in float inr, in float outr, Color icol, Color ocol) nothrow @trusted @nogc {
+	NVGColor clr1 = void, clr2 = void;
+	clr1.rgba = icol[];
+	clr1.rgba[] /= 255f;
+	clr2.rgba = ocol[];
+	clr2.rgba[] /= 255f;
+	return arsd.nanovega.radialGradient(ctx, cx, cy, inr, outr, clr1, clr2);
+}
+
 /// Sets current stroke style to a solid color.
 /// Group: render_styles
 public void strokeColor (NVGContext ctx, Color color) nothrow @trusted @nogc
