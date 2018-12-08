@@ -186,15 +186,23 @@ class SdlBackend : Screen
 					{
 					case SDL_MOUSEBUTTONDOWN:
 						onMouseDown(event);
+						// force redrawing
+						mNeedToDraw = true;
 						break;
 					case SDL_MOUSEBUTTONUP:
 						onMouseUp(event);
+						// force redrawing
+						mNeedToDraw = true;
 						break;
 					case SDL_MOUSEMOTION:
 						onMouseMotion(event);
+						// force redrawing
+						mNeedToDraw = true;
 						break;
 					case SDL_MOUSEWHEEL:
 						onMouseWheel(event);
+						// force redrawing
+						mNeedToDraw = true;
 						break;
 					default:
 					}
@@ -211,9 +219,13 @@ class SdlBackend : Screen
 					{
 						case SDL_KEYDOWN:
 							onKeyDown(event);
+							// force redrawing
+							mNeedToDraw = true;
 							break;
 						case SDL_KEYUP:
 							onKeyUp(event);
+							// force redrawing
+							mNeedToDraw = true;
 							break;
 						default:
 					}
@@ -236,6 +248,9 @@ class SdlBackend : Screen
 							import std.utf : byDchar;
 							foreach(ch; txt.byDchar)
 								super.keyboardCharacterEvent(ch);
+
+							// force redrawing
+							mNeedToDraw = true;
 							break;
 						default:
 							break;
