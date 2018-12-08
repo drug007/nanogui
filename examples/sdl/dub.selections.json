@@ -3,8 +3,8 @@
 	"versions": {
 		"arsd-official": "2.1.3",
 		"derelict-gl3": "1.0.24",
-		"derelict-sdl2": "1.9.5",
-		"derelict-util": "2.1.0",
+		"derelict-sdl2": "1.9.7",
+		"derelict-util": "2.0.6",
 		"gfm": "6.2.13",
 		"nanogui": {"path":"../.."}
 	}

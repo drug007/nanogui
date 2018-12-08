@@ -8,4 +8,4 @@ targetType  "executable"
 targetName  "example-sdl"
 
 dependency "nanogui" path="../.."
-dependency "arsd-official:nanovega" path="../../arsd/"
+dependency "arsd-official:nanovega" version="2.1.3"
