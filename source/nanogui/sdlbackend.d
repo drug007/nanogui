@@ -93,13 +93,13 @@ class SdlBackend : Screen
 
 	auto run()
 	{
-		import gfm.sdl2: SDL_GetTicks, SDL_QUIT, SDL_KEYDOWN, SDL_KEYDOWN, SDL_KEYUP, SDL_MOUSEBUTTONDOWN,
-			SDL_MOUSEBUTTONUP, SDL_MOUSEMOTION, SDL_MOUSEWHEEL, SDLK_ESCAPE, SDL_TEXTINPUT, SDL_TEXTEDITING,
-			SDL_StartTextInput;
+		import gfm.sdl2;
+
+		window.hide;
+		SDL_FlushEvents(SDL_WINDOWEVENT, SDL_SYSWMEVENT);
+		window.show;
 
 		onVisibleForTheFirstTime();
-
-		import gfm.sdl2;
 
 		SDL_Event event;
 
