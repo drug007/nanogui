@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+nanogui-sdl.so
+nanogui-sdl.dylib
+nanogui-sdl.dll
+nanogui-sdl.a
+nanogui-sdl.lib
+nanogui-sdl-test-*
+*.exe
+*.o
+*.obj
+*.lst
+/example-sdl

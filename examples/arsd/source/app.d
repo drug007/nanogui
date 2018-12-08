@@ -1,10 +1,12 @@
-module examples.sdl;
+module examples.arsd;
 
 import std.datetime : Clock;
-import arsd.nanovega;
-import nanogui.sdlbackend : SdlBackend;
 
-class MyGui : SdlBackend
+import arsd.simpledisplay;
+import arsd.nanovega;
+import nanogui.arsdbackend : ArsdBackend;
+
+class MyGui : ArsdBackend
 {
 	this(int w, int h, string title)
 	{
@@ -27,7 +29,7 @@ class MyGui : SdlBackend
 
 			new Label(window, "Push buttons", "sans-bold");
 
-			auto checkbox = new CheckBox(window, "Checkbox #1", null);//(bool value){ simple_window.redrawOpenGlSceneNow(); });
+			auto checkbox = new CheckBox(window, "Checkbox #1", (bool value){ simple_window.redrawOpenGlSceneNow(); });
 			checkbox.position = Vector2i(100, 190);
 			checkbox.size = checkbox.preferredSize(nvg);
 			checkbox.checked = true;
@@ -109,7 +111,9 @@ class MyGui : SdlBackend
 			import std.array : array;
 			import std.conv : text;
 			auto items = 15.iota.map!(a=>text("items", a)).array;
-			new ComboBox(window, items);
+			auto cb = new ComboBox(window, items);
+			cb.cursor = Cursor.Hand;
+			cb.tooltip = "This widget has custom cursor value - Cursor.Hand";
 
 			window.tooltip = "Window with ComboBox tooltip";
 		}
@@ -182,6 +186,6 @@ class MyGui : SdlBackend
 
 void main () {
 	
-	auto gui = new MyGui(1000, 800, "Nanogui using SDL2 backend");
+	auto gui = new MyGui(1000, 800, "Nanogui using arsd.simpledisplay");
 	gui.run();
 }

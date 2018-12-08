@@ -7,7 +7,7 @@ import arsd.nanovega;
 public import gfm.math : vec2i;
 
 import nanogui.widget : Widget;
-import nanogui.common : Vector2i, Vector2f, MouseButton, MouseAction, KeyAction;
+import nanogui.common : Vector2i, Vector2f, MouseButton, MouseAction, KeyAction, Cursor;
 
 class Screen : Widget
 {
@@ -19,6 +19,7 @@ class Screen : Widget
 		size = vec2i(w, h);
 		mNeedToDraw = true;
 		mLastInteraction = mTimestamp = timestamp;
+		mCursor = Cursor.Arrow;
 	}
 
 	auto currTime() const { return mTimestamp; }
@@ -141,11 +142,8 @@ class Screen : Widget
 					mMousePos - mDragWidget.parent.absolutePosition, button,
 					false, mModifiers);
 
-			//if (dropWidget !is null && dropWidget.cursor != mCursor)
-			//{
-			//	mCursor = dropWidget.cursor;
-			//	glfwSetCursor(mGLFWWindow, mCursors[cast(int) mCursor]);
-			//}
+			if (dropWidget !is null && dropWidget.cursor != mCursor)
+				cursor = dropWidget.cursor;
 
 			if (action == MouseAction.Press && (button ==MouseButton.Left || button == MouseButton.Right)) {
 				mDragWidget = findWidget(mMousePos);
@@ -215,18 +213,17 @@ class Screen : Widget
 
 			if (!mDragActive)
 			{
-				//const widget = findWidget(p);
-				//if (widget !is null && widget.cursor != mCursor)
-				//{
-				//	mCursor = widget.cursor;
-				//	glfwSetCursor(mGLFWWindow, mCursors[cast(int) mCursor]);
-				//}
+				const widget = findWidget(p);
+				if (widget !is null && widget.cursor != mCursor)
+				{
+					cursor = widget.cursor;
+				}
 			}
 			else
 			{
 				ret = mDragWidget.mouseDragEvent(
-				p - mDragWidget.parent.absolutePosition, p - mMousePos,
-				mMouseState, mModifiers);
+					p - mDragWidget.parent.absolutePosition, p - mMousePos,
+					mMouseState, mModifiers);
 			}
 
 			if (!ret)
@@ -366,5 +363,6 @@ protected:
 	bool         mNeedToDraw;
 	long         mTimestamp;
 	bool         mTooltipShown;
+	Cursor       mCursor;
 	void delegate(Vector2i) mResizeCallback;
 }

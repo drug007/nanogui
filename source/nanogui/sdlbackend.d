@@ -12,14 +12,15 @@ import std.experimental.logger: Logger, NullLogger, FileLogger, globalLogLevel, 
 
 import gfm.math: mat4f, vec3f, vec4f;
 import gfm.opengl: OpenGL;
-import gfm.sdl2: SDL2, SDL2Window, SDL_Event;
+import gfm.sdl2: SDL2, SDL2Window, SDL_Event, SDL_Cursor, SDL_SetCursor, 
+	SDL_FreeCursor, SDL_Delay;
 
 import arsd.nanovega : NVGContext, nvgCreateContext, kill, NVGContextFlag;
 import nanogui.screen : Screen;
 import nanogui.theme : Theme;
-import nanogui.common : Vector2i, MouseButton, MouseAction;
+import nanogui.common : Vector2i, MouseButton, MouseAction, Cursor;
 
-class SdlBackend
+class SdlBackend : Screen
 {
 	this(int w, int h, string title)
 	{
@@ -64,12 +65,26 @@ class SdlBackend
 		nvg = nvgCreateContext(NVGContextFlag.Debug);
 		enforce(nvg !is null, "cannot initialize NanoGui");
 
-		screen = new Screen(width, height, Clock.currTime.stdTime);
-		screen.theme = new Theme(nvg);
+		mCursorSet[Cursor.Arrow]     = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+		mCursorSet[Cursor.IBeam]     = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_IBEAM);
+		mCursorSet[Cursor.Crosshair] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
+		mCursorSet[Cursor.Hand]      = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+		mCursorSet[Cursor.HResize]   = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEWE);
+		mCursorSet[Cursor.VResize]   = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENS);
+
+		super(width, height, Clock.currTime.stdTime);
+		theme = new Theme(nvg);
 	}
 
 	~this()
 	{
+		SDL_FreeCursor(mCursorSet[Cursor.Arrow]);
+		SDL_FreeCursor(mCursorSet[Cursor.IBeam]);
+		SDL_FreeCursor(mCursorSet[Cursor.Crosshair]);
+		SDL_FreeCursor(mCursorSet[Cursor.Hand]);
+		SDL_FreeCursor(mCursorSet[Cursor.HResize]);
+		SDL_FreeCursor(mCursorSet[Cursor.VResize]);
+
 		nvg.kill();
 		_gl.destroy();
 		window.destroy();
@@ -86,8 +101,16 @@ class SdlBackend
 
 		SDL_StartTextInput();
 
+		enum FramesPerSec = 10;
+		uint next_tick = SDL_GetTicks() + (1000/FramesPerSec);
 		while(!_sdl2.keyboard.isPressed(SDLK_ESCAPE)) 
 		{
+			auto this_tick = SDL_GetTicks();
+			if ( this_tick < next_tick )
+				SDL_Delay(next_tick-this_tick);
+
+			next_tick = this_tick + (1000/FramesPerSec);
+
 			SDL_Event event;
 			while(_sdl2.pollEvent(&event))
 			{
@@ -115,16 +138,21 @@ class SdlBackend
 						auto txt = event.text.text[0..len];
 						import std.utf : byDchar;
 						foreach(ch; txt.byDchar)
-							screen.keyboardCharacterEvent(ch);
+							super.keyboardCharacterEvent(ch);
 					break;
 					default:
 				}
 			}
 
-			screen.size = Vector2i(width, height);
-			screen.draw(nvg);
+			currTime = Clock.currTime.stdTime;
 
-			window.swapBuffers();
+			if (needToDraw)
+			{
+				size = Vector2i(width, height);
+				super.draw(nvg);
+
+				window.swapBuffers();
+			}
 		}
 	}
 
@@ -144,7 +172,8 @@ protected:
 	SDL2 _sdl2;
 
 	NVGContext nvg;
-	Screen screen;
+
+	SDL_Cursor*[6] mCursorSet;
 
 	public void onKeyDown(ref const(SDL_Event) event)
 	{
@@ -152,7 +181,7 @@ protected:
 		int modifiers;
 
 		auto key = event.key.keysym.sym.convertSdlKeyToNanoguiKey;
-		screen.keyboardEvent(key, event.key.keysym.scancode, KeyAction.Press, modifiers);
+		super.keyboardEvent(key, event.key.keysym.scancode, KeyAction.Press, modifiers);
 	}
 
 	public void onKeyUp(ref const(SDL_Event) event)
@@ -165,12 +194,12 @@ protected:
 		if (event.wheel.y > 0)
 		{
 			btn = MouseButton.WheelUp;
-			screen.scrollCallbackEvent(0, +1, Clock.currTime.stdTime);
+			super.scrollCallbackEvent(0, +1, Clock.currTime.stdTime);
 		}
 		else if (event.wheel.y < 0)
 		{
 			btn = MouseButton.WheelDown;
-			screen.scrollCallbackEvent(0, -1, Clock.currTime.stdTime);
+			super.scrollCallbackEvent(0, -1, Clock.currTime.stdTime);
 		}
 	}
 	
@@ -196,7 +225,7 @@ protected:
 			modifiers |= MouseButton.Middle;
 
 		action = MouseAction.Motion;
-		screen.cursorPosCallbackEvent(mouse_x, mouse_y, Clock.currTime.stdTime);
+		super.cursorPosCallbackEvent(mouse_x, mouse_y, Clock.currTime.stdTime);
 	}
 
 	public void onMouseUp(ref const(SDL_Event) event)
@@ -217,7 +246,7 @@ protected:
 			default:
 		}
 		action = MouseAction.Release;
-		screen.mouseButtonCallbackEvent(btn, action, modifiers, Clock.currTime.stdTime);
+		super.mouseButtonCallbackEvent(btn, action, modifiers, Clock.currTime.stdTime);
 	}
 
 	public void onMouseDown(ref const(SDL_Event) event)
@@ -238,7 +267,18 @@ protected:
 			default:
 		}
 		action = MouseAction.Press;
-		screen.mouseButtonCallbackEvent(btn, action, modifiers, Clock.currTime.stdTime);
+		super.mouseButtonCallbackEvent(btn, action, modifiers, Clock.currTime.stdTime);
+	}
+
+	override void cursor(Cursor value)
+	{
+		mCursor = value;
+		SDL_SetCursor(mCursorSet[mCursor]);
+	}
+
+	override Cursor cursor() const
+	{
+		return mCursor;
 	}
 }
 

@@ -286,7 +286,7 @@ public:
 	/// Return a pointer to the cursor of the widget
 	Cursor cursor() const { return mCursor; }
 	/// Set the cursor of the widget
-	void cursor(Cursor cursor) { mCursor = cursor; }
+	void cursor(Cursor value) { mCursor = value; }
 
 	/// Check if the widget contains a certain position
 	final bool contains(Vector2i p) const {

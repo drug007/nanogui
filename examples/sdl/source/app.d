@@ -1,12 +1,10 @@
-module examples.arsd;
+module examples.sdl;
 
 import std.datetime : Clock;
-
-import arsd.simpledisplay;
 import arsd.nanovega;
-import nanogui.arsdbackend : ArsdBackend;
+import nanogui.sdlbackend : SdlBackend;
 
-class MyGui : ArsdBackend
+class MyGui : SdlBackend
 {
 	this(int w, int h, string title)
 	{
@@ -29,7 +27,7 @@ class MyGui : ArsdBackend
 
 			new Label(window, "Push buttons", "sans-bold");
 
-			auto checkbox = new CheckBox(window, "Checkbox #1", (bool value){ simple_window.redrawOpenGlSceneNow(); });
+			auto checkbox = new CheckBox(window, "Checkbox #1", null);
 			checkbox.position = Vector2i(100, 190);
 			checkbox.size = checkbox.preferredSize(nvg);
 			checkbox.checked = true;
@@ -111,12 +109,11 @@ class MyGui : ArsdBackend
 			import std.array : array;
 			import std.conv : text;
 			auto items = 15.iota.map!(a=>text("items", a)).array;
-			new ComboBox(window, items);
+			auto cb = new ComboBox(window, items);
+			cb.cursor = Cursor.Hand;
+			cb.tooltip = "This widget has custom cursor value - Cursor.Hand";
 
 			window.tooltip = "Window with ComboBox tooltip";
-
-			auto tb = new TextBox(window, "Edit me!");
-			tb.editable = true;
 		}
 
 		{
@@ -145,6 +142,40 @@ class MyGui : ArsdBackend
 				item.fixedWidth(half_width);
 			}
 		}
+
+		{
+			auto asian_theme = new Theme(nvg);
+
+			{
+				// sorta hack because loading font in nvg results in
+				// conflicting font id
+				auto nvg2 = nvgCreateContext(NVGContextFlag.Debug);
+				scope(exit) nvg2.kill;
+				nvg2.createFont("chihaya", "./resources/fonts/n_chihaya_font.ttf");
+				nvg.addFontsFrom(nvg2);
+				asian_theme.mFontNormal = nvg.findFont("chihaya");
+			}
+
+			auto window = new Window(screen, "Textbox window");
+			window.position = Vector2i(750, 15);
+			window.fixedSize = Vector2i(200, 350);
+			window.layout(new GroupLayout());
+			window.tooltip = "Window with TextBoxes";
+
+			auto tb = new TextBox(window, "Россия");
+			tb.editable = true;
+
+			tb = new TextBox(window, "England");
+			tb.editable = true;
+
+			tb = new TextBox(window, "日本");
+			tb.theme = asian_theme;
+			tb.editable = true;
+
+			tb = new TextBox(window, "中国");
+			tb.theme = asian_theme;
+			tb.editable = true;
+		}
 		
 		// now we should do layout manually yet
 		screen.performLayout(nvg);
@@ -153,6 +184,6 @@ class MyGui : ArsdBackend
 
 void main () {
 	
-	auto gui = new MyGui(1000, 800, "Nanogui using arsd.simpledisplay");
+	auto gui = new MyGui(1000, 800, "Nanogui using SDL2 backend");
 	gui.run();
 }
