@@ -34,4 +34,4 @@ dub
 
 # Screenshot
 
-![Screenshot](https://github.com/drug007/nanogui/blob/cursor/resources/readme/nanogui_001.gif)
+![Screenshot](https://github.com/drug007/nanogui/blob/develop/resources/readme/nanogui_001.gif)
