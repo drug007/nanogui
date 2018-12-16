@@ -268,6 +268,8 @@ class SdlBackend : Screen
 
 	abstract void onVisibleForTheFirstTime();
 
+	auto gl() { return _gl; }
+
 protected:
 	SDL2Window window;
 	int width;

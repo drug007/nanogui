@@ -20,6 +20,7 @@ class Screen : Widget
 		mNeedToDraw = true;
 		mLastInteraction = mTimestamp = timestamp;
 		mCursor = Cursor.Arrow;
+		mPixelRatio = 1.0;
 	}
 
 	auto currTime() const { return mTimestamp; }
@@ -45,9 +46,12 @@ class Screen : Widget
 		// clear window
 		glClearColor(0., 0., 0., 0);
 		glClear(glNVGClearFlags); // use NanoVega API to get flags for OpenGL call
-
 		nvg.beginFrame(size.x, size.y); // begin rendering
-		scope(exit) nvg.endFrame(); // and flush render queue on exit
+		scope(exit)
+		{
+			if (nvg.inFrame)
+				nvg.endFrame(); // and flush render queue on exit
+		}
 
 		super.draw(nvg);
 
@@ -348,6 +352,9 @@ class Screen : Widget
 		return false;
 	}
 
+	/// Return the ratio between pixel and device coordinates (e.g. >= 2 on Mac Retina displays)
+	float pixelRatio() const { return mPixelRatio; }
+
 	bool needToDraw() const pure @safe nothrow { return mNeedToDraw; }
 
 protected:
@@ -364,5 +371,6 @@ protected:
 	long         mTimestamp;
 	bool         mTooltipShown;
 	Cursor       mCursor;
+	float        mPixelRatio;
 	void delegate(Vector2i) mResizeCallback;
 }

@@ -1,12 +1,14 @@
 ///
 module nanogui.common;
 
-import gfm.math : vec2i, vec2f, vec4f;
+import gfm.math : vec2i, vec2f, vec3f, vec4f, vec4i;
 public import arsd.nanovega : NVGContext, NVGColor;
 public import arsd.nanovega;
 
 alias Vector2i = vec2i;
 alias Vector2f = vec2f;
+alias Vector3f = vec3f;
+alias Vector4i = vec4i;
 alias Color = vec4f;
 
 enum MouseButton : int
