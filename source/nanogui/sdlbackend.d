@@ -263,6 +263,22 @@ class SdlBackend : Screen
 					}
 				}
 			}
+
+			// user event, we use it as timer notification
+			{
+				while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_USEREVENT, SDL_USEREVENT))
+				{
+					switch (event.type)
+					{
+						case SDL_USEREVENT:
+							// force redrawing
+							mNeedToDraw = true;
+							break;
+						default:
+							break;
+					}
+				}
+			}
 		}
 	}
 

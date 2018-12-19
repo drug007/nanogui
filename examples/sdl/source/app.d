@@ -13,6 +13,26 @@ struct Vertex
 	Vector3f color;
 }
 
+extern(C)
+uint timer_callback(uint interval, void *param) nothrow
+{
+	import gfm.sdl2;
+
+    SDL_Event event;
+    SDL_UserEvent userevent;
+
+    userevent.type = SDL_USEREVENT;
+    userevent.code = 0;
+    userevent.data1 = null;
+    userevent.data2 = null;
+
+    event.type = SDL_USEREVENT;
+    event.user = userevent;
+
+    SDL_PushEvent(&event);
+    return(interval);
+}
+
 class MyGlCanvas : GLCanvas
 {
 	import std.typecons : scoped;
@@ -93,6 +113,18 @@ class MyGlCanvas : GLCanvas
 			vert_spec.use();
 			_vao.unbind();
 		}
+
+		{
+			import gfm.sdl2 : SDL_AddTimer;
+			uint delay = 40;
+			_timer_id = SDL_AddTimer(delay, &timer_callback, null);
+		}
+	}
+
+	~this()
+	{
+		import gfm.sdl2 : SDL_RemoveTimer;
+		SDL_RemoveTimer(_timer_id);
 	}
 
 	override void drawGL()
@@ -130,6 +162,9 @@ private:
 	OpenGL    _gl;
 	GLProgram _program;
 	Vector3f  _rotation;
+
+	import gfm.sdl2 : SDL_TimerID;
+	SDL_TimerID _timer_id;
 
 	import std.typecons : scoped;
 	import gfm.opengl : GLVAO;
