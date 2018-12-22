@@ -3,6 +3,175 @@ module examples.sdl;
 import std.datetime : Clock;
 import arsd.nanovega;
 import nanogui.sdlbackend : SdlBackend;
+import nanogui.widget : Widget;
+import nanogui.glcanvas : GLCanvas;
+
+struct Vertex
+{
+	import nanogui.common;
+	Vector3f position;
+	Vector3f color;
+}
+
+extern(C)
+uint timer_callback(uint interval, void *param) nothrow
+{
+	import gfm.sdl2;
+
+    SDL_Event event;
+    SDL_UserEvent userevent;
+
+    userevent.type = SDL_USEREVENT;
+    userevent.code = 0;
+    userevent.data1 = null;
+    userevent.data2 = null;
+
+    event.type = SDL_USEREVENT;
+    event.user = userevent;
+
+    SDL_PushEvent(&event);
+    return(interval);
+}
+
+class MyGlCanvas : GLCanvas
+{
+	import std.typecons : scoped;
+	import gfm.opengl;
+	import gfm.math;
+	import nanogui.common;
+
+	this(Widget parent, OpenGL gl)
+	{
+		super(parent);
+
+		_gl = gl;
+
+		const program_source = 
+			"#version 130
+
+			#if VERTEX_SHADER
+			uniform mat4 modelViewProj;
+			in vec3 position;
+			in vec3 color;
+			out vec4 frag_color;
+			void main() {
+				frag_color  = modelViewProj * vec4(0.5 * color, 1.0);
+				gl_Position = modelViewProj * vec4(position / 2, 1.0);
+			}
+			#endif
+
+			#if FRAGMENT_SHADER
+			out vec4 color;
+			in vec4 frag_color;
+			void main() {
+				color = frag_color;
+			}
+			#endif";
+
+		_program = new GLProgram(_gl, program_source);
+		assert(_program);
+		auto vert_spec = scoped!(VertexSpecification!Vertex)(_program);
+		_rotation = Vector3f(0.25f, 0.5f, 0.33f);
+
+		int[12*3] indices =
+		[
+			0, 1, 3,
+			3, 2, 1,
+			3, 2, 6,
+			6, 7, 3,
+			7, 6, 5,
+			5, 4, 7,
+			4, 5, 1,
+			1, 0, 4,
+			4, 0, 3,
+			3, 7, 4,
+			5, 6, 2,
+			2, 1, 5,
+		];
+
+		auto vertices = 
+		[
+			Vertex(Vector3f(-1,  1,  1), Vector3f(1, 0, 0)),
+			Vertex(Vector3f(-1,  1, -1), Vector3f(0, 1, 0)),
+			Vertex(Vector3f( 1,  1, -1), Vector3f(1, 1, 0)),
+			Vertex(Vector3f( 1,  1,  1), Vector3f(0, 0, 1)),
+			Vertex(Vector3f(-1, -1,  1), Vector3f(1, 0, 1)),
+			Vertex(Vector3f(-1, -1, -1), Vector3f(0, 1, 1)),
+			Vertex(Vector3f( 1, -1, -1), Vector3f(1, 1, 1)),
+			Vertex(Vector3f( 1, -1,  1), Vector3f(0.5, 0.5, 0.5)),
+		];
+
+		auto vbo = scoped!GLBuffer(gl, GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices);
+		auto ibo = scoped!GLBuffer(gl, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices);
+
+		_vao = scoped!GLVAO(gl);
+		// prepare VAO
+		{
+			_vao.bind();
+			vbo.bind();
+			ibo.bind();
+			vert_spec.use();
+			_vao.unbind();
+		}
+
+		{
+			import gfm.sdl2 : SDL_AddTimer;
+			uint delay = 40;
+			_timer_id = SDL_AddTimer(delay, &timer_callback, null);
+		}
+	}
+
+	~this()
+	{
+		import gfm.sdl2 : SDL_RemoveTimer;
+		SDL_RemoveTimer(_timer_id);
+	}
+
+	override void drawGL()
+	{
+		static long start_time;
+		mat4f mvp;
+		mvp = mat4f.identity;
+
+		if (start_time == 0)
+			start_time = Clock.currTime.stdTime;
+
+		auto angle = (Clock.currTime.stdTime - start_time)/10_000_000.0;
+		mvp = mvp.rotation(angle, _rotation);
+
+		GLboolean depth_test_enabled;
+		glGetBooleanv(GL_DEPTH_TEST, &depth_test_enabled);
+		if (!depth_test_enabled)
+			glEnable(GL_DEPTH_TEST);
+		scope(exit)
+		{
+			if (!depth_test_enabled)
+				glDisable(GL_DEPTH_TEST);
+		}
+
+		_program.uniform("modelViewProj").set(mvp);
+		_program.use();
+		scope(exit) _program.unuse();
+
+		_vao.bind();
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, cast(void *) 0);
+		_vao.unbind();
+	}
+
+private:
+	OpenGL    _gl;
+	GLProgram _program;
+	Vector3f  _rotation;
+
+	import gfm.sdl2 : SDL_TimerID;
+	SDL_TimerID _timer_id;
+
+	import std.typecons : scoped;
+	import gfm.opengl : GLVAO;
+
+	alias ScopedGLVAO = typeof(scoped!GLVAO(OpenGL.init));
+	ScopedGLVAO    _vao;
+}
 
 class MyGui : SdlBackend
 {
@@ -175,6 +344,15 @@ class MyGui : SdlBackend
 			tb = new TextBox(window, "中国");
 			tb.theme = asian_theme;
 			tb.editable = true;
+		}
+
+		{
+			auto window = new Window(screen, "GLCanvas Demo");
+			window.position = Vector2i(450, 400);
+			window.layout = new GroupLayout();
+			auto glcanvas = new MyGlCanvas(window, gl);
+			glcanvas.size = Vector2i(300, 300);
+			glcanvas.backgroundColor = Color(0.1f, 0.1f, 0.1f, 1.0f);
 		}
 		
 		// now we should do layout manually yet

@@ -1,12 +1,14 @@
 ///
 module nanogui.common;
 
-import gfm.math : vec2i, vec2f, vec4f;
+import gfm.math : vec2i, vec2f, vec3f, vec4f, vec4i;
 public import arsd.nanovega : NVGContext, NVGColor;
 public import arsd.nanovega;
 
 alias Vector2i = vec2i;
 alias Vector2f = vec2f;
+alias Vector3f = vec3f;
+alias Vector4i = vec4i;
 alias Color = vec4f;
 
 enum MouseButton : int
@@ -110,6 +112,21 @@ public NVGPaint linearGradient (NVGContext ctx, in float sx, in float sy, in flo
 	clr2.rgba = ocol[];
 	clr2.rgba[] /= 255f;
 	return arsd.nanovega.linearGradient(ctx, sx, sy, ex, ey, clr1, clr2);
+}
+
+/** Creates and returns a radial gradient. Parameters (cx, cy) specify the center, inr and outr specify
+ * the inner and outer radius of the gradient, icol specifies the start color and ocol the end color.
+ * The gradient is transformed by the current transform when it is passed to [fillPaint] or [strokePaint].
+ *
+ * Group: paints
+ */
+public NVGPaint radialGradient (NVGContext ctx, in float cx, in float cy, in float inr, in float outr, Color icol, Color ocol) nothrow @trusted @nogc {
+	NVGColor clr1 = void, clr2 = void;
+	clr1.rgba = icol[];
+	clr1.rgba[] /= 255f;
+	clr2.rgba = ocol[];
+	clr2.rgba[] /= 255f;
+	return arsd.nanovega.radialGradient(ctx, cx, cy, inr, outr, clr1, clr2);
 }
 
 /// Sets current stroke style to a solid color.
