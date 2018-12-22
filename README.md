@@ -11,17 +11,8 @@ There is difference with origin. For example:
 
 ## Cloning source
 
-The project at the moment uses [arsd](https://github.com/adamdruppe/arsd) as a submodule. For cloning please use either
-
-```
-git clone --recursive https://github.com/drug007/nanogui.git
-```
-
-or 
 ```
 git clone https://github.com/drug007/nanogui.git
-cd nanogui
-git submodule update --init
 ```
 
 # Examples
@@ -31,7 +22,9 @@ Directory `examples` contains two packages, providing examples for `arsd` and `s
 cd examples/sdl
 dub
 ```
+SDL2 based example is more advanced (due to lack of time).
 
 # Screenshot
 
+Screenshot is a bit old and do not show some widgets for example GLCanvas
 ![Screenshot](https://github.com/drug007/nanogui/blob/develop/resources/readme/nanogui_001.gif)
