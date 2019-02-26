@@ -55,9 +55,8 @@ class SdlBackend : Screen
 
 		window.setTitle(title);
 		
-		import derelict.opengl3.gl3 : GLVersion;
 		// reload OpenGL now that a context exists
-		_gl.reload(GLVersion.GL30, GLVersion.HighestSupported);
+		_gl.reload();
 
 		// redirect OpenGL output to our Logger
 		_gl.redirectDebugOutput();
