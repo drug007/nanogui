@@ -660,147 +660,276 @@ protected:
 	int mMargin;
 }
 
-///**
-// * \class AdvancedGridLayout layout.h nanogui/layout.h
-// *
-// * \brief Advanced Grid layout.
-// *
-// * The is a fancier grid layout with support for items that span multiple rows
-// * or columns, and per-widget alignment flags. Each row and column additionally
-// * stores a stretch factor that controls how additional space is redistributed.
-// * The downside of this flexibility is that a layout anchor data structure must
-// * be provided for each widget.
-// *
-// * An example:
-// *
-// * \rst
-// * .. code-block. cpp
-// *
-// *    using AdvancedGridLayout.Anchor;
-// *    Label *label = new Label(window, "A label");
-// *    // Add a centered label at grid position (1, 5), which spans two horizontal cells
-// *    layout.setAnchor(label, Anchor(1, 5, 2, 1, Alignment.Middle, Alignment.Middle));
-// *
-// * \endrst
-// *
-// * The grid is initialized with user-specified column and row size vectors
-// * (which can be expanded later on if desired). If a size value of zero is
-// * specified for a column or row, the size is set to the maximum preferred size
-// * of any widgets contained in the same row or column. Any remaining space is
-// * redistributed according to the row and column stretch factors.
-// *
-// * The high level usage somewhat resembles the classic HIG layout:
-// *
-// * - https://web.archive.org/web/20070813221705/http://www.autel.cz/dmi/tutorial.html
-// * - https://github.com/jaapgeurts/higlayout
-// */
-//class NANOGUI_EXPORT AdvancedGridLayout : public Layout {
-//public:
-//    /**
-//     * \struct Anchor layout.h nanogui/layout.h
-//     *
-//     * \brief Helper struct to coordinate anchor points for the layout.
-//     */
-//    struct Anchor {
-//        uint8_t pos[2];    ///< The ``(x, y)`` position.
-//        uint8_t size[2];   ///< The ``(x, y)`` size.
-//        Alignment align[2];///< The ``(x, y)`` Alignment.
+/**
+ * The is a fancier grid layout with support for items that span multiple rows
+ * or columns, and per-widget alignment flags. Each row and column additionally
+ * stores a stretch factor that controls how additional space is redistributed.
+ * The downside of this flexibility is that a layout anchor data structure must
+ * be provided for each widget.
+ *
+ * An example:
+ *
+ *    Label label = new Label(window, "A label");
+ *    // Add a centered label at grid position (1, 5), which spans two horizontal cells
+ *    layout.setAnchor(label, AdvancedGridLayout.Anchor(1, 5, 2, 1, Alignment.Middle, Alignment.Middle));
+ *
+ * The grid is initialized with user-specified column and row size vectors
+ * (which can be expanded later on if desired). If a size value of zero is
+ * specified for a column or row, the size is set to the maximum preferred size
+ * of any widgets contained in the same row or column. Any remaining space is
+ * redistributed according to the row and column stretch factors.
+ *
+ * The high level usage somewhat resembles the classic HIG layout:
+ *
+ * - https://web.archive.org/web/20070813221705/http://www.autel.cz/dmi/tutorial.html
+ * - https://github.com/jaapgeurts/higlayout
+ */
+class AdvancedGridLayout : Layout
+{
+	/**
+	 *Helper struct to coordinate anchor points for the layout.
+	 */
+	struct Anchor
+	{
+		ubyte[2] pos;	 ///< The ``(x, y)`` position.
+		ubyte[2] size;	 ///< The ``(x, y)`` size.
+		Alignment[2] algn;///< The ``(x, y)`` Alignment.
 
-//        /// Creates a ``0`` Anchor.
-//        Anchor() { }
+		/// Creates a ``0`` Anchor.
+		//this() { }
 
-//        /// Create an Anchor at position ``(x, y)`` with specified Alignment.
-//        Anchor(int x, int y, Alignment horiz = Alignment.Fill,
-//              Alignment vert = Alignment.Fill) {
-//            pos[0] = (uint8_t) x; pos[1] = (uint8_t) y;
-//            size[0] = size[1] = 1;
-//            align[0] = horiz; align[1] = vert;
-//        }
+		/// Create an Anchor at position ``(x, y)`` with specified Alignment.
+		this(int x, int y, Alignment horiz = Alignment.Fill,
+			 Alignment vert = Alignment.Fill)
+		{
+			pos[0] = cast(ubyte) x; pos[1] = cast(ubyte) y;
+			size[0] = size[1] = 1;
+			algn[0] = horiz; algn[1] = vert;
+		}
 
-//        /// Create an Anchor at position ``(x, y)`` of size ``(w, h)`` with specified alignments.
-//        Anchor(int x, int y, int w, int h,
-//              Alignment horiz = Alignment.Fill,
-//              Alignment vert = Alignment.Fill) {
-//            pos[0] = (uint8_t) x; pos[1] = (uint8_t) y;
-//            size[0] = (uint8_t) w; size[1] = (uint8_t) h;
-//            align[0] = horiz; align[1] = vert;
-//        }
+		/// Create an Anchor at position ``(x, y)`` of size ``(w, h)`` with specified alignments.
+		this(int x, int y, int w, int h,
+			 Alignment horiz = Alignment.Fill,
+			 Alignment vert = Alignment.Fill)
+		{
+			pos[0] = cast(ubyte) x; pos[1] = cast(ubyte) y;
+			size[0] = cast(ubyte) w; size[1] = cast(ubyte) h;
+			algn[0] = horiz; algn[1] = vert;
+		}
 
-//        /// Allows for printing out Anchor position, size, and alignment.
-//        operator std.string() const {
-//            char buf[50];
-//            NANOGUI_SNPRINTF(buf, 50, "Format[pos=(%i, %i), size=(%i, %i), align=(%i, %i)]",
-//                pos[0], pos[1], size[0], size[1], (int) align[0], (int) align[1]);
-//            return buf;
-//        }
-//    };
+		/// Allows for printing out Anchor position, size, and alignment.
+		string toString() const
+		{
+			import std.string : format;
+			return format("pos=(%d, %d), size=(%d, %d), align=(%d, %d)",
+						  pos[0], pos[1], size[0], size[1], cast(int) algn[0], cast(int) algn[1]);
+		}
+	}
 
-//    /// Creates an AdvancedGridLayout with specified columns, rows, and margin.
-//    AdvancedGridLayout(const std.vector<int> &cols = {}, const std.vector<int> &rows = {}, int margin = 0);
+	/// Creates an AdvancedGridLayout with specified columns, rows, and margin.
+	this(int[] cols, int[] rows, int margin = 0)
+	{
+		mCols = Array!int(cols);
+		mRows = Array!int(rows);
+		mMargin = margin;
+		mColStretch.length = mCols.length; mColStretch[] = 0;
+		mRowStretch.length = mRows.length; mRowStretch[] = 0;
+	}
 
-//    /// The margin of this AdvancedGridLayout.
-//    int margin() const { return mMargin; }
+	/// The margin of this AdvancedGridLayout.
+	final int margin() const { return mMargin; }
 
-//    /// Sets the margin of this AdvancedGridLayout.
-//    void setMargin(int margin) { mMargin = margin; }
+	/// Sets the margin of this AdvancedGridLayout.
+	final void margin(int margin) { mMargin = margin; }
 
-//    /// Return the number of cols
-//    int colCount() const { return (int) mCols.size(); }
+	/// Return the number of cols
+	final int colCount() const { return cast(int) mCols.length; }
 
-//    /// Return the number of rows
-//    int rowCount() const { return (int) mRows.size(); }
+	/// Return the number of rows
+	final int rowCount() const { return cast(int) mRows.length; }
 
-//    /// Append a row of the given size (and stretch factor)
-//    void appendRow(int size, float stretch = 0.f) { mRows.push_back(size); mRowStretch.push_back(stretch); };
+	/// Append a row of the given size (and stretch factor)
+	final void appendRow(int size, float stretch = 0f) { mRows.insertBack(size); mRowStretch.insertBack(stretch); }
 
-//    /// Append a column of the given size (and stretch factor)
-//    void appendCol(int size, float stretch = 0.f) { mCols.push_back(size); mColStretch.push_back(stretch); };
+	/// Append a column of the given size (and stretch factor)
+	final void appendCol(int size, float stretch = 0f) { mCols.insertBack(size); mColStretch.insertBack(stretch); }
 
-//    /// Set the stretch factor of a given row
-//    void setRowStretch(int index, float stretch) { mRowStretch.at(index) = stretch; }
+	/// Set the stretch factor of a given row
+	final void setRowStretch(int index, float stretch) { mRowStretch[index] = stretch; }
 
-//    /// Set the stretch factor of a given column
-//    void setColStretch(int index, float stretch) { mColStretch.at(index) = stretch; }
+	/// Set the stretch factor of a given column
+	final void setColStretch(int index, float stretch) { mColStretch[index] = stretch; }
 
-//    /// Specify the anchor data structure for a given widget
-//    void setAnchor(const Widget *widget, const Anchor &anchor) { mAnchor[widget] = anchor; }
+	/// Specify the anchor data structure for a given widget
+	final void setAnchor(const Widget widget, const Anchor anchor) { mAnchor[widget] = anchor; }
 
-//    /// Retrieve the anchor data structure for a given widget
-//    Anchor anchor(const Widget *widget) const {
-//        auto it = mAnchor.find(widget);
-//        if (it == mAnchor.end())
-//            throw std.runtime_error("Widget was not registered with the grid layout!");
-//        return it.second;
-//    }
+	/// Retrieve the anchor data structure for a given widget
+	Anchor anchor(const Widget widget) const
+	{
+		auto it = widget in mAnchor;
+		if (it is null)
+			throw new Exception("Widget was not registered with the grid layout!");
 
-//    /* Implementation of the layout interface */
-//    /// See \ref Layout.preferredSize.
-//    virtual Vector2i preferredSize(NVGContext *nvg, const Widget *widget) const override;
+		return cast(Anchor) *it;
+	}
 
-//    /// See \ref Layout.performLayout.
-//    virtual void performLayout(NVGContext *nvg, Widget *widget) const override;
+	/* Implementation of the layout interface */
+	Vector2i preferredSize(NVGContext ctx, const Widget widget, const Widget skipped = null) const
+	{
+		/* Compute minimum row / column sizes */
+		Array!int[2] grid;
+		computeLayout(ctx, widget, grid);
 
-//protected:
-//    /// Computes the layout
-//    void computeLayout(NVGContext *nvg, const Widget *widget,
-//                       std.vector<int> *grid) const;
+		import std.algorithm : sum;
 
-//protected:
-//    /// The columns of this AdvancedGridLayout.
-//    std.vector<int> mCols;
+		Vector2i size = Vector2i(sum(grid[0][]),
+								 sum(grid[1][]));
+		Vector2i extra = Vector2i(2 * mMargin, 2 * mMargin);
+		auto window = cast(const Window) widget;
+		if (window && window.title.length)
+			extra[1] += widget.theme().mWindowHeaderHeight - mMargin/2;
 
-//    /// The rows of this AdvancedGridLayout.
-//    std.vector<int> mRows;
+		return size+extra;
+	}
 
-//    /// The stretch for each column of this AdvancedGridLayout.
-//    std.vector<float> mColStretch;
+	void performLayout(NVGContext ctx, Widget widget) const
+	{
+		Array!int[2] grid;
+		computeLayout(ctx, widget, grid);
+		grid[0].insertBefore(grid[0][0..$], mMargin);
+		auto window = cast(const Window) widget;
+		if (window && window.title.length)
+			grid[1].insertBefore(grid[1][0..$], widget.theme.mWindowHeaderHeight + mMargin/2);
+		else
+			grid[1].insertBefore(grid[1][0..$], mMargin);
 
-//    /// The stretch for each row of this AdvancedGridLayout.
-//    std.vector<float> mRowStretch;
+		for (int axis=0; axis<2; ++axis) {
+			for (size_t i=1; i<grid[axis].length; ++i)
+				grid[axis][i] += grid[axis][i-1];
 
-//    /// The mapping of widgets to their specified anchor points.
-//    std.unordered_map<const Widget *, Anchor> mAnchor;
+			foreach (w; widget.children()) {
+				if (!w.visible())
+					continue;
+				Anchor anchor = this.anchor(w);
 
-//    /// The margin around this AdvancedGridLayout.
-//    int mMargin;
-//}
+				int itemPos = grid[axis][anchor.pos[axis]];
+				int cellSize  = grid[axis][anchor.pos[axis] + anchor.size[axis]] - itemPos;
+				int ps = w.preferredSize(ctx)[axis], fs = w.fixedSize()[axis];
+				int targetSize = fs ? fs : ps;
+
+				final switch (anchor.algn[axis]) {
+				case Alignment.Minimum:
+					break;
+				case Alignment.Middle:
+					itemPos += (cellSize - targetSize) / 2;
+					break;
+				case Alignment.Maximum:
+					itemPos += cellSize - targetSize;
+					break;
+				case Alignment.Fill:
+					targetSize = fs ? fs : cellSize;
+					break;
+				}
+
+				Vector2i pos = w.position(), size = w.size();
+				pos[axis] = itemPos;
+				size[axis] = targetSize;
+				w.position = pos;
+				w.size = size;
+				w.performLayout(ctx);
+			}
+		}
+	}
+
+protected:
+	/// Computes the layout
+	void computeLayout(NVGContext ctx, const Widget widget,
+					   ref Array!(int)[2] _grid) const
+	{
+		Vector2i fs_w = widget.fixedSize();
+		Vector2i containerSize = Vector2i(fs_w[0] ? fs_w[0] : widget.width(), fs_w[1] ? fs_w[1] : widget.height());
+		Vector2i extra = Vector2i(2 * mMargin, 2 * mMargin);
+		auto window = cast(const Window) widget;
+		if (window && window.title.length)
+			extra[1] += widget.theme().mWindowHeaderHeight - mMargin/2;
+
+		containerSize -= extra;
+
+		for (int axis=0; axis<2; ++axis) {
+			const sizes = axis == 0 ? mCols : mRows;
+			const stretch = axis == 0 ? mColStretch : mRowStretch;
+
+			_grid[axis].clear;
+			_grid[axis].insertBack(sizes[]);
+
+			auto grid = _grid[axis];
+
+			for (int phase = 0; phase < 2; ++phase) {
+				foreach (const Widget w, const Anchor anchor; mAnchor) {
+					if (!w.visible())
+						continue;
+					if ((anchor.size[axis] == 1) != (phase == 0))
+						continue;
+					int ps = w.preferredSize(ctx)[axis], fs = w.fixedSize()[axis];
+					int targetSize = fs ? fs : ps;
+
+					if (anchor.pos[axis] + anchor.size[axis] > cast(int) grid.length)
+						throw new Exception("Advanced grid layout: widget is out of bounds: " ~ anchor.toString);
+
+					int currentSize = 0;
+					float totalStretch = 0;
+
+					import std.algorithm : max;
+
+					for (int i = anchor.pos[axis];
+						 i < anchor.pos[axis] + anchor.size[axis]; ++i) {
+						if (sizes[i] == 0 && anchor.size[axis] == 1)
+							grid[i] = max(grid[i], targetSize);
+						currentSize += grid[i];
+						totalStretch += stretch[i];
+					}
+					if (targetSize <= currentSize)
+						continue;
+					if (totalStretch == 0)
+						throw new Exception("Advanced grid layout: no space to place widget: ", anchor.toString);
+					import std.math : round;
+
+					float amt = (targetSize - currentSize) / totalStretch;
+					for (int i = anchor.pos[axis];
+						 i < anchor.pos[axis] + anchor.size[axis]; ++i) {
+						grid[i] += cast(int) round(amt * stretch[i]);
+					}
+				}
+			}
+
+			import std.algorithm : sum;
+			int currentSize = sum(grid[]);
+			float totalStretch = sum(stretch[]);
+			if (currentSize >= containerSize[axis] || totalStretch == 0)
+				continue;
+			float amt = (containerSize[axis] - currentSize) / totalStretch;
+			import std.math : round;
+			for (auto i = 0; i<grid.length; ++i)
+				grid[i] += cast(int) round(amt * stretch[i]);
+		}
+	}
+
+protected:
+	/// The columns of this AdvancedGridLayout.
+	Array!int mCols;
+
+	/// The rows of this AdvancedGridLayout.
+	Array!int mRows;
+
+	/// The stretch for each column of this AdvancedGridLayout.
+	Array!float mColStretch;
+
+	/// The stretch for each row of this AdvancedGridLayout.
+	Array!float mRowStretch;
+
+	/// The mapping of widgets to their specified anchor points.
+	Anchor[const Widget] mAnchor;
+
+	/// The margin around this AdvancedGridLayout.
+	int mMargin;
+}
