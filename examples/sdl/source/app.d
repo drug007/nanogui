@@ -286,12 +286,12 @@ class MyGui : SdlBackend
 		}
 
 		{
-			int width      = 400;
+			int width      = 340;
 			int half_width = width / 2;
-			int height     = 200;
+			int height     = 350;
 
 			auto window = new Window(screen, "All Icons");
-			window.position(Vector2i(0, 400));
+			window.position(Vector2i(10, 400));
 			window.fixedSize(Vector2i(width, height));
 
 			// attach a vertical scroll panel
@@ -348,11 +348,29 @@ class MyGui : SdlBackend
 
 		{
 			auto window = new Window(screen, "GLCanvas Demo");
-			window.position = Vector2i(450, 400);
+			window.position = Vector2i(360, 400);
 			window.layout = new GroupLayout();
 			auto glcanvas = new MyGlCanvas(window, gl);
 			glcanvas.size = Vector2i(300, 300);
 			glcanvas.backgroundColor = Color(0.1f, 0.1f, 0.1f, 1.0f);
+		}
+
+		{
+			auto window = new Window(screen, "AdvancedGridLayout");
+			auto layout = new AdvancedGridLayout(
+				[7, 0, 70,  70,  6, 70, 6], // columns width
+				[7, 0,  5, 240, 17,  0, 6], // rows height
+			);
+			window.position = Vector2i(700, 400);
+			window.layout = layout;
+
+			auto title   = new Label(window, "Advanced grid layout");
+			auto content = new Label(window, "Some text");
+			layout.setAnchor(title,                        AdvancedGridLayout.Anchor(1, 1, 5, 1, Alignment.Middle, Alignment.Middle));
+			layout.setAnchor(content,                      AdvancedGridLayout.Anchor(1, 3, 5, 1, Alignment.Middle, Alignment.Middle));
+			layout.setAnchor(new Button(window, "Help"),   AdvancedGridLayout.Anchor(1, 5, 1, 1));
+			layout.setAnchor(new Button(window, "Ok"),     AdvancedGridLayout.Anchor(3, 5, 1, 1));
+			layout.setAnchor(new Button(window, "Cancel"), AdvancedGridLayout.Anchor(5, 5, 1, 1));
 		}
 		
 		// now we should do layout manually yet
