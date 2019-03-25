@@ -24,6 +24,13 @@ class SdlBackend : Screen
 {
 	this(int w, int h, string title)
 	{
+		/* Avoid locale-related number parsing issues */
+		version(Windows) {}
+		else {
+			import core.stdc.locale;
+			setlocale(LC_NUMERIC, "C");
+		}
+
 		import gfm.sdl2;
 
 		this.width = w;

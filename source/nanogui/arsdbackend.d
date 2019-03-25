@@ -43,6 +43,13 @@ class ArsdBackend
 {
 	this(int w, int h, string title)
 	{
+		/* Avoid locale-related number parsing issues */
+		version(Windows) {}
+		else {
+			import core.stdc.locale;
+			setlocale(LC_NUMERIC, "C");
+		}
+
 		// we need at least OpenGL3 with GLSL to use NanoVega,
 		// so let's tell simpledisplay about that
 		setOpenGLContextVersion(3, 0);
