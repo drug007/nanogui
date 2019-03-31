@@ -186,7 +186,7 @@ class MyGui : SdlBackend
 		import nanogui.widget, nanogui.theme, nanogui.checkbox, nanogui.label, 
 			nanogui.common, nanogui.window, nanogui.layout, nanogui.button,
 			nanogui.popupbutton, nanogui.entypo, nanogui.popup, nanogui.vscrollpanel,
-			nanogui.combobox, nanogui.textbox;
+			nanogui.combobox, nanogui.textbox, nanogui.formhelper;
 		
 		{
 			auto window = new Window(screen, "Button demo");
@@ -372,14 +372,37 @@ class MyGui : SdlBackend
 			layout.setAnchor(new Button(window, "Ok"),     AdvancedGridLayout.Anchor(3, 5, 1, 1));
 			layout.setAnchor(new Button(window, "Cancel"), AdvancedGridLayout.Anchor(5, 5, 1, 1));
 		}
-		
+
+		{
+			static bool bvar = true;
+			static int ivar = 12345678;
+			static double dvar = 3.1415926;
+			static float fvar = 3.1415926;
+			static string strval = "A string";
+
+			auto gui = new FormHelper(screen);
+			gui.addWindow(Vector2i(220, 180),"Form helper example");
+			gui.addGroup("Basic types");
+			gui.addVariable("bool", bvar);
+			gui.addVariable("string", strval, true);
+
+			gui.addGroup("Validating fields");
+			// Expose an integer variable by reference
+			gui.addVariable("int", ivar);
+			// Expose a float variable via setter/getter functions
+			gui.addVariable("float",
+				(float value) { fvar = value; },
+				() { return fvar; });
+			gui.addVariable("double", dvar).spinnable = true;
+			gui.addButton("Button", () { /* noop */ });
+		}
+
 		// now we should do layout manually yet
 		screen.performLayout(nvg);
 	}
 }
 
 void main () {
-	
 	auto gui = new MyGui(1000, 800, "Nanogui using SDL2 backend");
 	gui.run();
 }
