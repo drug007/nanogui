@@ -115,11 +115,14 @@ class SdlBackend : Screen
 		uint prev_tick = SDL_GetTicks();
 		while (SDL_QUIT != event.type)
 		{
+			const Delay = 5;
 			const this_tick = SDL_GetTicks();
-			if ( this_tick - prev_tick < 1)
-				SDL_Delay(1);
+			const delay = this_tick - prev_tick; 
 			prev_tick = this_tick;
+			if ( delay < Delay)
+				SDL_Delay(Delay);
 
+			SDL_PumpEvents();
 			if (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_SYSWMEVENT))
 			{
 				switch (event.type)
@@ -186,12 +189,9 @@ class SdlBackend : Screen
 					window.swapBuffers();
 				}
 			}
-			SDL_PumpEvents();
 
 			// mouse update
 			{
-				SDL_PumpEvents();
-
 				while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_MOUSEMOTION, SDL_MOUSEWHEEL))
 				{
 					switch (event.type)
@@ -223,8 +223,6 @@ class SdlBackend : Screen
 
 			// keyboard update
 			{
-				SDL_PumpEvents();
-
 				while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_KEYDOWN, SDL_KEYUP))
 				{
 					switch (event.type)
