@@ -53,6 +53,12 @@ class Screen : Widget
 				nvg.endFrame(); // and flush render queue on exit
 		}
 
+		if (mNeedToPerfomLayout)
+		{
+			performLayout(nvg);
+			needToPerfomLayout = false;
+		}
+		
 		super.draw(nvg);
 
 		mNeedToDraw = false;
@@ -356,6 +362,8 @@ class Screen : Widget
 	float pixelRatio() const { return mPixelRatio; }
 
 	bool needToDraw() const pure @safe nothrow { return mNeedToDraw; }
+	bool needToPerfomLayout() const pure @safe nothrow { return mNeedToPerfomLayout; }
+	void needToPerfomLayout(bool value) pure @safe nothrow { mNeedToPerfomLayout = value; }
 
 protected:
 	import std.container.array : Array;
@@ -367,7 +375,7 @@ protected:
 	Array!Widget mFocusPath;
 	bool         mDragActive;
 	Widget       mDragWidget;
-	bool         mNeedToDraw;
+	bool         mNeedToDraw, mNeedToPerfomLayout;
 	long         mTimestamp;
 	bool         mTooltipShown;
 	Cursor       mCursor;
