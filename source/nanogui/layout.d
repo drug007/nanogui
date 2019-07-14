@@ -904,7 +904,9 @@ protected:
 
 			import std.algorithm : sum;
 			int currentSize = sum(grid[]);
-			float totalStretch = sum(stretch[]);
+			float totalStretch;
+			foreach(e; stretch[])
+				totalStretch += e;
 			if (currentSize >= containerSize[axis] || totalStretch == 0)
 				continue;
 			float amt = (containerSize[axis] - currentSize) / totalStretch;
