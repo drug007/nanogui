@@ -527,13 +527,15 @@ public:
 			extra[1] += widget.theme.mWindowHeaderHeight - mMargin / 2;
 
 		/* Strech to size provided by \c widget */
-		for (int i = 0; i < 2; i++) {
+		foreach (int i; 0..2) // iterate over axes
+		{
+			// set margin + header if any
 			int gridSize = 2 * mMargin + extra[i];
-			foreach (int s; grid[i]) {
+			// add widgets size
+			foreach(s; grid[i])
 				gridSize += s;
-				if (i+1 < dim[i])
-					gridSize += mSpacing[i];
-			}
+			// add spacing between widgets
+			gridSize += mSpacing[i] * (grid[i].length - 1);
 
 			if (gridSize < containerSize[i]) {
 				/* Re-distribute remaining space evenly */
@@ -542,6 +544,7 @@ public:
 				int rest = gap - g * dim[i];
 				for (int j = 0; j < dim[i]; ++j)
 					grid[i][j] += g;
+				assert(rest < dim[i]);
 				for (int j = 0; rest > 0 && j < dim[i]; --rest, ++j)
 					grid[i][j] += 1;
 			}
@@ -605,21 +608,26 @@ protected:
 	void computeLayout(NVGContext nvg, const Widget widget,
 					   ref Array!(int)[2] grid, const Widget skipped) const
 	{
-		int axis1 = cast(int) mOrientation, axis2 = (axis1 + 1) % 2;
+		int axis1 = cast(int)  mOrientation;
+		int axis2 = cast(int) !mOrientation;
 		size_t numChildren = widget.children.length, visibleChildren = 0;
 		foreach (w; widget.children)
 			visibleChildren += w.visible ? 1 : 0;
 
 		Vector2i dim;
+		// count of items in main axis
 		dim[axis1] = mResolution;
+		// count of items in secondary axis
 		dim[axis2] = cast(int) ((visibleChildren + mResolution - 1) / mResolution);
 
 		grid[axis1].clear(); grid[axis1].length = dim[axis1]; grid[axis1][] = 0;
 		grid[axis2].clear(); grid[axis2].length = dim[axis2]; grid[axis2][] = 0;
 
 		size_t child;
-		for (int i2 = 0; i2 < dim[axis2]; i2++) {
-			for (int i1 = 0; i1 < dim[axis1]; i1++) {
+		foreach(int i2; 0..dim[axis2])
+		{
+			foreach(int i1; 0..dim[axis1])
+			{
 				import std.typecons : Rebindable;
 				Rebindable!(const Widget) w;
 				do {
