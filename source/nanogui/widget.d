@@ -431,7 +431,7 @@ public:
 		{
 			nvg.strokeWidth(1.0f);
 			nvg.beginPath;
-			nvg.rect(mPos.x - 0.5f, mPos.y - 0.5f, mSize.x + 1, mSize.y + 1);
+			nvg.rect(mPos.x + 1.0f, mPos.y + 0.0f, mSize.x - 1, mSize.y - 1);
 			nvg.strokeColor(Color(255, 0, 0, 255));
 			nvg.stroke;
 		}
