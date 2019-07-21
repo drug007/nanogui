@@ -423,8 +423,8 @@ public:
 	{
 		mOrientation = orientation;
 		mResolution  = resolution;
-		mMargin      = margin;
-		mSpacing     = Vector2i(spacing);
+		mMargin      = margin < 0 ? 0 : margin;
+		mSpacing     = Vector2i(spacing < 0 ? 0 : spacing);
 
 		mDefaultAlignment[0] = mDefaultAlignment[1] = alignment;
 	}
@@ -447,16 +447,31 @@ public:
 	final int spacing(int axis) const { return mSpacing[axis]; }
 
 	/// Sets the spacing for a specific axis.
-	final void spacing(int axis, int spacing) { mSpacing[axis] = spacing; }
+	final void spacing(int axis, int spacing)
+	{
+		if (spacing < 0)
+			return;
+		mSpacing[axis] = spacing;
+	}
 
 	/// Sets the spacing for all axes.
-	final void spacing(int spacing) { mSpacing[0] = mSpacing[1] = spacing; }
+	final void spacing(int spacing)
+	{
+		if (spacing < 0)
+			return;
+		mSpacing[0] = mSpacing[1] = spacing;
+	}
 
 	/// The margin around this GridLayout.
 	final int margin() const { return mMargin; }
 
 	/// Sets the margin of this GridLayout.
-	final void margin(int margin) { mMargin = margin; }
+	final void margin(int margin)
+	{
+		if (margin < 0)
+			return;
+		mMargin = margin;
+	}
 
 	/**
 	 * The Alignment of the specified axis (row or column number, depending on
