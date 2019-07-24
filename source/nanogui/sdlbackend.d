@@ -97,7 +97,13 @@ class SdlBackend : Screen
 		_sdl2.destroy();
 	}
 
-	auto run()
+	private void delegate () _onBeforeLoopStart;
+	void onBeforeLoopStart(void delegate () dg)
+	{
+		_onBeforeLoopStart = dg;
+	}
+
+	void run()
 	{
 		import gfm.sdl2;
 
@@ -115,6 +121,8 @@ class SdlBackend : Screen
 		uint prev_tick = SDL_GetTicks();
 		while (SDL_QUIT != event.type)
 		{
+			if (_onBeforeLoopStart)
+				_onBeforeLoopStart();
 			const Delay = 5;
 			const this_tick = SDL_GetTicks();
 			const delay = this_tick - prev_tick; 
