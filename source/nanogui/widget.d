@@ -234,6 +234,11 @@ public:
 		}
 	}
 
+	protected void invalidate()
+	{
+		screen.needToDraw = true;
+	}
+
 	/// Associate this widget with an ID value (optional)
 	void setId(string id) { mId = id; }
 	/// Return the ID value associated with this widget, if any

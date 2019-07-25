@@ -368,6 +368,7 @@ class Screen : Widget
 	float pixelRatio() const { return mPixelRatio; }
 
 	bool needToDraw() const pure @safe nothrow { return mNeedToDraw; }
+	void needToDraw(bool value) pure @safe nothrow { mNeedToDraw = true; }
 	bool needToPerfomLayout() const pure @safe nothrow { return mNeedToPerfomLayout; }
 	void needToPerfomLayout(bool value) pure @safe nothrow { mNeedToPerfomLayout = value; }
 

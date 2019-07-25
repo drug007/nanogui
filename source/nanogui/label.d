@@ -37,20 +37,14 @@ public:
 		if (fontSize >= 0) mFontSize = fontSize;
 	}
 
-	/// Get the label's text caption
-	final string caption() const { return mCaption; }
-	/// Set the label's text caption
-	final void caption(string caption) { mCaption = caption; }
-
-	/// Set the currently active font (2 are available by default: 'sans' and 'sans-bold')
-	final void font(string font) { mFont = font; }
-	/// Get the currently active font
-	final string font() const { return mFont; }
-
-	/// Get the label color
-	final Color color() const { return mColor; }
-	/// Set the label color
-	final void color(Color color) { mColor = color; }
+	import nanogui.experimental.utils : DependencyProperty;
+	/// Getter and setter for the label's text caption
+	mixin DependencyProperty!(string, "caption");
+	/// Getter and setter for the currently active font
+	/// (2 are available by default: 'sans' and 'sans-bold')
+	mixin DependencyProperty!(string, "font");
+	/// Getter and setter for the label color
+	mixin DependencyProperty!(Color, "color");
 
 	/// Set the `Theme` used to draw this widget
 	override void theme(Theme theme)
@@ -115,8 +109,4 @@ public:
 
 	//override void save(Serializer &s) const;
 	//override bool load(Serializer &s);
-protected:
-	string mCaption;
-	string mFont;
-	Color mColor;
 }
