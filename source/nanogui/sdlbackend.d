@@ -115,23 +115,15 @@ class SdlBackend : Screen
 
 		SDL_Event event;
 
-		SDL_PumpEvents();
-		SDL_PeepEvents(&event, 1, SDL_PEEKEVENT, SDL_FIRSTEVENT, SDL_SYSWMEVENT);
-
 		uint prev_tick = SDL_GetTicks();
 		while (SDL_QUIT != event.type)
 		{
 			if (_onBeforeLoopStart)
 				_onBeforeLoopStart();
-			const Delay = 5;
-			const this_tick = SDL_GetTicks();
-			const delay = this_tick - prev_tick; 
-			prev_tick = this_tick;
-			if ( delay < Delay)
-				SDL_Delay(Delay);
 
 			SDL_PumpEvents();
-			if (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_SYSWMEVENT))
+
+			while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_SYSWMEVENT))
 			{
 				switch (event.type)
 				{
@@ -183,18 +175,6 @@ class SdlBackend : Screen
 						break;
 					}
 					default:
-				}
-			}
-
-			{
-				currTime = Clock.currTime.stdTime;
-
-				if (needToDraw)
-				{
-					size = Vector2i(width, height);
-					super.draw(nvg);
-
-					window.swapBuffers();
 				}
 			}
 
@@ -290,6 +270,21 @@ class SdlBackend : Screen
 							break;
 					}
 				}
+			}
+
+			// perform drawing if needed
+			{
+				currTime = Clock.currTime.stdTime;
+
+				if (needToDraw)
+				{
+					size = Vector2i(width, height);
+					super.draw(nvg);
+
+					window.swapBuffers();
+				}
+				else
+					SDL_Delay(1);
 			}
 		}
 	}
