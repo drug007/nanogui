@@ -90,8 +90,13 @@ private class ListImplementor(T) : IListImplementor
 			_scroll_position = scroll_position;
 		}
 
+		ctx.theme = _parent.theme;
+		ctx.current_size = _parent.size.x;
 		ctx.position.x = _pos.x;
 		ctx.position.y = cast(int) _shift + _pos.y;
+
+		ctx.mouse -= _parent.absolutePosition;
+		scope(exit) ctx.mouse += _parent.absolutePosition;
 
 		import std.algorithm : min;
 		foreach(child; _data[_start_item..min(_finish_item, $)])

@@ -342,8 +342,8 @@ protected:
 	{
 		import gfm.sdl2 : SDL_BUTTON_LMASK, SDL_BUTTON_RMASK, SDL_BUTTON_MMASK;
 
-		auto mouse_x = event.motion.x;
-		auto mouse_y = event.motion.y;
+		ctx.mouse.x = event.motion.x;
+		ctx.mouse.y = event.motion.y;
 
 		if (event.motion.state & SDL_BUTTON_LMASK)
 			btn = MouseButton.Left;
@@ -360,7 +360,7 @@ protected:
 			modifiers |= MouseButton.Middle;
 
 		action = MouseAction.Motion;
-		super.cursorPosCallbackEvent(mouse_x, mouse_y, Clock.currTime.stdTime);
+		super.cursorPosCallbackEvent(ctx.mouse.x, ctx.mouse.y, Clock.currTime.stdTime);
 	}
 
 	public void onMouseUp(ref const(SDL_Event) event)

@@ -7,6 +7,9 @@ public import arsd.nanovega;
 
 struct NanoContext
 {
+	import std.typecons : Rebindable;
+	import nanogui.theme : Theme;
+
 	NVGContext nvg;
 	alias nvg this;
 
@@ -21,6 +24,9 @@ struct NanoContext
 
 	NVGTextAlign algn;
 	Vector2i position;
+	Vector2i mouse;
+	Rebindable!(const Theme) theme;
+	float current_size; // current width or height (other dimension is passed to drawing function explicitely)
 }
 
 alias Vector2i = vec2i;

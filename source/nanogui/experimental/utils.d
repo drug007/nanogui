@@ -4,7 +4,30 @@ import nanogui.common : NanoContext;
 
 void drawItem(ref NanoContext ctx, float height, const(char)[] str)
 {
-	import nanogui.common : textAlign, text;
+	import nanogui.common : textAlign, text, roundedRect, fill, beginPath, linearGradient, fillPaint, fillColor;
+	if (ctx.mouse.x >= ctx.position.x && ctx.mouse.x < ctx.position.x+ctx.current_size &&
+		ctx.mouse.y >= ctx.position.y && ctx.mouse.y < ctx.position.y+height)
+	{
+		const gradTop = ctx.theme.mButtonGradientTopFocused;
+		const gradBot = ctx.theme.mButtonGradientBotFocused;
+
+		ctx.beginPath;
+		ctx.roundedRect(
+			ctx.position.x, ctx.position.y,
+			ctx.current_size, height,
+			ctx.theme.mButtonCornerRadius - 1
+		);
+
+		const bg = ctx.linearGradient(
+			ctx.position.x, ctx.position.y, 
+			ctx.position.x, ctx.position.y + height,
+			gradTop, gradBot
+		);
+
+		ctx.fillPaint(bg);
+		ctx.fill;
+		ctx.fillColor(ctx.theme.mTextColor);
+	}
 	ctx.textAlign(ctx.algn);
 	ctx.text(ctx.position.x, ctx.position.y, str);
 	ctx.position.y += cast(int) height;
