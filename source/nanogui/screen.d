@@ -224,9 +224,15 @@ class Screen : Widget
 			if (!mDragActive)
 			{
 				const widget = findWidget(p);
-				if (widget !is null && widget.cursor != mCursor)
+				if (widget !is null && widget !is this)
 				{
-					cursor = widget.cursor;
+					if (widget.cursor != mCursor)
+						cursor = widget.cursor;
+				}
+				else
+				{
+					if (Cursor.Arrow != mCursor)
+						cursor = Cursor.Arrow;
 				}
 			}
 			else
