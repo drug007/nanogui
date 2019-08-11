@@ -255,6 +255,9 @@ public:
 	/// Compute the preferred size of the widget
 	override Vector2i preferredSize(NanoContext ctx) const
 	{
+		if (mResizable)
+			return mSize;
+
 		Vector2i result = Widget.preferredSize(ctx, mButtonPanel);
 
 		ctx.fontSize(18.0f);
