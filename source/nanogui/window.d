@@ -29,7 +29,8 @@ public:
 		mModal = false;
 		mDrag = false;
 		mResizeDir = Vector2i();
-		mMinSize = Vector2i();
+		import std.algorithm : max;
+		mMinSize = Vector2i(3*mTheme.mResizeAreaOffset, max(3*mTheme.mResizeAreaOffset, mTheme.mWindowHeaderHeight + mTheme.mResizeAreaOffset));
 		mResizable = resizable;
 	}
 
@@ -289,8 +290,6 @@ public:
 			mButtonPanel.position(Vector2i(width() - (mButtonPanel.preferredSize(ctx).x + 5), 3));
 			mButtonPanel.performLayout(ctx);
 		}
-		if (mMinSize == Vector2i())
-		 	mMinSize = mSize;
 	}
 //override void save(Serializer &s) const;
 //override bool load(Serializer &s);
