@@ -21,13 +21,16 @@ import nanogui.common : Vector2i, Vector2f, MouseButton;
 class Window : Widget
 {
 public:
-	this(Widget parent, string title = "Untitled")
+	this(Widget parent, string title = "Untitled", bool resizable = false)
 	{
 		super(parent);
 		mTitle = title;
 		mButtonPanel = null;
 		mModal = false;
 		mDrag = false;
+		mResizeDir = Vector2i();
+		mMinSize = Vector2i();
+		mResizable = resizable;
 	}
 
 	/// Return the window title
@@ -39,6 +42,10 @@ public:
 	final bool modal() const { return mModal; }
 	/// Set whether or not this is a modal dialog
 	final void modal(bool modal) { mModal = modal; }
+     /// Is this a resizable window?
+    bool resizable() const { return mResizable; }
+    /// Set whether or not this window is resizable
+    void resizable(bool value) { mResizable = value; }
 
 	/// Return the panel used to house window buttons
 	final Widget buttonPanel()
@@ -145,6 +152,7 @@ public:
 	override bool mouseDragEvent(Vector2i p, Vector2i rel, MouseButton button, int modifiers)
 	{
 		import std.algorithm : min, max;
+		import gfm.math : maxByElem;
 
 		if (mDrag && (button & (1 << MouseButton.Left)) != 0) {
 			mPos += rel;
@@ -161,6 +169,61 @@ public:
 			}
 			return true;
 		}
+		else if (mResizable && mResize && (button & (1 << MouseButton.Left)) != 0)
+		{
+			const lowerRightCorner = mPos + mSize;
+			const upperLeftCorner = mPos;
+			bool resized = false;
+
+
+			if (mResizeDir.x == 1) {
+				if ((rel.x > 0 && p.x >= lowerRightCorner.x) || (rel.x < 0)) {
+					mSize.x += rel.x;
+					resized = true;
+				}
+			} else if (mResizeDir.x == -1) {
+				if ((rel.x < 0 && p.x <= upperLeftCorner.x) ||
+						(rel.x > 0)) {
+					mSize.x += -rel.x;
+					mSize = mSize.maxByElem(mMinSize);
+					mPos = lowerRightCorner - mSize;
+					resized = true;
+				}
+			}
+
+			if (mResizeDir.y == 1) {
+				if ((rel.y > 0 && p.y >= lowerRightCorner.y) || (rel.y < 0)) {
+					mSize.y += rel.y;
+					resized = true;
+				}
+			}
+			mSize = mSize.maxByElem(mMinSize);
+			if (resized)
+				screen.needToPerfomLayout = true;
+			return true;
+		}
+		return false;
+	}
+	/// Handle a mouse motion event (default implementation: propagate to children)
+	override bool mouseMotionEvent(const Vector2i p, const Vector2i rel, MouseButton button, int modifiers)
+	{
+		import nanogui.common : Cursor;
+
+		if (Widget.mouseMotionEvent(p, rel, button, modifiers))
+			return true;
+
+		if (mResizable && mFixedSize.x == 0 && checkHorizontalResize(p) != 0)
+		{
+			mCursor = Cursor.HResize;
+		}
+		else if (mResizable && mFixedSize.y == 0 && checkVerticalResize(p) != 0)
+		{
+			mCursor = Cursor.VResize;
+		}
+		else
+		{
+			mCursor = Cursor.Arrow;
+		}
 		return false;
 	}
 	/// Handle mouse events recursively and bring the current window to the top
@@ -171,6 +234,13 @@ public:
 		if (button == MouseButton.Left)
 		{
 			mDrag = down && (p.y - mPos.y) < mTheme.mWindowHeaderHeight;
+			mResize = false;
+			if (mResizable && !mDrag && down)
+			{
+				mResizeDir.x = (mFixedSize.x == 0) ? checkHorizontalResize(p) : 0;
+				mResizeDir.y = (mFixedSize.y == 0) ? checkVerticalResize(p) : 0;
+				mResize = mResizeDir.x != 0 || mResizeDir.y != 0;
+			}
 			return true;
 		}
 		return false;
@@ -216,6 +286,8 @@ public:
 			mButtonPanel.position(Vector2i(width() - (mButtonPanel.preferredSize(ctx).x + 5), 3));
 			mButtonPanel.performLayout(ctx);
 		}
+		if (mMinSize == Vector2i())
+		 	mMinSize = mSize;
 	}
 //override void save(Serializer &s) const;
 //override bool load(Serializer &s);
@@ -226,9 +298,47 @@ public:
 		/* Overridden in \ref Popup */
 	}
 protected:
+	int checkHorizontalResize(const Vector2i mousePos)
+	{
+		const offset = mTheme.mResizeAreaOffset;
+		const lowerRightCorner = absolutePosition + size;
+		const headerLowerLeftCornerY = absolutePosition.y + mTheme.mWindowHeaderHeight;
+
+		if (mousePos.y > headerLowerLeftCornerY &&
+			mousePos.x <= absolutePosition.x + offset &&
+			mousePos.x >= absolutePosition.x)
+		{
+			return -1;
+		}
+		else if (mousePos.y > headerLowerLeftCornerY && 
+			mousePos.x >= lowerRightCorner.x - offset &&
+			mousePos.x <= lowerRightCorner.x)
+		{
+			return 1;
+		}
+
+		return 0;
+	}
+	int checkVerticalResize(const Vector2i mousePos)
+	{
+		const offset = mTheme.mResizeAreaOffset;
+		const lowerRightCorner = absolutePosition + size;
+
+		// Do not check for resize area on top of the window. It is to prevent conflict drag and resize event.
+		if (mousePos.y >= lowerRightCorner.y - offset && mousePos.y <= lowerRightCorner.y)
+		{
+			return 1;
+		}
+
+		return 0;
+	}
 
 	string mTitle;
 	Widget mButtonPanel;
 	bool mModal;
 	bool mDrag;
+	bool mResize;
+	Vector2i mResizeDir;
+	Vector2i mMinSize;
+	bool mResizable;
 }
