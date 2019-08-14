@@ -24,17 +24,21 @@ import nanogui.widget;
 /// The different kinds of alignments a layout can perform.
 enum Alignment : ubyte
 {
-	Minimum = 0, /// Take only as much space as is required.
-	Middle,      /// Center align.
-	Maximum,     /// Take as much space as is allowed.
-	Fill         /// Fill according to preferred sizes.
+	Minimum, /// Take only as much space as is required.
+	Middle,  /// Center align.
+	Maximum, /// Take as much space as is allowed.
+	Fill     /// Fill according to preferred sizes.
 }
 
 /// The direction of data flow for a layout.
+///
+/// Important: the source is heavily based on assumption that 
+/// only two orientations are possible. It's true in case of 2D
+/// layout.
 enum Orientation
 {
-	Horizontal = 0, /// Layout expands on horizontal axis.
-	Vertical        /// Layout expands on vertical axis.
+	Horizontal, /// Layout expands on horizontal axis.
+	Vertical,   /// Layout expands on vertical axis.
 }
 
 /**
@@ -66,6 +70,12 @@ public:
 	 *     for icons, etc.
 	 */
 	Vector2i preferredSize(NVGContext nvg, const Widget widget, const Widget skipped = null) const;
+
+	/// The margin of this Layout.
+	int margin() const;
+
+	/// Sets the margin of this Layout.
+	void margin(int);
 }
 
 /**
@@ -112,7 +122,7 @@ public:
 	final int margin() const { return mMargin; }
 
 	/// Sets the margin of this BoxLayout.
-	final void setMargin(int margin) { mMargin = margin; }
+	final void margin(int margin) { mMargin = margin; }
 
 	/// The spacing this BoxLayout is using to pad in between widgets.
 	final int spacing() const { return mSpacing; }
