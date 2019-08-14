@@ -3,7 +3,7 @@ module nanogui.experimental.list;
 
 import std.algorithm : min, max;
 import nanogui.widget;
-import nanogui.common : MouseButton, Vector2f, Vector2i, NVGContext;
+import nanogui.common : MouseButton, Vector2f, Vector2i, NanoContext;
 import nanogui.experimental.utils : DataItem;
 
 private class IListImplementor
@@ -13,10 +13,10 @@ private class IListImplementor
 	abstract void     size(Vector2i v);
 	abstract void     position(Vector2i v);
 	abstract void     layout(BoxLayout l);
-	abstract Vector2i preferredSize(NVGContext nvg) const;
-	abstract void     performLayout(NVGContext nvg);
+	abstract Vector2i preferredSize(NanoContext ctx) const;
+	abstract void     performLayout(NanoContext ctx);
 	abstract void     currentItemIndicesToHeight(ref float start, ref float finish);
-	abstract void     draw(NVGContext nvg);
+	abstract void     draw(NanoContext ctx);
 }
 
 private class ListImplementor(T) : IListImplementor
@@ -73,13 +73,13 @@ private class ListImplementor(T) : IListImplementor
 	}
 
 	/// Draw the widget (and all child widgets)
-	override void draw(NVGContext nvg)
+	override void draw(NanoContext ctx)
 	{
 		int fontSize = _parent.theme.mButtonFontSize;
-		nvg.fontSize(fontSize);
-		nvg.fontFace("sans-bold");
+		ctx.fontSize(fontSize);
+		ctx.fontFace("sans-bold");
 
-		nvg.save;
+		ctx.save;
 
 		int size_y = (_parent.fixedSize.y) ? _parent.fixedSize.y : _parent.size.y;
 		assert(_size.y >= _parent.size.y);
@@ -90,23 +90,20 @@ private class ListImplementor(T) : IListImplementor
 			_scroll_position = scroll_position;
 		}
 
-		import nanogui.experimental.utils : Context;
-		auto ctx = Context(nvg);
-
 		ctx.position.x = _pos.x;
 		ctx.position.y = cast(int) _shift + _pos.y;
 
 		import std.algorithm : min;
 		foreach(child; _data[_start_item..min(_finish_item, $)])
 		{
-			nvg.save;
-			scope(exit) nvg.restore;
+			ctx.save;
+			scope(exit) ctx.restore;
 
 			import std.conv : text;
 			child.draw(ctx, text(child.size.y), child.size.y);
 			ctx.position.y += cast(int) _layout.spacing;
 		}
-		nvg.restore;
+		ctx.restore;
 	}
 
 	/// Convert given range of items indices to to corresponding List height range
@@ -161,7 +158,7 @@ private class ListImplementor(T) : IListImplementor
 	}
 
 	/// Compute the preferred size of the widget
-	override Vector2i preferredSize(NVGContext nvg) const
+	override Vector2i preferredSize(NanoContext ctx) const
 	{
 		static Vector2i[int] size_inited;
 
@@ -195,7 +192,7 @@ private class ListImplementor(T) : IListImplementor
 	}
 
 	/// Invoke the associated layout generator to properly place child widgets, if any
-	override void performLayout(NVGContext nvg)
+	override void performLayout(NanoContext ctx)
 	{
 		_scroll_position++; // little hack to force updating item indices
 		foreach(ref dataitem; _data)
@@ -203,7 +200,7 @@ private class ListImplementor(T) : IListImplementor
 			if (!dataitem.visible)
 				continue;
 
-			dataitem.performLayout(nvg);
+			dataitem.performLayout(ctx);
 		}
 	}
 
@@ -259,14 +256,14 @@ public:
 	/// Set the scroll amount to a value between 0 and 1. 0 means scrolled to the top and 1 to the bottom.
 	void setScroll(float scroll) { mScroll = scroll; }
 
-	override void performLayout(NVGContext nvg)
+	override void performLayout(NanoContext ctx)
 	{
-		super.performLayout(nvg);
+		super.performLayout(ctx);
 
 		if (list_implementor is null)
 			return;
 
-		mChildPreferredHeight = list_implementor.preferredSize(nvg).y;
+		mChildPreferredHeight = list_implementor.preferredSize(ctx).y;
 
 		if (mChildPreferredHeight > mSize.y)
 		{
@@ -280,14 +277,14 @@ public:
 			list_implementor.size = mSize;
 			mScroll = 0;
 		}
-		list_implementor.performLayout(nvg);
+		list_implementor.performLayout(ctx);
 	}
 
-	override Vector2i preferredSize(NVGContext nvg) const
+	override Vector2i preferredSize(NanoContext ctx) const
 	{
 		if (list_implementor is null)
 			return Vector2i(0, 0);
-		return list_implementor.preferredSize(nvg) + Vector2i(12, 0);
+		return list_implementor.preferredSize(ctx) + Vector2i(12, 0);
 	}
 	
 	override bool mouseDragEvent(Vector2i p, Vector2i rel, MouseButton button, int modifiers)
@@ -346,52 +343,52 @@ public:
 		return false;
 	}
 
-	override void draw(NVGContext nvg)
+	override void draw(NanoContext ctx)
 	{
 		if (list_implementor is null)
 			return;
 		auto y = cast(int) (-mScroll*(mChildPreferredHeight - mSize.y));
 		list_implementor.position = Vector2i(0, y);
-		mChildPreferredHeight = list_implementor.preferredSize(nvg).y;
+		mChildPreferredHeight = list_implementor.preferredSize(ctx).y;
 		float scrollh = max(16, height *
 			min(1.0f, height / cast(float) mChildPreferredHeight));
 
 		if (mUpdateLayout)
 		{
-			list_implementor.performLayout(nvg);
+			list_implementor.performLayout(ctx);
 			mUpdateLayout = false;
 		}
 
-		nvg.save;
-		nvg.translate(mPos.x, mPos.y);
-		nvg.intersectScissor(0, 0, mSize.x, mSize.y);
-		list_implementor.draw(nvg);
-		nvg.restore;
+		ctx.save;
+		ctx.translate(mPos.x, mPos.y);
+		ctx.intersectScissor(0, 0, mSize.x, mSize.y);
+		list_implementor.draw(ctx);
+		ctx.restore;
 
 		if (mChildPreferredHeight <= mSize.y)
 			return;
 
-		NVGPaint paint = nvg.boxGradient(
+		NVGPaint paint = ctx.boxGradient(
 			mPos.x + mSize.x - 12 + 1, mPos.y + 4 + 1, 8,
 			mSize.y - 8, 3, 4, Color(0, 0, 0, 32), Color(0, 0, 0, 92));
-		nvg.beginPath;
-		nvg.roundedRect(mPos.x + mSize.x - 12, mPos.y + 4, 8,
+		ctx.beginPath;
+		ctx.roundedRect(mPos.x + mSize.x - 12, mPos.y + 4, 8,
 					mSize.y - 8, 3);
-		nvg.fillPaint(paint);
-		nvg.fill;
+		ctx.fillPaint(paint);
+		ctx.fill;
 
-		paint = nvg.boxGradient(
+		paint = ctx.boxGradient(
 			mPos.x + mSize.x - 12 - 1,
 			mPos.y + 4 + (mSize.y - 8 - scrollh) * mScroll - 1, 8, scrollh,
 			3, 4, Color(220, 220, 220, 100), Color(128, 128, 128, 100));
 
-		nvg.beginPath;
-		nvg.roundedRect(
+		ctx.beginPath;
+		ctx.roundedRect(
 			mPos.x + mSize.x - 12 + 1,
 			mPos.y + 4 + 1 + (mSize.y - 8 - scrollh) * mScroll, 8 - 2,
 			scrollh - 2, 2);
-		nvg.fillPaint(paint);
-		nvg.fill;
+		ctx.fillPaint(paint);
+		ctx.fill;
 	}
 	// override void save(Serializer &s) const;
 	// override bool load(Serializer &s);

@@ -204,12 +204,12 @@ class MyGui : SdlBackend
 
 			auto checkbox = new CheckBox(window, "Checkbox #1", null);
 			checkbox.position = Vector2i(100, 190);
-			checkbox.size = checkbox.preferredSize(nvg);
+			checkbox.size = checkbox.preferredSize(ctx);
 			checkbox.checked = true;
 
 			auto label = new Label(window, "Label");
 			label.position = Vector2i(100, 300);
-			label.size = label.preferredSize(nvg);
+			label.size = label.preferredSize(ctx);
 
 			Popup popup;
 
@@ -262,7 +262,7 @@ class MyGui : SdlBackend
 			window.position(Vector2i(400, 15));
 			window.layout(new GroupLayout());
 
-			auto image = nvg.createImage("resources/icons/start.jpeg", [NVGImageFlags.ClampToBorderX, NVGImageFlags.ClampToBorderY]);
+			auto image = ctx.nvg.createImage("resources/icons/start.jpeg", [NVGImageFlags.ClampToBorderX, NVGImageFlags.ClampToBorderY]);
 			auto btn = new Button(window, "Start", image);
 			// some optional height, not font size, not icon height
 			btn.fixedHeight = 130;
@@ -317,7 +317,7 @@ class MyGui : SdlBackend
 		}
 
 		{
-			auto asian_theme = new Theme(nvg);
+			auto asian_theme = new Theme(ctx);
 
 			{
 				// sorta hack because loading font in nvg results in
@@ -325,8 +325,8 @@ class MyGui : SdlBackend
 				auto nvg2 = nvgCreateContext(NVGContextFlag.Debug);
 				scope(exit) nvg2.kill;
 				nvg2.createFont("chihaya", "./resources/fonts/n_chihaya_font.ttf");
-				nvg.addFontsFrom(nvg2);
-				asian_theme.mFontNormal = nvg.findFont("chihaya");
+				ctx.nvg.addFontsFrom(nvg2);
+				asian_theme.mFontNormal = ctx.nvg.findFont("chihaya");
 			}
 
 			auto window = new Window(screen, "Textbox window");
@@ -415,7 +415,7 @@ class MyGui : SdlBackend
 		}
 
 		// now we should do layout manually yet
-		screen.performLayout(nvg);
+		screen.performLayout(ctx);
 	}
 }
 

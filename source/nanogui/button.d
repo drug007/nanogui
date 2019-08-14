@@ -148,27 +148,27 @@ public:
     final buttonGroup() { return mButtonGroup; }
 
     /// The preferred size of this Button.
-    override Vector2i preferredSize(NVGContext nvg) const
+    override Vector2i preferredSize(NanoContext ctx) const
     {
         int fontSize = mFontSize == -1 ? mTheme.mButtonFontSize : mFontSize;
-        nvg.fontSize(fontSize);
-        nvg.fontFace("sans-bold");
-        const tw = nvg.textBounds(0,0, mCaption, null);
+        ctx.fontSize(fontSize);
+        ctx.fontFace("sans-bold");
+        const tw = ctx.textBounds(0,0, mCaption, null);
         float iw = 0.0f, ih = fontSize;
 
         if (mIcon)
         {
             ih *= icon_scale();
-            nvg.fontFace("icons");
-            nvg.fontSize(ih);
-            iw = nvg.textBounds(0, 0, [mIcon], null)
+            ctx.fontFace("icons");
+            ctx.fontSize(ih);
+            iw = ctx.textBounds(0, 0, [mIcon], null)
                 + mSize.y * 0.15f;
         }
         else if (mImage.valid)
         {
             int w, h;
             ih *= 0.9f;
-            nvg.imageSize(mImage, w, h);
+            ctx.imageSize(mImage, w, h);
             iw = w * ih / h;
         }
         return Vector2i(cast(int)(tw + iw) + 20, fontSize + 10);
@@ -246,9 +246,9 @@ public:
     }
 
     /// Responsible for drawing the Button.
-    override void draw(NVGContext nvg)
+    override void draw(NanoContext ctx)
     {
-        super.draw(nvg);
+        super.draw(ctx);
 
         auto gradTop = mTheme.mButtonGradientTopUnfocused;
         auto gradBot = mTheme.mButtonGradientBotUnfocused;
@@ -264,15 +264,15 @@ public:
             gradBot = mTheme.mButtonGradientBotFocused;
         }
 
-        nvg.beginPath;
+        ctx.beginPath;
 
-        nvg.roundedRect(mPos.x + 1, mPos.y + 1.0f, mSize.x - 2,
+        ctx.roundedRect(mPos.x + 1, mPos.y + 1.0f, mSize.x - 2,
                        mSize.y - 2, mTheme.mButtonCornerRadius - 1);
 
         if (mBackgroundColor.w != 0)
         {
-            nvg.fillColor(Color(mBackgroundColor.rgb, 1.0f));
-            nvg.fill;
+            ctx.fillColor(Color(mBackgroundColor.rgb, 1.0f));
+            ctx.fill;
             if (mPushed)
             {
                 gradTop.a = gradBot.a = 0.8f;
@@ -284,29 +284,29 @@ public:
             }
         }
 
-        NVGPaint bg = nvg.linearGradient(mPos.x, mPos.y, mPos.x,
+        NVGPaint bg = ctx.linearGradient(mPos.x, mPos.y, mPos.x,
                                         mPos.y + mSize.y, gradTop, gradBot);
 
-        nvg.fillPaint(bg);
-        nvg.fill;
+        ctx.fillPaint(bg);
+        ctx.fill;
 
-        nvg.beginPath;
-        nvg.strokeWidth(1.0f);
-        nvg.roundedRect(mPos.x + 0.5f, mPos.y + (mPushed ? 0.5f : 1.5f), mSize.x - 1,
+        ctx.beginPath;
+        ctx.strokeWidth(1.0f);
+        ctx.roundedRect(mPos.x + 0.5f, mPos.y + (mPushed ? 0.5f : 1.5f), mSize.x - 1,
                        mSize.y - 1 - (mPushed ? 0.0f : 1.0f), mTheme.mButtonCornerRadius);
-        nvg.strokeColor(mTheme.mBorderLight);
-        nvg.stroke;
+        ctx.strokeColor(mTheme.mBorderLight);
+        ctx.stroke;
 
-        nvg.beginPath;
-        nvg.roundedRect(mPos.x + 0.5f, mPos.y + 0.5f, mSize.x - 1,
+        ctx.beginPath;
+        ctx.roundedRect(mPos.x + 0.5f, mPos.y + 0.5f, mSize.x - 1,
                        mSize.y - 2, mTheme.mButtonCornerRadius);
-        nvg.strokeColor(mTheme.mBorderDark);
-        nvg.stroke;
+        ctx.strokeColor(mTheme.mBorderDark);
+        ctx.stroke;
 
         int fontSize = mFontSize == -1 ? mTheme.mButtonFontSize : mFontSize;
-        nvg.fontSize(fontSize);
-        nvg.fontFace("sans-bold");
-        const tw = nvg.textBounds(0,0, mCaption, null);
+        ctx.fontSize(fontSize);
+        ctx.fontFace("sans-bold");
+        const tw = ctx.textBounds(0,0, mCaption, null);
 
         Vector2f center = mPos + cast(Vector2f) mSize * 0.5f;
         auto textPos = Vector2f(center.x - tw * 0.5f, center.y - 1);
@@ -320,13 +320,13 @@ public:
         if (mIcon)
         {
             ih = fontSize*icon_scale;
-            nvg.fontSize(ih);
-            nvg.fontFace("icons");
-            iw = nvg.textBounds(0, 0, [mIcon], null);
+            ctx.fontSize(ih);
+            ctx.fontFace("icons");
+            iw = ctx.textBounds(0, 0, [mIcon], null);
         } else if (mImage.valid)
         {
             int w, h;
-            nvg.imageSize(mImage, w, h);
+            ctx.imageSize(mImage, w, h);
             import std.algorithm : min;
             ih = min(h*0.9f, height);
             iw = w * ih / h;
@@ -336,11 +336,11 @@ public:
         {
             if (mCaption != "")
                 iw += mSize.y * 0.15f;
-            nvg.fillColor(textColor);
+            ctx.fillColor(textColor);
             NVGTextAlign algn;
             algn.left = true;
             algn.middle = true;
-            nvg.textAlign(algn);
+            ctx.textAlign(algn);
             Vector2f iconPos = center;
             iconPos.y -= 1;
 
@@ -365,28 +365,28 @@ public:
 
             if (mIcon)
             {
-                nvg.text(iconPos.x, iconPos.y + d + 1, [mIcon]);
+                ctx.text(iconPos.x, iconPos.y + d + 1, [mIcon]);
             }
             else
             {
-                NVGPaint imgPaint = nvg.imagePattern(
+                NVGPaint imgPaint = ctx.imagePattern(
                        iconPos.x, iconPos.y + d - ih/2, iw, ih, 0, mImage, mEnabled ? 0.5f : 0.25f);
 
-                nvg.fillPaint(imgPaint);
-                nvg.fill;
+                ctx.fillPaint(imgPaint);
+                ctx.fill;
             }
         }
 
-        nvg.fontSize(fontSize);
-        nvg.fontFace("sans-bold");
+        ctx.fontSize(fontSize);
+        ctx.fontFace("sans-bold");
         NVGTextAlign algn;
         algn.left = true;
         algn.middle = true;
-        nvg.textAlign(algn);
-        nvg.fillColor(mTheme.mTextColorShadow);
-        nvg.text(textPos.x, textPos.y + d, mCaption,);
-        nvg.fillColor(textColor);
-        nvg.text(textPos.x, textPos.y + d + 1, mCaption);
+        ctx.textAlign(algn);
+        ctx.fillColor(mTheme.mTextColorShadow);
+        ctx.text(textPos.x, textPos.y + d, mCaption,);
+        ctx.fillColor(textColor);
+        ctx.text(textPos.x, textPos.y + d + 1, mCaption);
     }
 
     // // Saves the state of this Button provided the given Serializer.

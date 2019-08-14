@@ -15,10 +15,10 @@ import gfm.opengl: OpenGL;
 import gfm.sdl2: SDL2, SDL2Window, SDL_Event, SDL_Cursor, SDL_SetCursor, 
 	SDL_FreeCursor, SDL_Delay;
 
-import arsd.nanovega : NVGContext, nvgCreateContext, kill, NVGContextFlag;
+import arsd.nanovega : nvgCreateContext, kill, NVGContextFlag;
 import nanogui.screen : Screen;
 import nanogui.theme : Theme;
-import nanogui.common : Vector2i, MouseButton, MouseAction, Cursor;
+import nanogui.common : NanoContext, Vector2i, MouseButton, MouseAction, Cursor;
 
 class SdlBackend : Screen
 {
@@ -68,8 +68,8 @@ class SdlBackend : Screen
 		// redirect OpenGL output to our Logger
 		_gl.redirectDebugOutput();
 
-		nvg = nvgCreateContext(NVGContextFlag.Debug);
-		enforce(nvg !is null, "cannot initialize NanoGui");
+		ctx = NanoContext(NVGContextFlag.Debug);
+		enforce(ctx !is null, "cannot initialize NanoGui");
 
 		mCursorSet[Cursor.Arrow]     = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 		mCursorSet[Cursor.IBeam]     = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_IBEAM);
@@ -79,7 +79,7 @@ class SdlBackend : Screen
 		mCursorSet[Cursor.VResize]   = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENS);
 
 		super(width, height, Clock.currTime.stdTime);
-		theme = new Theme(nvg);
+		theme = new Theme(ctx);
 	}
 
 	~this()
@@ -91,7 +91,7 @@ class SdlBackend : Screen
 		SDL_FreeCursor(mCursorSet[Cursor.HResize]);
 		SDL_FreeCursor(mCursorSet[Cursor.VResize]);
 
-		nvg.kill();
+		ctx.kill();
 		_gl.destroy();
 		window.destroy();
 		_sdl2.destroy();
@@ -279,7 +279,7 @@ class SdlBackend : Screen
 				if (needToDraw)
 				{
 					size = Vector2i(width, height);
-					super.draw(nvg);
+					super.draw(ctx);
 
 					window.swapBuffers();
 				}
@@ -306,7 +306,7 @@ protected:
 	OpenGL _gl;
 	SDL2 _sdl2;
 
-	NVGContext nvg;
+	NanoContext ctx;
 
 	SDL_Cursor*[6] mCursorSet;
 

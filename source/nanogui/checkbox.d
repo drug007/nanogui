@@ -115,56 +115,56 @@ public:
 	}
 
 	/// The preferred size of this CheckBox.
-	override Vector2i preferredSize(NVGContext nvg) const
+	override Vector2i preferredSize(NanoContext ctx) const
 	{
 		if (mFixedSize != Vector2i())
 			return mFixedSize;
-		nvg.fontSize(fontSize());
-		nvg.fontFace("sans");
+		ctx.fontSize(fontSize());
+		ctx.fontFace("sans");
 		float[4] bounds;
 		return cast(Vector2i) Vector2f(
-			(nvg.textBounds(0, 0, mCaption, bounds[]) +
+			(ctx.textBounds(0, 0, mCaption, bounds[]) +
 				1.8f * fontSize()),
 			fontSize() * 1.3f);
 	}
 
 	/// Draws this CheckBox.
-	override void draw(NVGContext nvg)
+	override void draw(NanoContext ctx)
 	{
-		super.draw(nvg);
+		super.draw(ctx);
 
-		nvg.fontSize(fontSize);
-		nvg.fontFace("sans");
-		nvg.fillColor(mEnabled ? mTheme.mTextColor : mTheme.mDisabledTextColor);
+		ctx.fontSize(fontSize);
+		ctx.fontFace("sans");
+		ctx.fillColor(mEnabled ? mTheme.mTextColor : mTheme.mDisabledTextColor);
 		NVGTextAlign algn;
 		algn.left = true;
 		algn.middle = true;
-		nvg.textAlign(algn);
-		nvg.text(mPos.x + 1.6f * fontSize, mPos.y + mSize.y * 0.5f,
+		ctx.textAlign(algn);
+		ctx.text(mPos.x + 1.6f * fontSize, mPos.y + mSize.y * 0.5f,
 				mCaption);
 
-		NVGPaint bg = nvg.boxGradient(mPos.x + 1.5f, mPos.y + 1.5f,
+		NVGPaint bg = ctx.boxGradient(mPos.x + 1.5f, mPos.y + 1.5f,
 									 mSize.y - 2.0f, mSize.y - 2.0f, 3, 3,
 									 mPushed ? Color(0, 0, 0, 100) : Color(0, 0, 0, 32),
 									 Color(0, 0, 0, 180));
 
-		nvg.beginPath;
-		nvg.roundedRect(mPos.x + 1.0f, mPos.y + 1.0f, mSize.y - 2.0f,
+		ctx.beginPath;
+		ctx.roundedRect(mPos.x + 1.0f, mPos.y + 1.0f, mSize.y - 2.0f,
 					   mSize.y - 2.0f, 3);
-		nvg.fillPaint(bg);
-		nvg.fill;
+		ctx.fillPaint(bg);
+		ctx.fill;
 
 		if (mChecked)
 		{
-			nvg.fontSize(mSize.y * icon_scale());
-			nvg.fontFace("icons");
-			nvg.fillColor(mEnabled ? mTheme.mIconColor
+			ctx.fontSize(mSize.y * icon_scale());
+			ctx.fontFace("icons");
+			ctx.fillColor(mEnabled ? mTheme.mIconColor
 									   : mTheme.mDisabledTextColor);
 			algn = NVGTextAlign();
 			algn.center = true;
 			algn.middle = true;
-			nvg.textAlign(algn);
-			nvg.text(mPos.x + mSize.y * 0.5f + 1,
+			ctx.textAlign(algn);
+			ctx.text(mPos.x + mSize.y * 0.5f + 1,
 					mPos.y + mSize.y * 0.5f, [mTheme.mCheckBoxIcon]);
 		}
 	}

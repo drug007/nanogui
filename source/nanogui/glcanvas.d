@@ -66,14 +66,14 @@ public:
     bool drawBorder() const { return mDrawBorder; }
 
     /// Draw the canvas.
-    override void draw(NVGContext nvg)
+    override void draw(NanoContext ctx)
 	{
-		Widget.draw(nvg);
+		Widget.draw(ctx);
 
 		if (mDrawBorder)
-			drawWidgetBorder(nvg);
+			drawWidgetBorder(ctx);
 
-		nvg.endFrame;
+		ctx.endFrame;
 
 		const screen = this.screen();
 		assert(screen);
@@ -105,7 +105,7 @@ public:
 		glViewport(storedViewport[0], storedViewport[1],
 				storedViewport[2], storedViewport[3]);
 
-		nvg.beginFrame(screen.size.x, screen.size.y);
+		ctx.beginFrame(screen.size.x, screen.size.y);
 	}
 
     /// Draw the GL scene. Override this method to draw the actual GL content.
@@ -119,18 +119,18 @@ public:
 
 protected:
     /// Internal helper function for drawing the widget border
-    void drawWidgetBorder(NVGContext nvg) const
+    void drawWidgetBorder(NanoContext ctx) const
 	{
 		// import arsd.nanovega;
-		nvg.beginPath;
-		nvg.strokeWidth(1.0f);
-		nvg.roundedRect(mPos.x - 0.5f, mPos.y - 0.5f,
+		ctx.beginPath;
+		ctx.strokeWidth(1.0f);
+		ctx.roundedRect(mPos.x - 0.5f, mPos.y - 0.5f,
 					mSize.x + 1, mSize.y + 1, mTheme.mWindowCornerRadius);
-		nvg.strokeColor(mTheme.mBorderLight);
-		nvg.roundedRect(mPos.x - 1.0f, mPos.y - 1.0f,
+		ctx.strokeColor(mTheme.mBorderLight);
+		ctx.roundedRect(mPos.x - 1.0f, mPos.y - 1.0f,
 					mSize.x + 2, mSize.y + 2, mTheme.mWindowCornerRadius);
-		nvg.strokeColor(mTheme.mBorderDark);
-		nvg.stroke;
+		ctx.strokeColor(mTheme.mBorderDark);
+		ctx.stroke;
 	}
 
 protected:

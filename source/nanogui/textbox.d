@@ -24,7 +24,8 @@ import arsd.nanovega;
 import nanogui.widget : Widget;
 import nanogui.theme : Theme;
 import nanogui.common : Vector2i, MouseAction, MouseButton, Cursor, 
-    Color, boxGradient, fillColor, Vector2f, Key, KeyAction, KeyMod;
+    Color, boxGradient, fillColor, Vector2f, Key, KeyAction, KeyMod,
+	NanoContext;
 
 private auto squeezeGlyphs(T)(T[] glyphs_buffer, T[] glyphs)
 {
@@ -423,7 +424,7 @@ public:
         return false;
     }
 
-	override Vector2i preferredSize(NVGContext nvg) const
+	override Vector2i preferredSize(NanoContext ctx) const
 	{
 		Vector2i size = Vector2i(0, cast(int) (fontSize * 1.4f));
 
@@ -431,60 +432,60 @@ public:
 		if (mUnitsImage.valid) 
 		{
 			int w, h;
-			nvg.imageSize(mUnitsImage, w, h);
+			ctx.imageSize(mUnitsImage, w, h);
 			float uh = size[1] * 0.4f;
 			uw = w * uh / h;
 		} else if (mUnits.length)
 		{
-			uw = nvg.textBounds(0, 0, mUnits, null);
+			uw = ctx.textBounds(0, 0, mUnits, null);
 		}
 		float sw = 0;
 		if (mSpinnable)
 			sw = 14.0f;
 
-		float ts = nvg.textBounds(0, 0, mValue, null);
+		float ts = ctx.textBounds(0, 0, mValue, null);
 		size[0] = size[1] + cast(int)(ts + uw + sw);
 		return size;
 	}
 
-	override void draw(NVGContext nvg)
+	override void draw(NanoContext ctx)
     {
-        super.draw(nvg);
+        super.draw(ctx);
 
-        NVGPaint bg = nvg.boxGradient(
+        NVGPaint bg = ctx.boxGradient(
             mPos.x + 1, mPos.y + 1 + 1.0f, mSize.x - 2, mSize.y - 2,
             3, 4, Color(255, 255, 255, 32), Color(32, 32, 32, 32));
-        NVGPaint fg1 = nvg.boxGradient(
+        NVGPaint fg1 = ctx.boxGradient(
             mPos.x + 1, mPos.y + 1 + 1.0f, mSize.x - 2, mSize.y - 2,
             3, 4, Color(150, 150, 150, 32), Color(32, 32, 32, 32));
-        NVGPaint fg2 = nvg.boxGradient(
+        NVGPaint fg2 = ctx.boxGradient(
             mPos.x + 1, mPos.y + 1 + 1.0f, mSize.x - 2, mSize.y - 2,
             3, 4, Color(255, 0, 0, 100), Color(255, 0, 0, 50));
 
-        nvg.beginPath;
-        nvg.roundedRect(mPos.x + 1, mPos.y + 1 + 1.0f, mSize.x - 2,
+        ctx.beginPath;
+        ctx.roundedRect(mPos.x + 1, mPos.y + 1 + 1.0f, mSize.x - 2,
                     mSize.y - 2, 3);
 
         if (mEditable && focused)
-            mValidFormat ? nvg.fillPaint(fg1) : nvg.fillPaint(fg2);
+            mValidFormat ? ctx.fillPaint(fg1) : ctx.fillPaint(fg2);
         else if (mSpinnable && mMouseDownPos.x != -1)
-            nvg.fillPaint(fg1);
+            ctx.fillPaint(fg1);
         else
-            nvg.fillPaint(bg);
+            ctx.fillPaint(bg);
 
-        nvg.fill;
+        ctx.fill;
 
-        nvg.beginPath;
-        nvg.roundedRect(mPos.x + 0.5f, mPos.y + 0.5f, mSize.x - 1,
+        ctx.beginPath;
+        ctx.roundedRect(mPos.x + 0.5f, mPos.y + 0.5f, mSize.x - 1,
                     mSize.y - 1, 2.5f);
-        nvg.strokeColor(NVGColor(0, 0, 0, 48));
-        nvg.stroke;
+        ctx.strokeColor(NVGColor(0, 0, 0, 48));
+        ctx.stroke;
 
-        nvg.fontSize(fontSize());
+        ctx.fontSize(fontSize());
         if (mTheme !is null)
-            nvg.fontFaceId(mTheme.mFontNormal);
+            ctx.fontFaceId(mTheme.mFontNormal);
         else
-            nvg.fontFace("sans");
+            ctx.fontFace("sans");
 
         auto draw_pos = Vector2i(mPos.x, cast(int) (mPos.y + mSize.y * 0.5f + 1));
 
@@ -495,29 +496,29 @@ public:
         if (mUnitsImage.valid)
         {
             int w, h;
-            nvg.imageSize(mUnitsImage, w, h);
+            ctx.imageSize(mUnitsImage, w, h);
             float unitHeight = mSize.y * 0.4f;
             unitWidth = w * unitHeight / h;
-            NVGPaint imgPaint = nvg.imagePattern(
+            NVGPaint imgPaint = ctx.imagePattern(
                 mPos.x + mSize.x - xSpacing - unitWidth,
                 draw_pos.y - unitHeight * 0.5f, unitWidth, unitHeight, 0,
                 mUnitsImage, mEnabled ? 0.7f : 0.35f);
-            nvg.beginPath;
-            nvg.rect(mPos.x + mSize.x - xSpacing - unitWidth,
+            ctx.beginPath;
+            ctx.rect(mPos.x + mSize.x - xSpacing - unitWidth,
                     draw_pos.y - unitHeight * 0.5f, unitWidth, unitHeight);
-            nvg.fillPaint(imgPaint);
-            nvg.fill;
+            ctx.fillPaint(imgPaint);
+            ctx.fill;
             unitWidth += 2;
         }
         else if (mUnits.length)
         {
-            unitWidth = nvg.textBounds(0, 0, mUnits, null);
-            nvg.fillColor(Color(255, 255, 255, mEnabled ? 64 : 32));
+            unitWidth = ctx.textBounds(0, 0, mUnits, null);
+            ctx.fillColor(Color(255, 255, 255, mEnabled ? 64 : 32));
             NVGTextAlign algn;
 			algn.right = true;
 			algn.middle = true;
-			nvg.textAlign(algn);
-            nvg.text(mPos.x + mSize.x - xSpacing, draw_pos.y,
+			ctx.textAlign(algn);
+            ctx.text(mPos.x + mSize.x - xSpacing, draw_pos.y,
                     mUnits);
             unitWidth += 2;
         }
@@ -527,39 +528,39 @@ public:
         if (mSpinnable && !focused()) {
             spinArrowsWidth = 14.0f;
 
-            nvg.fontFace("icons");
-            nvg.fontSize(((mFontSize < 0) ? mTheme.mButtonFontSize : mFontSize) * icon_scale());
+            ctx.fontFace("icons");
+            ctx.fontSize(((mFontSize < 0) ? mTheme.mButtonFontSize : mFontSize) * icon_scale());
 
             bool spinning = mMouseDownPos.x != -1;
 
             /* up button */ {
                 bool hover = mMouseFocus && spinArea(mMousePos) == SpinArea.Top;
-                nvg.fillColor((mEnabled && (hover || spinning)) ? mTheme.mTextColor : mTheme.mDisabledTextColor);
+                ctx.fillColor((mEnabled && (hover || spinning)) ? mTheme.mTextColor : mTheme.mDisabledTextColor);
                 auto icon = mTheme.mTextBoxUpIcon;
                 NVGTextAlign algn;
                 algn.left = true;
                 algn.middle = true;
-                nvg.textAlign(algn);
+                ctx.textAlign(algn);
                 auto iconPos = Vector2f(mPos.x + 4.0f,
                                 mPos.y + mSize.y/2.0f - xSpacing/2.0f);
-                nvg.text(iconPos.x, iconPos.y, [icon]);
+                ctx.text(iconPos.x, iconPos.y, [icon]);
             }
 
             /* down button */ {
                 bool hover = mMouseFocus && spinArea(mMousePos) == SpinArea.Bottom;
-                nvg.fillColor((mEnabled && (hover || spinning)) ? mTheme.mTextColor : mTheme.mDisabledTextColor);
+                ctx.fillColor((mEnabled && (hover || spinning)) ? mTheme.mTextColor : mTheme.mDisabledTextColor);
                 auto icon = mTheme.mTextBoxDownIcon;
                 NVGTextAlign algn;
                 algn.left = true;
                 algn.middle = true;
-                nvg.textAlign(algn);
+                ctx.textAlign(algn);
                 auto iconPos = Vector2f(mPos.x + 4.0f,
                                 mPos.y + mSize.y/2.0f + xSpacing/2.0f + 1.5f);
-                nvg.text(iconPos.x, iconPos.y, [icon]);
+                ctx.text(iconPos.x, iconPos.y, [icon]);
             }
 
-            nvg.fontSize(fontSize());
-            nvg.fontFace("sans");
+            ctx.fontSize(fontSize());
+            ctx.fontFace("sans");
         }
 
         final switch (mAlignment) {
@@ -567,27 +568,27 @@ public:
                 NVGTextAlign algn;
                 algn.left = true;
                 algn.middle = true;
-                nvg.textAlign(algn);
+                ctx.textAlign(algn);
                 draw_pos.x += cast(int)(xSpacing + spinArrowsWidth);
                 break;
             case Alignment.Right:
                 NVGTextAlign algn;
                 algn.right = true;
                 algn.middle = true;
-                nvg.textAlign(algn);
+                ctx.textAlign(algn);
                 draw_pos.x += cast(int)(mSize.x - unitWidth - xSpacing);
                 break;
             case Alignment.Center:
                 NVGTextAlign algn;
                 algn.center = true;
                 algn.middle = true;
-                nvg.textAlign(algn);
+                ctx.textAlign(algn);
                 draw_pos.x += cast(int)(mSize.x * 0.5f);
                 break;
         }
 
-        nvg.fontSize(fontSize());
-        nvg.fillColor(mEnabled && (!mCommitted || mValue.length) ?
+        ctx.fontSize(fontSize());
+        ctx.fillColor(mEnabled && (!mCommitted || mValue.length) ?
             mTheme.mTextColor :
             mTheme.mDisabledTextColor);
 
@@ -597,29 +598,29 @@ public:
         float clipWidth = mSize.x - unitWidth - spinArrowsWidth - 2 * xSpacing + 2.0f;
         float clipHeight = mSize.y - 3.0f;
 
-        nvg.save;
-        nvg.intersectScissor(clipX, clipY, clipWidth, clipHeight);
+        ctx.save;
+        ctx.intersectScissor(clipX, clipY, clipWidth, clipHeight);
 
         auto old_draw_pos = Vector2i(draw_pos);
         draw_pos.x += cast(int) mTextOffset;
 
         if (mCommitted) {
-            nvg.text(draw_pos.x, draw_pos.y,
+            ctx.text(draw_pos.x, draw_pos.y,
                 !mValue.length ? mPlaceholder : mValue);
         } else {
             const int maxGlyphs = 1024;
             NVGGlyphPosition[maxGlyphs] glyphs_buffer;
             float[4] textBound;
-            nvg.textBounds(draw_pos.x, draw_pos.y, mValueTemp,
+            ctx.textBounds(draw_pos.x, draw_pos.y, mValueTemp,
                         textBound);
             float lineh = textBound[3] - textBound[1];
 
             // find cursor positions
             auto glyphs =
-                nvg.textGlyphPositions(draw_pos.x, draw_pos.y,
+                ctx.textGlyphPositions(draw_pos.x, draw_pos.y,
                                     mValueTemp, glyphs_buffer);
             glyphs = squeezeGlyphs(glyphs_buffer[], glyphs);
-            updateCursor(nvg, textBound[2], glyphs);
+            updateCursor(ctx, textBound[2], glyphs);
 
             // compute text offset
             int prevCPos = mCursorPos > 0 ? mCursorPos - 1 : 0;
@@ -636,11 +637,11 @@ public:
             draw_pos.x = cast(int) (old_draw_pos.x + mTextOffset);
 
             // draw text with offset
-            nvg.text(draw_pos.x, draw_pos.y, mValueTemp);
-            nvg.textBounds(draw_pos.x, draw_pos.y, mValueTemp, textBound);
+            ctx.text(draw_pos.x, draw_pos.y, mValueTemp);
+            ctx.textBounds(draw_pos.x, draw_pos.y, mValueTemp, textBound);
 
             // recompute cursor positions
-            glyphs = nvg.textGlyphPositions(draw_pos.x, draw_pos.y,
+            glyphs = ctx.textGlyphPositions(draw_pos.x, draw_pos.y,
                     mValueTemp, glyphs_buffer);
             glyphs = squeezeGlyphs(glyphs_buffer[], glyphs);
 
@@ -657,25 +658,25 @@ public:
                     }
 
                     // draw selection
-                    nvg.beginPath;
-                    nvg.fillColor(Color(255, 255, 255, 80));
-                    nvg.rect(caretx, draw_pos.y - lineh * 0.5f, selx - caretx,
+                    ctx.beginPath;
+                    ctx.fillColor(Color(255, 255, 255, 80));
+                    ctx.rect(caretx, draw_pos.y - lineh * 0.5f, selx - caretx,
                             lineh);
-                    nvg.fill;
+                    ctx.fill;
                 }
 
                 float caretx = cursorIndex2Position(mCursorPos, textBound[2], glyphs);
 
                 // draw cursor
-                nvg.beginPath;
-                nvg.moveTo(caretx, draw_pos.y - lineh * 0.5f);
-                nvg.lineTo(caretx, draw_pos.y + lineh * 0.5f);
-                nvg.strokeColor(nvgRGBA(255, 192, 0, 255));
-                nvg.strokeWidth(1.0f);
-                nvg.stroke;
+                ctx.beginPath;
+                ctx.moveTo(caretx, draw_pos.y - lineh * 0.5f);
+                ctx.lineTo(caretx, draw_pos.y + lineh * 0.5f);
+                ctx.strokeColor(nvgRGBA(255, 192, 0, 255));
+                ctx.strokeWidth(1.0f);
+                ctx.stroke;
             }
         }
-        nvg.restore;
+        ctx.restore;
     }
 
 // override void save(Serializer &s) const;
@@ -761,7 +762,7 @@ protected:
         return false;
     }
 
-	void updateCursor(NVGContext nvg, float lastx,
+	void updateCursor(NanoContext ctx, float lastx,
 					  const(NVGGlyphPosition)[] glyphs)
     {
         // handle mouse cursor events

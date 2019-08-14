@@ -113,7 +113,7 @@ public:
 		mPreferredWidth = width;
 	}
 
-	override Vector2i preferredSize(NVGContext ctx) const
+	override Vector2i preferredSize(NanoContext ctx) const
 	{
 		return Vector2i(mPreferredWidth, 16);
 	}
@@ -170,7 +170,7 @@ public:
 		return true;
 	}
 
-	override void draw(NVGContext nvg)
+	override void draw(NanoContext ctx)
 	{
 		Vector2f center = cast(Vector2f) mPos + 0.5f * cast(Vector2f) mSize;
 		float kr = cast(int) (mSize.y * 0.4f);
@@ -192,58 +192,58 @@ public:
 					center.y + 0.5f);
 		}
 
-		NVGPaint bg = nvg.boxGradient(
+		NVGPaint bg = ctx.boxGradient(
 			startX, center.y - 3 + 1, widthX, 6, 3, 3,
 			Color(0, 0, 0, mEnabled ? 32 : 10), Color(0, 0, 0, mEnabled ? 128 : 210));
 
-		nvg.beginPath;
-		nvg.roundedRect(startX, center.y - 3 + 1, widthX, 6, 2);
-		nvg.fillPaint(bg);
-		nvg.fill;
+		ctx.beginPath;
+		ctx.roundedRect(startX, center.y - 3 + 1, widthX, 6, 2);
+		ctx.fillPaint(bg);
+		ctx.fill;
 
 		if (mHighlightedRange[1] != mHighlightedRange[0]) {
-			nvg.beginPath;
-			nvg.roundedRect(startX + mHighlightedRange[0] * mSize.x,
+			ctx.beginPath;
+			ctx.roundedRect(startX + mHighlightedRange[0] * mSize.x,
 				center.y - kshadow + 1,
 				widthX * (mHighlightedRange[1] - mHighlightedRange[0]),
 				kshadow * 2, 2);
-			nvg.fillColor(mHighlightColor);
-			nvg.fill;
+			ctx.fillColor(mHighlightColor);
+			ctx.fill;
 		}
 
 		NVGPaint knobShadow =
-			nvg.radialGradient(knobPos.x, knobPos.y, kr - kshadow,
+			ctx.radialGradient(knobPos.x, knobPos.y, kr - kshadow,
 							kr + kshadow, Color(0, 0, 0, 64), mTheme.mTransparent);
 
-		nvg.beginPath;
-		nvg.rect(knobPos.x - kr - 5, knobPos.y - kr - 5, kr * 2 + 10,
+		ctx.beginPath;
+		ctx.rect(knobPos.x - kr - 5, knobPos.y - kr - 5, kr * 2 + 10,
 				kr * 2 + 10 + kshadow);
-		nvg.circle(knobPos.x, knobPos.y, kr);
-		nvg.pathWinding(NVGSolidity.Hole);
-		nvg.fillPaint(knobShadow);
-		nvg.fill;
+		ctx.circle(knobPos.x, knobPos.y, kr);
+		ctx.pathWinding(NVGSolidity.Hole);
+		ctx.fillPaint(knobShadow);
+		ctx.fill;
 
-		NVGPaint knob = nvg.linearGradient(
+		NVGPaint knob = ctx.linearGradient(
 			mPos.x, center.y - kr, mPos.x, center.y + kr,
 			mTheme.mBorderLight, mTheme.mBorderMedium);
-		NVGPaint knobReverse = nvg.linearGradient(
+		NVGPaint knobReverse = ctx.linearGradient(
 			mPos.x, center.y - kr, mPos.x, center.y + kr,
 			mTheme.mBorderMedium,
 			mTheme.mBorderLight);
 
-		nvg.beginPath;
-		nvg.circle(knobPos.x, knobPos.y, kr);
+		ctx.beginPath;
+		ctx.circle(knobPos.x, knobPos.y, kr);
 		with (mTheme.mBorderDark)
-			nvg.strokeColor(nvgRGBA(cast(int)(r/255), cast(int)(g/255), cast(int)(b/255), cast(int)(a/255)));
-		nvg.fillPaint(knob);
-		nvg.stroke;
-		nvg.fill;
-		nvg.beginPath;
-		nvg.circle(knobPos.x, knobPos.y, kr/2);
-		nvg.fillColor(Color(150, 150, 150, mEnabled ? 255 : 100));
-		nvg.strokePaint(knobReverse);
-		nvg.stroke;
-		nvg.fill;
+			ctx.strokeColor(nvgRGBA(cast(int)(r/255), cast(int)(g/255), cast(int)(b/255), cast(int)(a/255)));
+		ctx.fillPaint(knob);
+		ctx.stroke;
+		ctx.fill;
+		ctx.beginPath;
+		ctx.circle(knobPos.x, knobPos.y, kr/2);
+		ctx.fillColor(Color(150, 150, 150, mEnabled ? 255 : 100));
+		ctx.strokePaint(knobReverse);
+		ctx.stroke;
+		ctx.fill;
 	}
 	// void save(Serializer &s) const;
 	// bool load(Serializer &s);

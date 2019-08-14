@@ -389,69 +389,69 @@ public:
 	}
 
 	/// Compute the preferred size of the widget
-	Vector2i preferredSize(NVGContext nvg) const
+	Vector2i preferredSize(NanoContext ctx) const
 	{
 		if (mLayout)
-			return mLayout.preferredSize(nvg, this);
+			return mLayout.preferredSize(ctx, this);
 		else
 			return mSize;
 	}
 
 	/// Compute the preferred size of the widget considering its child except
 	/// skipped one (for example button panel of window)
-	final Vector2i preferredSize(NVGContext nvg, const Widget skipped) const
+	final Vector2i preferredSize(NanoContext ctx, const Widget skipped) const
 	{
 		if (mLayout)
-			return mLayout.preferredSize(nvg, this, skipped);
+			return mLayout.preferredSize(ctx, this, skipped);
 		else
 			return mSize;
 	}
 
 	/// Invoke the associated layout generator to properly place child widgets, if any
-	void performLayout(NVGContext nvg)
+	void performLayout(NanoContext ctx)
 	{
 		if (mLayout) {
-			mLayout.performLayout(nvg, this);
+			mLayout.performLayout(ctx, this);
 		} else {
 			foreach(c; mChildren) {
-				Vector2i pref = c.preferredSize(nvg), fix = c.fixedSize();
+				Vector2i pref = c.preferredSize(ctx), fix = c.fixedSize();
 				c.size(Vector2i(
 					fix[0] ? fix[0] : pref[0],
 					fix[1] ? fix[1] : pref[1]
 				));
-				c.performLayout(nvg);
+				c.performLayout(ctx);
 			}
 		}
 	}
 
 	/// Draw the widget (and all child widgets)
-	void draw(NVGContext nvg)
+	void draw(NanoContext ctx)
 	{
 		version(NANOGUI_SHOW_WIDGET_BOUNDS)
 		{
-			nvg.strokeWidth(1.0f);
-			nvg.beginPath;
-			nvg.rect(mPos.x + 1.0f, mPos.y + 0.0f, mSize.x - 1, mSize.y - 1);
-			nvg.strokeColor(Color(255, 0, 0, 255));
-			nvg.stroke;
+			ctx.strokeWidth(1.0f);
+			ctx.beginPath;
+			ctx.rect(mPos.x + 1.0f, mPos.y + 0.0f, mSize.x - 1, mSize.y - 1);
+			ctx.strokeColor(Color(255, 0, 0, 255));
+			ctx.stroke;
 		}
 
 		if (mChildren.length == 0)
 			return;
 
-		nvg.save;
-		nvg.translate(mPos.x, mPos.y);
+		ctx.save;
+		ctx.translate(mPos.x, mPos.y);
 		foreach(child; mChildren)
 		{
 			if (child.visible)
 			{
-				nvg.save;
-				scope(exit) nvg.restore;
-				nvg.intersectScissor(child.mPos.x, child.mPos.y, child.mSize.x, child.mSize.y);
-				child.draw(nvg);
+				ctx.save;
+				scope(exit) ctx.restore;
+				ctx.intersectScissor(child.mPos.x, child.mPos.y, child.mSize.x, child.mSize.y);
+				child.draw(ctx);
 			}
 		}
-		nvg.restore;
+		ctx.restore;
 	}
 
 // // Save the state of the widget into the given \ref Serializer instance
@@ -524,7 +524,7 @@ protected:
 	 *
 	 * ---
 	 *
-	 *       void draw(NVGContext nvg)
+	 *       void draw(NanoContext ctx)
 	 *       {
 	 *           // fontSize depends on the kind of `Widget`.  Search for `FontSize`
 	 *           // in the `Theme` class (e.g., standard vs button)
@@ -532,8 +532,8 @@ protected:
 	 *           // assuming your Widget has a declared `mIcon`
 	 *           if (isFontIcon(mIcon)) {
 	 *               ih *= icon_scale();
-	 *               nvg.fontFace("icons");
-	 *               nvg.fontSize(ih);
+	 *               ctx.fontFace("icons");
+	 *               ctx.fontSize(ih);
 	 *               /// remaining drawing code (see button.d for more)
 	 *           }
 	 *       }

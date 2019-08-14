@@ -54,13 +54,13 @@ public:
     final Popup popup() { return mPopup; }
     final auto popup() const { return mPopup; }
 
-    override void draw(NVGContext nvg)
+    override void draw(NanoContext ctx)
     {
         if (!mEnabled && mPushed)
             mPushed = false;
 
         mPopup.visible(mPushed);
-        Button.draw(nvg);
+        Button.draw(ctx);
 
         if (mChevronIcon != dchar.init)
         {
@@ -68,15 +68,15 @@ public:
             auto textColor =
                 mTextColor.w == 0 ? mTheme.mTextColor : mTextColor;
 
-            nvg.fontSize((mFontSize < 0 ? mTheme.mButtonFontSize : mFontSize) * icon_scale());
-            nvg.fontFace("icons");
-            nvg.fillColor(mEnabled ? textColor : mTheme.mDisabledTextColor);
+            ctx.fontSize((mFontSize < 0 ? mTheme.mButtonFontSize : mFontSize) * icon_scale());
+            ctx.fontFace("icons");
+            ctx.fillColor(mEnabled ? textColor : mTheme.mDisabledTextColor);
             auto algn = NVGTextAlign();
             algn.left = true;
             algn.middle = true;
-            nvg.textAlign(algn);
+            ctx.textAlign(algn);
 
-            float iw = nvg.textBounds(0, 0, [icon], null);
+            float iw = ctx.textBounds(0, 0, [icon], null);
             auto iconPos = Vector2f(0, mPos.y + mSize.y * 0.5f - 1);
 
             if (mPopup.side == Popup.Side.Right)
@@ -84,16 +84,16 @@ public:
             else
                 iconPos[0] = mPos.x + 8;
 
-            nvg.text(iconPos.x, iconPos.y, [icon]);
+            ctx.text(iconPos.x, iconPos.y, [icon]);
         }
     }
-    override Vector2i preferredSize(NVGContext nvg) const
+    override Vector2i preferredSize(NanoContext ctx) const
     {
-        return Button.preferredSize(nvg) + Vector2i(15, 0);
+        return Button.preferredSize(ctx) + Vector2i(15, 0);
     }
-    override void performLayout(NVGContext nvg)
+    override void performLayout(NanoContext ctx)
     {
-        Widget.performLayout(nvg);
+        Widget.performLayout(ctx);
 
         const Window parentWindow = window;
 

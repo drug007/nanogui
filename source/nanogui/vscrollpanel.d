@@ -14,7 +14,7 @@ module nanogui.vscrollpanel;
 */
 import std.algorithm : min, max;
 import nanogui.widget;
-import nanogui.common : MouseButton, Vector2f, Vector2i, NVGContext;
+import nanogui.common : MouseButton, Vector2f, Vector2i, NanoContext;
 
 /**
  * Adds a vertical scrollbar around a widget that is too big to fit into
@@ -35,9 +35,9 @@ public:
     /// Set the scroll amount to a value between 0 and 1. 0 means scrolled to the top and 1 to the bottom.
     void setScroll(float scroll) { mScroll = scroll; }
 
-    override void performLayout(NVGContext nvg)
+    override void performLayout(NanoContext ctx)
     {
-        super.performLayout(nvg);
+        super.performLayout(ctx);
 
         if (mChildren.empty)
             return;
@@ -45,7 +45,7 @@ public:
             throw new Exception("VScrollPanel should have one child.");
 
         Widget child = mChildren[0];
-        mChildPreferredHeight = child.preferredSize(nvg).y;
+        mChildPreferredHeight = child.preferredSize(ctx).y;
 
         if (mChildPreferredHeight > mSize.y)
         {
@@ -59,14 +59,14 @@ public:
             child.size(mSize);
             mScroll = 0;
         }
-        child.performLayout(nvg);
+        child.performLayout(ctx);
     }
 
-    override Vector2i preferredSize(NVGContext nvg) const
+    override Vector2i preferredSize(NanoContext ctx) const
     {
         if (mChildren.empty)
             return Vector2i(0, 0);
-        return mChildren[0].preferredSize(nvg) + Vector2i(12, 0);
+        return mChildren[0].preferredSize(ctx) + Vector2i(12, 0);
     }
     
     override bool mouseDragEvent(Vector2i p, Vector2i rel, MouseButton button, int modifiers)
@@ -101,50 +101,50 @@ public:
         }
     }
 
-    override void draw(NVGContext nvg)
+    override void draw(NanoContext ctx)
     {
         if (mChildren.empty)
             return;
         Widget child = mChildren[0];
         auto y = cast(int) (-mScroll*(mChildPreferredHeight - mSize.y));
         child.position(Vector2i(0, y));
-        mChildPreferredHeight = child.preferredSize(nvg).y;
+        mChildPreferredHeight = child.preferredSize(ctx).y;
         float scrollh = height *
             min(1.0f, height / cast(float) mChildPreferredHeight);
 
         if (mUpdateLayout)
-            child.performLayout(nvg);
+            child.performLayout(ctx);
 
-        nvg.save;
-        nvg.translate(mPos.x, mPos.y);
-        nvg.intersectScissor(0, 0, mSize.x, mSize.y);
+        ctx.save;
+        ctx.translate(mPos.x, mPos.y);
+        ctx.intersectScissor(0, 0, mSize.x, mSize.y);
         if (child.visible)
-            child.draw(nvg);
-        nvg.restore;
+            child.draw(ctx);
+        ctx.restore;
 
         if (mChildPreferredHeight <= mSize.y)
             return;
 
-        NVGPaint paint = nvg.boxGradient(
+        NVGPaint paint = ctx.boxGradient(
             mPos.x + mSize.x - 12 + 1, mPos.y + 4 + 1, 8,
             mSize.y - 8, 3, 4, Color(0, 0, 0, 32), Color(0, 0, 0, 92));
-        nvg.beginPath;
-        nvg.roundedRect(mPos.x + mSize.x - 12, mPos.y + 4, 8,
+        ctx.beginPath;
+        ctx.roundedRect(mPos.x + mSize.x - 12, mPos.y + 4, 8,
                     mSize.y - 8, 3);
-        nvg.fillPaint(paint);
-        nvg.fill;
+        ctx.fillPaint(paint);
+        ctx.fill;
 
-        paint = nvg.boxGradient(
+        paint = ctx.boxGradient(
             mPos.x + mSize.x - 12 - 1,
             mPos.y + 4 + (mSize.y - 8 - scrollh) * mScroll - 1, 8, scrollh,
             3, 4, Color(220, 220, 220, 100), Color(128, 128, 128, 100));
 
-        nvg.beginPath;
-        nvg.roundedRect(mPos.x + mSize.x - 12 + 1,
+        ctx.beginPath;
+        ctx.roundedRect(mPos.x + mSize.x - 12 + 1,
                     mPos.y + 4 + 1 + (mSize.y - 8 - scrollh) * mScroll, 8 - 2,
                     scrollh - 2, 2);
-        nvg.fillPaint(paint);
-        nvg.fill;
+        ctx.fillPaint(paint);
+        ctx.fill;
     }
     // override void save(Serializer &s) const;
     // override bool load(Serializer &s);

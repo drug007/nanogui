@@ -66,23 +66,23 @@ public:
 	 * Performs any and all resizing applicable.
 	 *
 	 * Params:
-	 *     nvg    = The `NanoVG` context being used for drawing.
+	 *     ctx    = The `NanoVG` context being used for drawing.
 	 *     widget = The Widget this layout is controlling sizing for.
 	 */
-	void performLayout(NVGContext nvg, Widget widget) const;
+	void performLayout(NanoContext ctx, Widget widget) const;
 
 	/**
 	 * The preferred size for this layout.
 	 *
 	 * Params:
-	 *     nvg    = The `NanoVG` context being used for drawing.
+	 *     ctx    = The `NanoVG` context being used for drawing.
 	 *     widget = The Widget this layout's preferred size is considering.
 	 *
 	 * Returns:
 	 *     The preferred size, accounting for things such as spacing, padding
 	 *     for icons, etc.
 	 */
-	Vector2i preferredSize(NVGContext nvg, const Widget widget, const Widget skipped = null) const;
+	Vector2i preferredSize(NanoContext ctx, const Widget widget, const Widget skipped = null) const;
 
 	/// The margin of this Layout.
 	int margin() const;
@@ -145,7 +145,7 @@ public:
 
 	/// Implementation of the layout interface
 	/// See `Layout.preferredSize`.
-	override Vector2i preferredSize(NVGContext nvg, const Widget widget, const Widget skipped = null) const
+	override Vector2i preferredSize(NanoContext ctx, const Widget widget, const Widget skipped = null) const
 	{
 		Vector2i size = Vector2i(2*mMargin, 2*mMargin);
 
@@ -170,7 +170,7 @@ public:
 			else
 				size[axis1] += mSpacing;
 
-			Vector2i ps = w.preferredSize(nvg);
+			Vector2i ps = w.preferredSize(ctx);
 			Vector2i fs = w.fixedSize();
 			auto targetSize = Vector2i(
 				fs[0] ? fs[0] : ps[0],
@@ -185,7 +185,7 @@ public:
 	}
 
 	/// See `Layout.performLayout`.
-	override void performLayout(NVGContext nvg, Widget widget) const
+	override void performLayout(NanoContext ctx, Widget widget) const
 	{
 		Vector2i fs_w = widget.fixedSize();
 		auto containerSize = Vector2i(
@@ -222,7 +222,7 @@ public:
 			else
 				position += mSpacing;
 
-			Vector2i ps = w.preferredSize(nvg), fs = w.fixedSize();
+			Vector2i ps = w.preferredSize(ctx), fs = w.fixedSize();
 			auto targetSize = Vector2i(
 				fs[0] ? fs[0] : ps[0],
 				fs[1] ? fs[1] : ps[1]
@@ -250,7 +250,7 @@ public:
 
 			w.position(pos);
 			w.size(targetSize);
-			w.performLayout(nvg);
+			w.performLayout(ctx);
 			position += targetSize[axis1];
 		}
 	}
@@ -326,7 +326,7 @@ public:
 
 	/// Implementation of the layout interface
 	/// See `Layout.preferredSize`.
-	override Vector2i preferredSize(NVGContext nvg, const Widget widget, const Widget skipped = null) const
+	override Vector2i preferredSize(NanoContext ctx, const Widget widget, const Widget skipped = null) const
 	{
 		int height = mMargin, width = 2*mMargin;
 
@@ -345,7 +345,7 @@ public:
 				height += (label is null) ? mSpacing : mGroupSpacing;
 			first = false;
 
-			Vector2i ps = c.preferredSize(nvg), fs = c.fixedSize();
+			Vector2i ps = c.preferredSize(ctx), fs = c.fixedSize();
 			auto targetSize = Vector2i(
 				fs[0] ? fs[0] : ps[0],
 				fs[1] ? fs[1] : ps[1]
@@ -364,7 +364,7 @@ public:
 	}
 
 	/// See `Layout.performLayout`.
-	override void performLayout(NVGContext nvg, Widget widget) const
+	override void performLayout(NanoContext ctx, Widget widget) const
 	{
 		int height = mMargin, availableWidth =
 			(widget.fixedWidth() ? widget.fixedWidth() : widget.width()) - 2*mMargin;
@@ -385,7 +385,7 @@ public:
 
 			bool indentCur = indent && label is null;
 			Vector2i ps = Vector2i(availableWidth - (indentCur ? mGroupIndent : 0),
-								   c.preferredSize(nvg).y);
+								   c.preferredSize(ctx).y);
 			Vector2i fs = c.fixedSize();
 
 			auto targetSize = Vector2i(
@@ -395,7 +395,7 @@ public:
 
 			c.position = Vector2i(mMargin + (indentCur ? mGroupIndent : 0), height);
 			c.size = targetSize;
-			c.performLayout(nvg);
+			c.performLayout(ctx);
 
 			height += targetSize.y;
 
@@ -522,12 +522,12 @@ public:
 
 	/// Implementation of the layout interface
 	/// See `Layout.preferredSize`.
-	override Vector2i preferredSize(NVGContext nvg, const Widget widget, const Widget skipped = null) const
+	override Vector2i preferredSize(NanoContext ctx, const Widget widget, const Widget skipped = null) const
 	{
 		/* Compute minimum row / column sizes */
 		import std.algorithm : sum;
 		Array!(int)[2] grid;
-		computeLayout(nvg, widget, grid, skipped);
+		computeLayout(ctx, widget, grid, skipped);
 
 		auto size = Vector2i(
 			2*mMargin + sum(grid[0][])
@@ -544,7 +544,7 @@ public:
 	}
 
 	/// See `Layout.performLayout`.
-	override void performLayout(NVGContext nvg, Widget widget) const
+	override void performLayout(NanoContext ctx, Widget widget) const
 	{
 		Vector2i fs_w = widget.fixedSize;
 		auto containerSize = Vector2i(
@@ -554,7 +554,7 @@ public:
 
 		/* Compute minimum row / column sizes */
 		Array!(int)[2] grid;
-		computeLayout(nvg, widget, grid, null);
+		computeLayout(ctx, widget, grid, null);
 		if (grid[1].length == 0)
 			return;
 		int[2] dim = [ cast(int) grid[0].length, cast(int) grid[1].length ];
@@ -605,7 +605,7 @@ public:
 					w = widget.children()[child++];
 				} while (!w.visible());
 
-				Vector2i ps = w.preferredSize(nvg);
+				Vector2i ps = w.preferredSize(ctx);
 				Vector2i fs = w.fixedSize();
 				auto targetSize = Vector2i(
 					fs[0] ? fs[0] : ps[0],
@@ -634,7 +634,7 @@ public:
 				}
 				w.position(itemPos);
 				w.size(targetSize);
-				w.performLayout(nvg);
+				w.performLayout(ctx);
 				pos[axis1] += grid[axis1][i1] + mSpacing[axis1];
 			}
 			pos[axis2] += grid[axis2][i2] + mSpacing[axis2];
@@ -643,7 +643,7 @@ public:
 
 protected:
 	/// Compute the maximum row and column sizes
-	void computeLayout(NVGContext nvg, const Widget widget,
+	void computeLayout(NanoContext ctx, const Widget widget,
 					   ref Array!(int)[2] grid, const Widget skipped) const
 	{
 		int axis1 = cast(int)  mOrientation;
@@ -674,7 +674,7 @@ protected:
 					w = widget.children[child++];
 				} while (!w.visible || w is skipped);
 
-				Vector2i ps = w.preferredSize(nvg);
+				Vector2i ps = w.preferredSize(ctx);
 				Vector2i fs = w.fixedSize();
 				auto targetSize = Vector2i(
 					fs[0] ? fs[0] : ps[0],
@@ -820,7 +820,7 @@ class AdvancedGridLayout : Layout
 	}
 
 	/* Implementation of the layout interface */
-	Vector2i preferredSize(NVGContext ctx, const Widget widget, const Widget skipped = null) const
+	Vector2i preferredSize(NanoContext ctx, const Widget widget, const Widget skipped = null) const
 	{
 		/* Compute minimum row / column sizes */
 		Array!int[2] grid;
@@ -838,7 +838,7 @@ class AdvancedGridLayout : Layout
 		return size+extra;
 	}
 
-	void performLayout(NVGContext ctx, Widget widget) const
+	void performLayout(NanoContext ctx, Widget widget) const
 	{
 		Array!int[2] grid;
 		computeLayout(ctx, widget, grid);
@@ -889,7 +889,7 @@ class AdvancedGridLayout : Layout
 
 protected:
 	/// Computes the layout
-	void computeLayout(NVGContext ctx, const Widget widget,
+	void computeLayout(NanoContext ctx, const Widget widget,
 					   ref Array!(int)[2] _grid) const
 	{
 		Vector2i fs_w = widget.fixedSize();
