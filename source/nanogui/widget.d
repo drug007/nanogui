@@ -446,9 +446,9 @@ public:
 			if (child.visible)
 			{
 				nvg.save;
+				scope(exit) nvg.restore;
 				nvg.intersectScissor(child.mPos.x, child.mPos.y, child.mSize.x, child.mSize.y);
 				child.draw(nvg);
-				nvg.restore;
 			}
 		}
 		nvg.restore;
