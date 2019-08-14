@@ -41,6 +41,19 @@ enum Orientation
 	Vertical,   /// Layout expands on vertical axis.
 }
 
+auto axisIndex(Orientation o)
+{
+	int axis_index = o;
+	return axis_index;
+}
+
+auto nextAxisIndex(Orientation o)
+{
+	import std.traits : EnumMembers;
+	int idx = (o + 1) % EnumMembers!Orientation.length;
+	return idx;
+}
+
 /**
  * interface Layout
  *

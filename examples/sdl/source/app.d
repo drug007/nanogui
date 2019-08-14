@@ -296,26 +296,24 @@ class MyGui : SdlBackend
 			int half_width = width / 2;
 			int height     = 350;
 
-			auto window = new Window(screen, "All Icons");
+			auto window = new Window(screen, "Huge list demo");
+			window.setId = "window";
 			window.position(Vector2i(10, 400));
 			window.fixedSize(Vector2i(width, height));
+			window.layout(new BoxLayout(Orientation.Vertical));
 
-			// attach a vertical scroll panel
-			auto vscroll = new VScrollPanel(window);
-			vscroll.fixedSize(Vector2i(width, height));
-
-			// vscroll should only have *ONE* child. this is what `wrapper` is for
-			auto wrapper = new Widget(vscroll);
-			wrapper.fixedSize(Vector2i(width, height));
-			wrapper.layout(new GridLayout());// defaults: 2 columns
-
-			foreach(i; 0..100)
+			string[] data;
+			data.reserve(400_000);
+			foreach(i; 0..400_000)
 			{
 				import std.conv : text;
-				auto item = new Button(wrapper, "item" ~ i.text, Entypo.ICON_AIRCRAFT_TAKE_OFF);
-				item.iconPosition(Button.IconPosition.Left);
-				item.fixedWidth(half_width);
+				data ~= text("item", i);
 			}
+
+			import nanogui.experimental.list;
+			auto list = new List(window, data);
+			list.setId = "list";
+			list.fixedSize(Vector2i(width, height - window.theme.mWindowHeaderHeight));
 		}
 
 		{
