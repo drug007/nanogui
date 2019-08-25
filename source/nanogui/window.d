@@ -147,6 +147,12 @@ public:
 		}
 
 		ctx.restore;
+		const old = ctx.mouse;
+		if (window.contains(ctx.mouse))
+			ctx.mouse -= window.absolutePosition;
+		else
+			ctx.mouse = Vector2i(-1, -1);
+		scope(exit) ctx.mouse = old;
 		Widget.draw(ctx);
 	}
 	/// Handle window drag events
