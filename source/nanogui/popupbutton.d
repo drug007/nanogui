@@ -54,7 +54,7 @@ public:
     final Popup popup() { return mPopup; }
     final auto popup() const { return mPopup; }
 
-    override void draw(NanoContext ctx)
+    override void draw(ref NanoContext ctx)
     {
         if (!mEnabled && mPushed)
             mPushed = false;

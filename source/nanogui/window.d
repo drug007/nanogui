@@ -66,7 +66,7 @@ public:
 	final void center();
 
 	/// Draw the window
-	override void draw(NanoContext ctx)
+	override void draw(ref NanoContext ctx)
 	{
 		assert (mTheme);
 		int ds = mTheme.mWindowDropShadowSize, cr = mTheme.mWindowCornerRadius;

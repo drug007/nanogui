@@ -425,7 +425,7 @@ public:
 	}
 
 	/// Draw the widget (and all child widgets)
-	void draw(NanoContext ctx)
+	void draw(ref NanoContext ctx)
 	{
 		version(NANOGUI_SHOW_WIDGET_BOUNDS)
 		{

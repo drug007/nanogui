@@ -448,7 +448,7 @@ public:
 		return size;
 	}
 
-	override void draw(NanoContext ctx)
+	override void draw(ref NanoContext ctx)
     {
         super.draw(ctx);
 

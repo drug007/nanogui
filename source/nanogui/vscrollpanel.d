@@ -101,7 +101,7 @@ public:
         }
     }
 
-    override void draw(NanoContext ctx)
+    override void draw(ref NanoContext ctx)
     {
         if (mChildren.empty)
             return;

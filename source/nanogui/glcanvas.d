@@ -66,7 +66,7 @@ public:
     bool drawBorder() const { return mDrawBorder; }
 
     /// Draw the canvas.
-    override void draw(NanoContext ctx)
+    override void draw(ref NanoContext ctx)
 	{
 		Widget.draw(ctx);
 

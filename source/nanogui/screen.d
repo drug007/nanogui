@@ -38,7 +38,7 @@ class Screen : Widget
 
 	auto lastInteraction() { return mLastInteraction; }
 
-	override void draw(NanoContext ctx)
+	override void draw(ref NanoContext ctx)
 	{
 		import arsd.simpledisplay;
 

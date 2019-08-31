@@ -246,7 +246,7 @@ public:
     }
 
     /// Responsible for drawing the Button.
-    override void draw(NanoContext ctx)
+    override void draw(ref NanoContext ctx)
     {
         super.draw(ctx);
 

@@ -352,7 +352,7 @@ public:
 		return false;
 	}
 
-	override void draw(NanoContext ctx)
+	override void draw(ref NanoContext ctx)
 	{
 		if (list_implementor is null)
 			return;

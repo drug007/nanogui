@@ -91,7 +91,7 @@ public:
 	}
 
 	/// Draw the label
-	override void draw(NanoContext ctx)
+	override void draw(ref NanoContext ctx)
 	{
 		Widget.draw(ctx);
 		ctx.fontFace(mFont);
