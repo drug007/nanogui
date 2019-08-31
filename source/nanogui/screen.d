@@ -76,9 +76,9 @@ class Screen : Widget
 				ctx.fontFace("sans");
 				ctx.fontSize(15.0f);
 				NVGTextAlign algn;
-	            algn.left = true;
-	            algn.top = true;
-	            ctx.textAlign(algn);
+				algn.left = true;
+				algn.top = true;
+				ctx.textAlign(algn);
 				ctx.textLineHeight(1.1f);
 				Vector2i pos = widget.absolutePosition() +
 							   Vector2i(widget.width() / 2, widget.height() + 10);
@@ -89,8 +89,8 @@ class Screen : Widget
 
 				if (h > tooltipWidth / 2) {
 					algn.center = true;
-		            algn.top = true;
-		            ctx.textAlign(algn);
+					algn.top = true;
+					ctx.textAlign(algn);
 					ctx.textBoxBounds(pos.x, pos.y, tooltipWidth,
 									widget.tooltip, bounds);
 
