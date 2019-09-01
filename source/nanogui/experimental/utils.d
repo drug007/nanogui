@@ -1,12 +1,40 @@
 module nanogui.experimental.utils;
 
 import nanogui.common : NanoContext;
+import nanogui.common : Vector2i;
 
-void drawItem(ref NanoContext ctx, float height, const(char)[] str)
+void indent(ref NanoContext ctx)
+{
+	ctx.position.x += 20;
+}
+
+void unindent(ref NanoContext ctx)
+{
+	ctx.position.x -= 20;
+}
+
+bool isPointInRect(Vector2i topleft, Vector2i size, Vector2i point)
+{
+	return point.x >= topleft.x && point.x < topleft.x+size.x &&
+		point.y >= topleft.y && point.y < topleft.y+size.y;
+}
+
+auto drawItem(T)(ref NanoContext ctx, float height, T item)
+{
+	import std.traits : isSomeString;
+
+	static if (isSomeString!T)
+		return drawString(ctx, height, item);
+	else
+		return drawPodType(ctx, height, item);
+}
+
+private auto drawString(Char)(ref NanoContext ctx, float height, const(Char)[] str)
 {
 	import nanogui.common : textAlign, text, roundedRect, fill, beginPath, linearGradient, fillPaint, fillColor;
-	if (ctx.mouse.x >= ctx.position.x && ctx.mouse.x < ctx.position.x+ctx.current_size &&
-		ctx.mouse.y >= ctx.position.y && ctx.mouse.y < ctx.position.y+height)
+	const rect_size = Vector2i(cast(int)ctx.current_size, cast(int)height);
+	bool inside;
+	if (isPointInRect(ctx.position, rect_size, ctx.mouse))
 	{
 		const gradTop = ctx.theme.mButtonGradientTopFocused;
 		const gradBot = ctx.theme.mButtonGradientBotFocused;
@@ -27,30 +55,61 @@ void drawItem(ref NanoContext ctx, float height, const(char)[] str)
 		ctx.fillPaint(bg);
 		ctx.fill;
 		ctx.fillColor(ctx.theme.mTextColor);
+		inside = true;
 	}
 	ctx.textAlign(ctx.algn);
 	ctx.text(ctx.position.x, ctx.position.y, str);
 	ctx.position.y += cast(int) height;
+
+	return inside;
+}
+
+private auto drawPodType(T)(ref NanoContext ctx, float height, T item)
+{
+	import std.format : sformat;
+	import std.traits : isIntegral, isFloatingPoint, isBoolean;
+
+	enum textBufferSize = 512;
+	char[textBufferSize] buffer;
+	size_t l;
+
+	// format specifier depends on type
+	static if (is(T == enum))
+	{
+		const s = item.enumToString;
+		l += sformat(buffer[l..$], min(buffer.length-l, s.length), "%s", s).length;
+	}
+	else static if (isIntegral!T)
+		l += sformat(buffer[l..$], "%d", item).length;
+	else static if (isFloatingPoint!T)
+		l += sformat(buffer[l..$], "%f", item).length;
+	else static if (isBoolean!T)
+		l += sformat(buffer[l..$], item ? "true\0" : "false\0").length;
+	else static if (isSomeString!T)
+		l += sformat(buffer[l..$], "%s", item).length;
+	else
+		static assert(0, T.stringof);
+
+	return ctx.drawItem(height, buffer[0..l]);
 }
 
 struct DataItem(T)
 {
 	import std.traits : isAggregateType, isPointer, isArray, isSomeString, isAssociativeArray;
-	import gfm.math : vec2i;
 	import nanogui.common : Vector2i;
 
 	enum textBufferSize = 1024;
 
 	T content;
-	private vec2i _size;
+	private Vector2i _size;
 
-	this(string c, vec2i s)
+	this(string c, Vector2i s)
 	{
 		content = c;
 		_size = s;
 	}
 
-	auto draw(Context)(ref Context ctx, const(char)[] header, float height)
+	auto draw(Context)(ref Context ctx, const(char)[] header, float height) const
 		if (!isAggregateType!T && 
 			!isPointer!T &&
 			(!isArray!T || isSomeString!T) &&
@@ -82,7 +141,7 @@ struct DataItem(T)
 		else
 			static assert(0, T.stringof);
 
-		ctx.drawItem(height, buffer[0..l]);
+		return ctx.drawItem(height, buffer[0..l]);
 	}
 
 	// auto draw(Context)(Context ctx, const(char)[] header)
@@ -126,7 +185,7 @@ struct DataItem(T)
 	auto performLayout(NVG)(NVG ctx) { };
 
 	auto size() const nothrow @safe pure @nogc { return _size; }
-	auto size(vec2i v) nothrow @safe pure @nogc { _size = v; }
+	auto size(Vector2i v) nothrow @safe pure @nogc { _size = v; }
 }
 
 mixin template DependencyProperty(T, alias string name)

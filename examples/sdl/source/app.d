@@ -414,6 +414,21 @@ class MyGui : SdlBackend
 			lblCpuUsage = new Label(window, cpuWatcher.current().text, "sans-bold");
 		}
 
+		{
+			auto window = new Window(screen, "TreeView demo", true);
+			window.position(Vector2i(400, 245));
+			window.size = Vector2i(150, 260);
+			// window.size = Vector2i(screen.size.x - 30, screen.size.y - 30);
+			window.layout(new BoxLayout(Orientation.Vertical));
+
+			import nanogui.experimental.treeview;
+			new TreeView!float(window, "TreeView_______", 10f, null);
+			new TreeView!float(window, "TreeView_2_____", 11f, null);
+			new TreeView!float(window, "TreeView_3_____", 12f, null);
+			new TreeView!float(window, "TreeView_4_____", 13f, null);
+			new TreeView!float(window, "TreeView_5_____", 14f, null);
+		}
+
 		// now we should do layout manually yet
 		screen.performLayout(ctx);
 	}
