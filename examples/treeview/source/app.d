@@ -136,26 +136,6 @@ auto model(T)(ref T t) if (is(T == struct))
 	return Model!T(t);
 }
 
-// void main()
-// {
-// 	string[] data = [ "item1", "item2", "item3", "item4", "item5", "item6" ];
-// 	auto model1 = model(data);
-
-// 	static struct Foo
-// 	{
-// 		int i;
-// 		float f;
-// 		string str = "test";
-// 	}
-// 	Foo foo;
-// 	auto model2 = model(foo);
-
-
-// 	import std.stdio;
-// 	writeln(model1[]);
-// 	writeln(model2[]);
-// }
-
 class MyGui : SdlBackend
 {
 	this(int w, int h, string title)
