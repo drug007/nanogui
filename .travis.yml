@@ -1,6 +1,9 @@
 language: d
 sudo: false
 
+before_install:
+  - sudo apt-get -y install libglu1-mesa-dev freeglut3-dev mesa-common-dev
+
 matrix:
     include:
         - d: dmd-2.088.1
