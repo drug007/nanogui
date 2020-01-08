@@ -31,12 +31,12 @@ class MyGui : ArsdBackend
 
 			auto checkbox = new CheckBox(window, "Checkbox #1", (bool value){ simple_window.redrawOpenGlSceneNow(); });
 			checkbox.position = Vector2i(100, 190);
-			checkbox.size = checkbox.preferredSize(nvg);
+			checkbox.size = checkbox.preferredSize(ctx);
 			checkbox.checked = true;
 
 			auto label = new Label(window, "Label");
 			label.position = Vector2i(100, 300);
-			label.size = label.preferredSize(nvg);
+			label.size = label.preferredSize(ctx);
 
 			Popup popup;
 
@@ -89,7 +89,7 @@ class MyGui : ArsdBackend
 			window.position(Vector2i(400, 15));
 			window.layout(new GroupLayout());
 
-			auto image = nvg.createImage("resources/icons/start.jpeg", [NVGImageFlags.ClampToBorderX, NVGImageFlags.ClampToBorderY]);
+			auto image = ctx.createImage("resources/icons/start.jpeg", [NVGImageFlags.ClampToBorderX, NVGImageFlags.ClampToBorderY]);
 			auto btn = new Button(window, "Start", image);
 			// some optional height, not font size, not icon height
 			btn.fixedHeight = 130;
@@ -146,16 +146,16 @@ class MyGui : ArsdBackend
 		}
 
 		{
-			auto asian_theme = new Theme(nvg);
+			auto asian_theme = new Theme(ctx);
 
 			{
-				// sorta hack because loading font in nvg results in
+				// sorta hack because loading font in ctx results in
 				// conflicting font id
 				auto nvg2 = nvgCreateContext(NVGContextFlag.Debug);
 				scope(exit) nvg2.kill;
 				nvg2.createFont("chihaya", "./resources/fonts/n_chihaya_font.ttf");
-				nvg.addFontsFrom(nvg2);
-				asian_theme.mFontNormal = nvg.findFont("chihaya");
+				ctx.addFontsFrom(nvg2);
+				asian_theme.mFontNormal = ctx.findFont("chihaya");
 			}
 
 			auto window = new Window(screen, "Textbox window");
@@ -180,7 +180,7 @@ class MyGui : ArsdBackend
 		}
 		
 		// now we should do layout manually yet
-		screen.performLayout(nvg);
+		screen.performLayout(ctx);
 	}
 }
 

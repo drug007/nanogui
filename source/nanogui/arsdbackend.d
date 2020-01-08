@@ -65,9 +65,10 @@ class ArsdBackend
 			ctx.kill;
 		};
 
-		ctx = NanoContext(NVGContextFlag.None);
+		ctx = NanoContext.init;
 
 		simple_window.visibleForTheFirstTime = () {
+			ctx = NanoContext(NVGContextFlag.None);
 			enforce(ctx !is null, "cannot initialize NanoGui");
 
 			screen = new ArsdScreen(simple_window.width, simple_window.height, Clock.currTime.stdTime);
