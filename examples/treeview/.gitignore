@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/treeview
+treeview.so
+treeview.dylib
+treeview.dll
+treeview.a
+treeview.lib
+treeview-test-*
+*.exe
+*.o
+*.obj
+*.lst
