@@ -268,6 +268,11 @@ public:
 		if (list_implementor is null)
 			return;
 
+		const list_implementor_preferred_size = list_implementor.preferredSize(ctx);
+		mSize.y = parent.size.y - 2*parent.layout.margin;
+		if (mSize.y < 0)
+			mSize.y = 0;
+
 		mChildPreferredHeight = list_implementor.preferredSize(ctx).y;
 
 		if (mChildPreferredHeight > mSize.y)
@@ -287,9 +292,8 @@ public:
 
 	override Vector2i preferredSize(NanoContext ctx) const
 	{
-		if (list_implementor is null)
-			return Vector2i(0, 0);
-		return list_implementor.preferredSize(ctx) + Vector2i(12, 0);
+		// always return 0 because the size is defined by the parent container
+		return Vector2i(0, 0);
 	}
 	
 	override bool mouseDragEvent(Vector2i p, Vector2i rel, MouseButton button, int modifiers)

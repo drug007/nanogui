@@ -195,9 +195,9 @@ class MyGui : SdlBackend
 			nanogui.combobox, nanogui.textbox, nanogui.formhelper;
 		
 		{
-			auto window = new Window(screen, "Button demo");
+			auto window = new Window(screen, "Button demo", true);
 			window.position(Vector2i(15, 15));
-			window.size = Vector2i(screen.size.x - 30, screen.size.y - 30);
+			window.size = Vector2i(190, 370);
 			window.layout(new GroupLayout());
 
 			new Label(window, "Push buttons", "sans-bold");
@@ -296,11 +296,13 @@ class MyGui : SdlBackend
 			int half_width = width / 2;
 			int height     = 350;
 
-			auto window = new Window(screen, "Huge list demo");
+			auto window = new Window(screen, "Huge list demo", true);
 			window.setId = "window";
 			window.position(Vector2i(10, 400));
-			window.fixedSize(Vector2i(width, height));
-			window.layout(new BoxLayout(Orientation.Vertical));
+			window.size(Vector2i(width, height));
+			auto layout = new GroupLayout();
+			window.layout(layout);
+			layout.margin = 30;
 
 			string[] data;
 			data.reserve(400_000);
@@ -312,8 +314,6 @@ class MyGui : SdlBackend
 
 			import nanogui.experimental.list;
 			auto list = new List(window, data);
-			list.setId = "list";
-			list.fixedSize(Vector2i(width, height - window.theme.mWindowHeaderHeight));
 		}
 
 		{
@@ -402,9 +402,9 @@ class MyGui : SdlBackend
 		}
 
 		{
-			auto window = new Window(screen, "CPU usage");
+			auto window = new Window(screen, "CPU usage", true);
 			window.position(Vector2i(15, 225));
-			window.size = Vector2i(screen.size.x - 30, screen.size.y - 30);
+			window.size = Vector2i(100, 60);
 			window.layout(new GroupLayout());
 
 			import std.process : thisProcessID;
