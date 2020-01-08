@@ -175,6 +175,12 @@ private:
 
 class MyGui : SdlBackend
 {
+	import nanogui.label;
+	import resusage : ProcessCPUWatcher;
+
+	Label lblCpuUsage;
+	ProcessCPUWatcher cpuWatcher;
+
 	this(int w, int h, string title)
 	{
 		super(w, h, title);
@@ -397,6 +403,19 @@ class MyGui : SdlBackend
 			gui.addButton("Button", () { /* noop */ });
 		}
 
+		{
+			auto window = new Window(screen, "CPU usage");
+			window.position(Vector2i(15, 225));
+			window.size = Vector2i(screen.size.x - 30, screen.size.y - 30);
+			window.layout(new GroupLayout());
+
+			import std.process : thisProcessID;
+			import std.conv : text;
+			cpuWatcher = new ProcessCPUWatcher(thisProcessID);
+
+			lblCpuUsage = new Label(window, cpuWatcher.current().text, "sans-bold");
+		}
+
 		// now we should do layout manually yet
 		screen.performLayout(nvg);
 	}
@@ -404,5 +423,17 @@ class MyGui : SdlBackend
 
 void main () {
 	auto gui = new MyGui(1000, 800, "Nanogui using SDL2 backend");
+	gui.onBeforeLoopStart = () {
+		import std.datetime : SysTime, seconds, Clock;
+		static SysTime prevStdTime;
+		const currStdTime = Clock.currTime;
+		if (currStdTime - prevStdTime > 1.seconds)
+		{
+			prevStdTime = currStdTime;
+			import std.format : format;
+			import std.parallelism : totalCPUs;
+			gui.lblCpuUsage.caption = format("%2.2f%%", gui.cpuWatcher.current*totalCPUs);
+		}
+	};
 	gui.run();
 }

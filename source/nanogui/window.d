@@ -22,7 +22,7 @@ class Window : Widget
 {
 public:
 	this(Widget parent, string title = "Untitled")
-	{    	
+	{
 		super(parent);
 		mTitle = title;
 		mButtonPanel = null;
