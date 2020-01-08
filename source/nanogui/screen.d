@@ -7,7 +7,7 @@ import arsd.nanovega;
 public import gfm.math : vec2i;
 
 import nanogui.widget : Widget;
-import nanogui.common : Vector2i, Vector2f, MouseButton, MouseAction, KeyAction, Cursor;
+import nanogui.common : Vector2i, Vector2f, MouseButton, MouseAction, KeyAction, Cursor, NanoContext;
 
 class Screen : Widget
 {
@@ -38,7 +38,7 @@ class Screen : Widget
 
 	auto lastInteraction() { return mLastInteraction; }
 
-	override void draw(NVGContext nvg)
+	override void draw(NanoContext ctx)
 	{
 		import arsd.simpledisplay;
 
@@ -46,20 +46,20 @@ class Screen : Widget
 		// clear window
 		glClearColor(0., 0., 0., 0);
 		glClear(glNVGClearFlags); // use NanoVega API to get flags for OpenGL call
-		nvg.beginFrame(size.x, size.y); // begin rendering
+		ctx.beginFrame(size.x, size.y); // begin rendering
 		scope(exit)
 		{
-			if (nvg.inFrame)
-				nvg.endFrame(); // and flush render queue on exit
+			if (ctx.inFrame)
+				ctx.endFrame(); // and flush render queue on exit
 		}
 
 		if (mNeedToPerfomLayout)
 		{
-			performLayout(nvg);
+			performLayout(ctx);
 			needToPerfomLayout = false;
 		}
 		
-		super.draw(nvg);
+		super.draw(ctx);
 
 		mNeedToDraw = false;
 
@@ -73,49 +73,49 @@ class Screen : Widget
 				int tooltipWidth = 150;
 
 				float[4] bounds;
-				nvg.fontFace("sans");
-				nvg.fontSize(15.0f);
+				ctx.fontFace("sans");
+				ctx.fontSize(15.0f);
 				NVGTextAlign algn;
 	            algn.left = true;
 	            algn.top = true;
-	            nvg.textAlign(algn);
-				nvg.textLineHeight(1.1f);
+	            ctx.textAlign(algn);
+				ctx.textLineHeight(1.1f);
 				Vector2i pos = widget.absolutePosition() +
 							   Vector2i(widget.width() / 2, widget.height() + 10);
 
-				nvg.textBounds(pos.x, pos.y,
+				ctx.textBounds(pos.x, pos.y,
 								widget.tooltip, bounds);
 				int h = cast(int) (bounds[2] - bounds[0]) / 2;
 
 				if (h > tooltipWidth / 2) {
 					algn.center = true;
 		            algn.top = true;
-		            nvg.textAlign(algn);
-					nvg.textBoxBounds(pos.x, pos.y, tooltipWidth,
+		            ctx.textAlign(algn);
+					ctx.textBoxBounds(pos.x, pos.y, tooltipWidth,
 									widget.tooltip, bounds);
 
 					h = cast(int)(bounds[2] - bounds[0]) / 2;
 				}
 				enum threshold = 0.8f;
 				auto alpha = min(1.0, 2 * (elapsed - 0.5f)) * threshold;
-				nvg.globalAlpha(alpha);
+				ctx.globalAlpha(alpha);
 				mTooltipShown = (alpha > threshold - 0.01) ? true : false;
 
-				nvg.beginPath;
-				nvg.fillColor(Color(0, 0, 0, 255));
-				nvg.roundedRect(bounds[0] - 4 - h, bounds[1] - 4,
+				ctx.beginPath;
+				ctx.fillColor(Color(0, 0, 0, 255));
+				ctx.roundedRect(bounds[0] - 4 - h, bounds[1] - 4,
 							   cast(int) (bounds[2] - bounds[0]) + 8,
 							   cast(int) (bounds[3] - bounds[1]) + 8, 3);
 
 				int px = cast(int) ((bounds[2] + bounds[0]) / 2) - h;
-				nvg.moveTo(px, bounds[1] - 10);
-				nvg.lineTo(px + 7, bounds[1] + 1);
-				nvg.lineTo(px - 7, bounds[1] + 1);
-				nvg.fill();
+				ctx.moveTo(px, bounds[1] - 10);
+				ctx.lineTo(px + 7, bounds[1] + 1);
+				ctx.lineTo(px - 7, bounds[1] + 1);
+				ctx.fill();
 
-				nvg.fillColor(Color(255, 255, 255, 255));
-				nvg.fontBlur(0.0f);
-				nvg.textBox(pos.x - h, pos.y, tooltipWidth,
+				ctx.fillColor(Color(255, 255, 255, 255));
+				ctx.fontBlur(0.0f);
+				ctx.textBox(pos.x - h, pos.y, tooltipWidth,
 						   widget.tooltip);
 			}
 		}

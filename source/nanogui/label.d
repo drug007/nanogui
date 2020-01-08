@@ -63,53 +63,53 @@ public:
 	}
 
 	/// Compute the size needed to fully display the label
-	override Vector2i preferredSize(NVGContext nvg) const
+	override Vector2i preferredSize(NanoContext ctx) const
 	{
 		if (mCaption == "")
 			return Vector2i();
-		nvg.fontFace(mFont);
-		nvg.fontSize(fontSize());
+		ctx.fontFace(mFont);
+		ctx.fontSize(fontSize());
 		
 		float[4] bounds;
 		if (mFixedSize.x > 0) {
 			NVGTextAlign algn;
 			algn.left = true;
 			algn.top = true;
-			nvg.textAlign(algn);
-			nvg.textBoxBounds(mPos.x, mPos.y, mFixedSize.x, mCaption, bounds);
+			ctx.textAlign(algn);
+			ctx.textBoxBounds(mPos.x, mPos.y, mFixedSize.x, mCaption, bounds);
 			return Vector2i(mFixedSize.x, cast(int) (bounds[3] - bounds[1]));
 		} else {
 			NVGTextAlign algn;
 			algn.left = true;
 			algn.middle = true;
-			nvg.textAlign(algn);
+			ctx.textAlign(algn);
 			return Vector2i(
-				cast(int) nvg.textBounds(0, 0, mCaption, bounds) + 2,
+				cast(int) ctx.textBounds(0, 0, mCaption, bounds) + 2,
 				fontSize()
 			);
 		}
 	}
 
 	/// Draw the label
-	override void draw(NVGContext nvg)
+	override void draw(NanoContext ctx)
 	{
-		Widget.draw(nvg);
-		nvg.fontFace(mFont);
-		nvg.fontSize(fontSize());
-		nvg.fillColor(mColor);
+		Widget.draw(ctx);
+		ctx.fontFace(mFont);
+		ctx.fontSize(fontSize());
+		ctx.fillColor(mColor);
 		if (mFixedSize.x > 0)
 		{
 			NVGTextAlign algn;
 			algn.left = true;
 			algn.top = true;
-			nvg.textAlign(algn);
-			nvg.textBox(mPos.x, mPos.y, mFixedSize.x, mCaption);
+			ctx.textAlign(algn);
+			ctx.textBox(mPos.x, mPos.y, mFixedSize.x, mCaption);
 		} else {
 			NVGTextAlign algn;
 			algn.left = true;
 			algn.middle = true;
-			nvg.textAlign(algn);
-			nvg.text(mPos.x, mPos.y + mSize.y * 0.5f, mCaption);
+			ctx.textAlign(algn);
+			ctx.text(mPos.x, mPos.y + mSize.y * 0.5f, mCaption);
 		}
 	}
 

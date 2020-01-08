@@ -13,7 +13,7 @@ module nanogui.popup;
 */
 
 import nanogui.window : Window;
-import nanogui.widget : Widget, NVGContext;
+import nanogui.widget : Widget, NanoContext;
 import nanogui.common : Vector2i;
 
 /**
@@ -58,21 +58,21 @@ public:
     final parentWindow() const { return mParentWindow; }
 
     /// Invoke the associated layout generator to properly place child widgets, if any
-    override void performLayout(NVGContext nvg)
+    override void performLayout(NanoContext ctx)
     {
         if (mLayout || mChildren.length != 1) {
-            Widget.performLayout(nvg);
+            Widget.performLayout(ctx);
         } else {
             mChildren[0].position(Vector2i(0, 0));
             mChildren[0].size(mSize);
-            mChildren[0].performLayout(nvg);
+            mChildren[0].performLayout(ctx);
         }
         if (mSide == Side.Left)
             mAnchorPos[0] -= size[0];
     }
 
     /// Draw the popup window
-    override void draw(NVGContext nvg)
+    override void draw(NanoContext ctx)
     {
         import arsd.nanovega;
         import nanogui.common;
@@ -84,24 +84,24 @@ public:
 
         int ds = mTheme.mWindowDropShadowSize, cr = mTheme.mWindowCornerRadius;
 
-        nvg.save;
-        nvg.resetScissor;
+        ctx.save;
+        ctx.resetScissor;
 
         /* Draw a drop shadow */
-        NVGPaint shadowPaint = nvg.boxGradient(
+        NVGPaint shadowPaint = ctx.boxGradient(
             mPos.x, mPos.y, mSize.x, mSize.y, cr*2, ds*2,
             mTheme.mDropShadow, mTheme.mTransparent);
 
-        nvg.beginPath;
-        nvg.rect(mPos.x-ds,mPos.y-ds, mSize.x+2*ds, mSize.y+2*ds);
-        nvg.roundedRect(mPos.x, mPos.y, mSize.x, mSize.y, cr);
-        nvg.pathWinding(NVGSolidity.Hole);
-        nvg.fillPaint(shadowPaint);
-        nvg.fill;
+        ctx.beginPath;
+        ctx.rect(mPos.x-ds,mPos.y-ds, mSize.x+2*ds, mSize.y+2*ds);
+        ctx.roundedRect(mPos.x, mPos.y, mSize.x, mSize.y, cr);
+        ctx.pathWinding(NVGSolidity.Hole);
+        ctx.fillPaint(shadowPaint);
+        ctx.fill;
 
         /* Draw window */
-        nvg.beginPath;
-        nvg.roundedRect(mPos.x, mPos.y, mSize.x, mSize.y, cr);
+        ctx.beginPath;
+        ctx.roundedRect(mPos.x, mPos.y, mSize.x, mSize.y, cr);
 
         Vector2i base = mPos + Vector2i(0, mAnchorHeight);
         int sign = -1;
@@ -110,15 +110,15 @@ public:
             sign = 1;
         }
 
-        nvg.moveTo(base.x + 15*sign, base.y);
-        nvg.lineTo(base.x - 1*sign, base.y - 15);
-        nvg.lineTo(base.x - 1*sign, base.y + 15);
+        ctx.moveTo(base.x + 15*sign, base.y);
+        ctx.lineTo(base.x - 1*sign, base.y - 15);
+        ctx.lineTo(base.x - 1*sign, base.y + 15);
 
-        nvg.fillColor(mTheme.mWindowPopup);
-        nvg.fill;
-        nvg.restore;
+        ctx.fillColor(mTheme.mWindowPopup);
+        ctx.fill;
+        ctx.restore;
 
-        Widget.draw(nvg);
+        Widget.draw(ctx);
     }
 
     //virtual void save(Serializer &s) const override;

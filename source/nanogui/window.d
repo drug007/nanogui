@@ -58,88 +58,88 @@ public:
 	final void center();
 
 	/// Draw the window
-	override void draw(NVGContext nvg)
+	override void draw(NanoContext ctx)
 	{
 		assert (mTheme);
 		int ds = mTheme.mWindowDropShadowSize, cr = mTheme.mWindowCornerRadius;
 		int hh = mTheme.mWindowHeaderHeight;
 
 		/* Draw window */
-		nvg.save;
-		nvg.beginPath;
-		nvg.roundedRect(mPos.x, mPos.y, mSize.x, mSize.y, cr);
+		ctx.save;
+		ctx.beginPath;
+		ctx.roundedRect(mPos.x, mPos.y, mSize.x, mSize.y, cr);
 
-		nvg.fillColor(mMouseFocus ? mTheme.mWindowFillFocused
+		ctx.fillColor(mMouseFocus ? mTheme.mWindowFillFocused
 									  : mTheme.mWindowFillUnfocused);
-		nvg.fill;
+		ctx.fill;
 
 
 		/* Draw a drop shadow */
-		NVGPaint shadowPaint = nvg.boxGradient(
+		NVGPaint shadowPaint = ctx.boxGradient(
 			mPos.x, mPos.y, mSize.x, mSize.y, cr*2, ds*2,
 			mTheme.mDropShadow, mTheme.mTransparent);
 
-		nvg.save;
-		nvg.resetScissor;
-		nvg.beginPath;
-		nvg.rect(mPos.x-ds,mPos.y-ds, mSize.x+2*ds, mSize.y+2*ds);
-		nvg.roundedRect(mPos.x, mPos.y, mSize.x, mSize.y, cr);
-		nvg.pathWinding(NVGSolidity.Hole);
-		nvg.fillPaint(shadowPaint);
-		nvg.fill;
-		nvg.restore;
+		ctx.save;
+		ctx.resetScissor;
+		ctx.beginPath;
+		ctx.rect(mPos.x-ds,mPos.y-ds, mSize.x+2*ds, mSize.y+2*ds);
+		ctx.roundedRect(mPos.x, mPos.y, mSize.x, mSize.y, cr);
+		ctx.pathWinding(NVGSolidity.Hole);
+		ctx.fillPaint(shadowPaint);
+		ctx.fill;
+		ctx.restore;
 
 		if (mTitle.length)
 		{
 			/* Draw header */
-			NVGPaint headerPaint = nvg.linearGradient(
+			NVGPaint headerPaint = ctx.linearGradient(
 				mPos.x, mPos.y, mPos.x,
 				mPos.y + hh,
 				mTheme.mWindowHeaderGradientTop,
 				mTheme.mWindowHeaderGradientBot);
 
-			nvg.beginPath;
-			nvg.roundedRect(mPos.x, mPos.y, mSize.x, hh, cr);
+			ctx.beginPath;
+			ctx.roundedRect(mPos.x, mPos.y, mSize.x, hh, cr);
 
-			nvg.fillPaint(headerPaint);
-			nvg.fill;
+			ctx.fillPaint(headerPaint);
+			ctx.fill;
 
-			nvg.beginPath;
-			nvg.roundedRect(mPos.x, mPos.y, mSize.x, hh, cr);
-			nvg.strokeColor(mTheme.mWindowHeaderSepTop);
+			ctx.beginPath;
+			ctx.roundedRect(mPos.x, mPos.y, mSize.x, hh, cr);
+			ctx.strokeColor(mTheme.mWindowHeaderSepTop);
 
-			nvg.save;
-			nvg.intersectScissor(mPos.x, mPos.y, mSize.x, 0.5f);
-			nvg.stroke;
-			nvg.restore;
+			ctx.save;
+			ctx.intersectScissor(mPos.x, mPos.y, mSize.x, 0.5f);
+			ctx.stroke;
+			ctx.restore;
 
-			nvg.beginPath;
-			nvg.moveTo(mPos.x + 0.5f, mPos.y + hh - 1.5f);
-			nvg.lineTo(mPos.x + mSize.x - 0.5f, mPos.y + hh - 1.5);
-			nvg.strokeColor(mTheme.mWindowHeaderSepBot);
-			nvg.stroke;
+			ctx.beginPath;
+			ctx.moveTo(mPos.x + 0.5f, mPos.y + hh - 1.5f);
+			ctx.lineTo(mPos.x + mSize.x - 0.5f, mPos.y + hh - 1.5);
+			ctx.strokeColor(mTheme.mWindowHeaderSepBot);
+			ctx.stroke;
 
-			nvg.fontSize(18.0f);
-			nvg.fontFace("sans-bold");
+			ctx.fontSize(18.0f);
+			ctx.fontFace("sans-bold");
 			auto algn = NVGTextAlign();
 			algn.center = true;
 			algn.middle = true;
-			nvg.textAlign(algn);
+			ctx.textAlign(algn);
 
-			nvg.fontBlur(2);
-			nvg.fillColor(mTheme.mDropShadow);
-			nvg.text(mPos.x + mSize.x / 2,
+			ctx.fontBlur(2);
+			ctx.fillColor(mTheme.mDropShadow);
+			ctx.text(mPos.x + mSize.x / 2,
 					mPos.y + hh / 2, mTitle);
 
-			nvg.fontBlur(0);
-			nvg.fillColor(mFocused ? mTheme.mWindowTitleFocused
+			ctx.fontBlur(0);
+			ctx.fillColor(mFocused ? mTheme.mWindowTitleFocused
 									   : mTheme.mWindowTitleUnfocused);
-			nvg.text(mPos.x + mSize.x / 2, mPos.y + hh / 2 - 1,
+			ctx.text(mPos.x + mSize.x / 2, mPos.y + hh / 2 - 1,
 					mTitle);
 		}
 
-		nvg.restore;
-		Widget.draw(nvg);
+		ctx.restore;
+		Widget.draw(ctx);
 	}
 	/// Handle window drag events
 	override bool mouseDragEvent(Vector2i p, Vector2i rel, MouseButton button, int modifiers)
@@ -183,14 +183,14 @@ public:
 	}
 
 	/// Compute the preferred size of the widget
-	override Vector2i preferredSize(NVGContext nvg) const
+	override Vector2i preferredSize(NanoContext ctx) const
 	{
-		Vector2i result = Widget.preferredSize(nvg, mButtonPanel);
+		Vector2i result = Widget.preferredSize(ctx, mButtonPanel);
 
-		nvg.fontSize(18.0f);
-		nvg.fontFace("sans-bold");
+		ctx.fontSize(18.0f);
+		ctx.fontFace("sans-bold");
 		float[4] bounds;
-		nvg.textBounds(0, 0, mTitle, bounds);
+		ctx.textBounds(0, 0, mTitle, bounds);
 
 		if (result.x < bounds[2]-bounds[0] + 20)
 			result.x = cast(int) (bounds[2]-bounds[0] + 20);
@@ -200,21 +200,21 @@ public:
 		return result;
 	}
 	/// Invoke the associated layout generator to properly place child widgets, if any
-	override void performLayout(NVGContext nvg)
+	override void performLayout(NanoContext ctx)
 	{
 		if (!mButtonPanel) {
-			Widget.performLayout(nvg);
+			Widget.performLayout(ctx);
 		} else {
 			mButtonPanel.visible(false);
-			Widget.performLayout(nvg);
+			Widget.performLayout(ctx);
 			foreach (w; mButtonPanel.children) {
 				w.fixedSize(Vector2i(22, 22));
 				w.fontSize(15);
 			}
 			mButtonPanel.visible(true);
 			mButtonPanel.size(Vector2i(width(), 22));
-			mButtonPanel.position(Vector2i(width() - (mButtonPanel.preferredSize(nvg).x + 5), 3));
-			mButtonPanel.performLayout(nvg);
+			mButtonPanel.position(Vector2i(width() - (mButtonPanel.preferredSize(ctx).x + 5), 3));
+			mButtonPanel.performLayout(ctx);
 		}
 	}
 //override void save(Serializer &s) const;

@@ -1,34 +1,36 @@
 module nanogui.experimental.utils;
 
-struct Context
+import nanogui.common : NanoContext;
+
+void drawItem(ref NanoContext ctx, float height, const(char)[] str)
 {
-	@disable this(this);
-
-	import arsd.nanovega : NVGContext, NVGTextAlign, textAlign, text;
-	import nanogui.common : Vector2i;
-
-	NVGContext nvg;
-	alias nvg this;
-
-	this(NVGContext c)
+	import nanogui.common : textAlign, text, roundedRect, fill, beginPath, linearGradient, fillPaint, fillColor;
+	if (ctx.mouse.x >= ctx.position.x && ctx.mouse.x < ctx.position.x+ctx.current_size &&
+		ctx.mouse.y >= ctx.position.y && ctx.mouse.y < ctx.position.y+height)
 	{
-		nvg = c;
-		algn.left = true;
-		algn.top = true;
-	}
+		const gradTop = ctx.theme.mButtonGradientTopFocused;
+		const gradBot = ctx.theme.mButtonGradientBotFocused;
 
-	NVGTextAlign algn;
-	Vector2i position;
-}
+		ctx.beginPath;
+		ctx.roundedRect(
+			ctx.position.x, ctx.position.y,
+			ctx.current_size, height,
+			ctx.theme.mButtonCornerRadius - 1
+		);
 
-void drawItem(ref Context ctx, float height, const(char)[] str)
-{
-	with(ctx)
-	{
-		nvg.textAlign(algn);
-		nvg.text(position.x, position.y, str);
-		position.y += cast(int) height;
+		const bg = ctx.linearGradient(
+			ctx.position.x, ctx.position.y, 
+			ctx.position.x, ctx.position.y + height,
+			gradTop, gradBot
+		);
+
+		ctx.fillPaint(bg);
+		ctx.fill;
+		ctx.fillColor(ctx.theme.mTextColor);
 	}
+	ctx.textAlign(ctx.algn);
+	ctx.text(ctx.position.x, ctx.position.y, str);
+	ctx.position.y += cast(int) height;
 }
 
 struct DataItem(T)
@@ -121,7 +123,7 @@ struct DataItem(T)
 	// }
 
 	auto visible() const nothrow @safe pure @nogc { return true; }
-	auto performLayout(NVG)(NVG nvg) { };
+	auto performLayout(NVG)(NVG ctx) { };
 
 	auto size() const nothrow @safe pure @nogc { return _size; }
 	auto size(vec2i v) nothrow @safe pure @nogc { _size = v; }
