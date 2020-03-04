@@ -145,14 +145,17 @@ public:
                 mMouseDownPos = p;
                 mMouseDownModifier = modifiers;
 
-// double time = glfwGetTime();
-// if (time - mLastClick < 0.25) {
-//     /* Double-click: select all text */
-//     mSelectionPos = 0;
-//     mCursorPos = (int) mValueTemp.size();
-//     mMouseDownPos = Vector2i(-1, -1);
-// }
-// mLastClick = time;
+                version(__unported__)
+                {
+                    // double time = glfwGetTime();
+                    // if (time - mLastClick < 0.25) {
+                    //     /* Double-click: select all text */
+                    //     mSelectionPos = 0;
+                    //     mCursorPos = (int) mValueTemp.size();
+                    //     mMouseDownPos = Vector2i(-1, -1);
+                    // }
+                    // mLastClick = time;
+                }
             }
             else
             {
@@ -170,16 +173,19 @@ public:
                     mMouseDownPos = p;
                     mMouseDownModifier = modifiers;
 
-// double time = glfwGetTime();
-// if (time - mLastClick < 0.25) {
-//     /* Double-click: reset to default value */
-//     mValue = mDefaultValue;
-//     if (mCallback)
-//         mCallback(mValue);
+                    version(__unported__)
+                    {
+                        // double time = glfwGetTime();
+                        // if (time - mLastClick < 0.25) {
+                        //     /* Double-click: reset to default value */
+                        //     mValue = mDefaultValue;
+                        //     if (mCallback)
+                        //         mCallback(mValue);
 
-//     mMouseDownPos = Vector2i(-1, -1);
-// }
-// mLastClick = time;
+                        //     mMouseDownPos = Vector2i(-1, -1);
+                        // }
+                        // mLastClick = time;
+                    }
                 }
                 else
                 {
@@ -721,8 +727,11 @@ protected:
             if (begin > end)
                 swap(begin, end);
 
-// glfwSetClipboardString(sc->glfwWindow(),
-//                     mValueTemp.substr(begin, end).c_str());
+            version(__unported__)
+            {
+                // glfwSetClipboardString(sc->glfwWindow(),
+                //                     mValueTemp.substr(begin, end).c_str());
+            }
             return true;
         }
 
@@ -735,9 +744,12 @@ protected:
         Screen sc = cast(Screen) (window.parent);
         if (!sc)
             return;
-        // const char* cbstr = glfwGetClipboardString(sc->glfwWindow());
-        // if (cbstr)
-        //     mValueTemp.insert(mCursorPos, std::string(cbstr));
+        version(__unported__)
+        {
+            // const char* cbstr = glfwGetClipboardString(sc->glfwWindow());
+            // if (cbstr)
+            //     mValueTemp.insert(mCursorPos, std::string(cbstr));
+        }
     }
 	bool deleteSelection()
     {
