@@ -370,10 +370,22 @@ class Screen : Widget
 	bool needToDraw() const pure @safe nothrow { return mNeedToDraw; }
 	bool needToPerfomLayout() const pure @safe nothrow { return mNeedToPerfomLayout; }
 	void needToPerfomLayout(bool value) pure @safe nothrow { mNeedToPerfomLayout = value; }
+	package bool blinkingCursorIsVisibleNow() const pure @safe nothrow { return mBlinkingCursorVisible; }
+
+    package void resetBlinkingCursor() @safe
+    {
+        import std.datetime : Clock;
+        mBlinkingCursorVisible = true;
+        mBlinkingCursorTimestamp = Clock.currTime.stdTime;
+    }
 
 protected:
 	import std.container.array : Array;
 
+	// should the cursor be visible now
+	bool         mBlinkingCursorVisible;
+	// the moment in time when the cursor has changed its blinking visibility
+	long         mBlinkingCursorTimestamp;
 	Vector2i     mMousePos;
 	int          mModifiers;
 	MouseButton  mMouseState;

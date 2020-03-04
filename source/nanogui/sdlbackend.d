@@ -274,7 +274,15 @@ class SdlBackend : Screen
 
 			// perform drawing if needed
 			{
+				import std.datetime : dur;
+
 				currTime = Clock.currTime.stdTime;
+				if (currTime - mBlinkingCursorTimestamp > dur!"msecs"(500).total!"hnsecs")
+				{
+					mBlinkingCursorVisible = !mBlinkingCursorVisible;
+					mNeedToDraw = true;
+					mBlinkingCursorTimestamp = currTime;
+				}
 
 				if (needToDraw)
 				{

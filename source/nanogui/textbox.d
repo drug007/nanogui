@@ -135,7 +135,10 @@ public:
         if (button == MouseButton.Left && down && !mFocused)
         {
             if (!mSpinnable || spinArea(p) == SpinArea.None) /* not on scrolling arrows */
+            {
                 requestFocus();
+                screen.resetBlinkingCursor;
+            }
         }
 
         if (mEditable && focused)
@@ -293,7 +296,10 @@ public:
                         mSelectionPos = -1;
 
                     if (mCursorPos > 0)
+                    {
                         mCursorPos--;
+                        screen.resetBlinkingCursor;
+                    }
                 }
                 else if (key == Key.Right)
                 {
@@ -306,7 +312,10 @@ public:
                         mSelectionPos = -1;
 
                     if (mCursorPos < cast(int) mValueTemp.byGrapheme.walkLength)
+                    {
                         mCursorPos++;
+                        screen.resetBlinkingCursor;
+                    }
                 }
                 else if (key == Key.Home)
                 {
@@ -318,7 +327,11 @@ public:
                     else
                         mSelectionPos = -1;
 
-                    mCursorPos = 0;
+                    if (mCursorPos)
+                    {
+                        mCursorPos = 0;
+                        screen.resetBlinkingCursor;
+                    }
                 }
                 else if (key == Key.End)
                 {
@@ -330,7 +343,12 @@ public:
                     else
                         mSelectionPos = -1;
 
-                    mCursorPos = cast(int) mValueTemp.byGrapheme.walkLength;
+                    const newCursorPos = cast(int) mValueTemp.byGrapheme.walkLength;
+                    if (mCursorPos != newCursorPos)
+                    {
+                        mCursorPos = newCursorPos;
+                        screen.resetBlinkingCursor;
+                    }
                 }
                 else if (key == Key.Backspace)
                 {
@@ -342,6 +360,7 @@ public:
                             auto end   = symbolLengthToBytes(mValueTemp, mCursorPos);
                             mValueTemp.replaceInPlace(begin, end, (char[]).init);
                             mCursorPos--;
+                            screen.resetBlinkingCursor;
                         }
                     }
                 }
@@ -354,6 +373,7 @@ public:
                             auto begin = symbolLengthToBytes(mValueTemp, mCursorPos);
                             auto end   = symbolLengthToBytes(mValueTemp, mCursorPos+1);
                             mValueTemp.replaceInPlace(begin, end, (char[]).init);
+                            screen.resetBlinkingCursor;
                         }
                     }
                 }
@@ -366,20 +386,24 @@ public:
                 {
                     mCursorPos = cast(int) mValueTemp.byGrapheme.walkLength;
                     mSelectionPos = 0;
+                    screen.resetBlinkingCursor;
                 }
                 else if (key == Key.X && modifiers == KeyMod.Ctrl)
                 {
                     copySelection();
                     deleteSelection();
+                    screen.resetBlinkingCursor;
                 }
                 else if (key == Key.C && modifiers == KeyMod.Ctrl)
                 {
                     copySelection();
+                    screen.resetBlinkingCursor;
                 }
                 else if (key == Key.V && modifiers == KeyMod.Ctrl)
                 {
                     deleteSelection();
                     pasteFromClipboard();
+                    screen.resetBlinkingCursor;
                 }
 
                 mValidFormat =
@@ -674,12 +698,15 @@ public:
                 float caretx = cursorIndex2Position(mCursorPos, textBound[2], glyphs);
 
                 // draw cursor
-                ctx.beginPath;
-                ctx.moveTo(caretx, draw_pos.y - lineh * 0.5f);
-                ctx.lineTo(caretx, draw_pos.y + lineh * 0.5f);
-                ctx.strokeColor(nvgRGBA(255, 192, 0, 255));
-                ctx.strokeWidth(1.0f);
-                ctx.stroke;
+                if (screen.blinkingCursorIsVisibleNow)
+                {
+                    ctx.beginPath;
+                    ctx.moveTo(caretx, draw_pos.y - lineh * 0.5f);
+                    ctx.lineTo(caretx, draw_pos.y + lineh * 0.5f);
+                    ctx.strokeColor(nvgRGBA(255, 192, 0, 255));
+                    ctx.strokeWidth(1.0f);
+                    ctx.stroke;
+                }
             }
         }
         ctx.restore;
