@@ -321,9 +321,9 @@ protected:
 	public void onKeyDown(ref const(SDL_Event) event)
 	{
 		import nanogui.common : KeyAction;
-		int modifiers;
 
 		auto key = event.key.keysym.sym.convertSdlKeyToNanoguiKey;
+		int modifiers = event.key.keysym.mod.convertSdlModifierToNanoguiModifier;
 		super.keyboardEvent(key, event.key.keysym.scancode, KeyAction.Press, modifiers);
 	}
 
@@ -457,9 +457,35 @@ private auto convertSdlKeyToNanoguiKey(int sdlkey)
 		case SDLK_END:
 			nanogui_key = Key.End;
 		break;
+		case SDLK_RETURN:
+			nanogui_key = Key.Enter;
+		break;
 		default:
 			nanogui_key = sdlkey;
 	}
 
 	return nanogui_key;
+}
+
+private auto convertSdlModifierToNanoguiModifier(int mod)
+{
+	import gfm.sdl2;
+	import nanogui.common : KeyMod;
+
+	int nanogui_mod;
+
+	if (mod & KMOD_LCTRL)
+		nanogui_mod |= KeyMod.Ctrl;
+	if (mod & KMOD_LSHIFT)
+		nanogui_mod |= KeyMod.Shift;
+	if (mod & KMOD_LALT)
+		nanogui_mod |= KeyMod.Alt;
+	if (mod & KMOD_RCTRL)
+		nanogui_mod |= KeyMod.Ctrl;
+	if (mod & KMOD_RSHIFT)
+		nanogui_mod |= KeyMod.Shift;
+	if (mod & KMOD_RALT)
+		nanogui_mod |= KeyMod.Alt;
+
+	return nanogui_mod;
 }

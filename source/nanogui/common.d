@@ -65,8 +65,8 @@ enum KeyAction : int
 enum KeyMod : int
 {
 	Shift = 1,
-	Alt,
-	Ctrl,
+	Alt   = 2,
+	Ctrl  = 4,
 }
 
 enum Key : int
