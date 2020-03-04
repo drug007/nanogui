@@ -460,6 +460,18 @@ private auto convertSdlKeyToNanoguiKey(int sdlkey)
 		case SDLK_RETURN:
 			nanogui_key = Key.Enter;
 		break;
+		case SDLK_a:
+			nanogui_key = Key.A;
+		break;
+		case SDLK_x:
+			nanogui_key = Key.X;
+		break;
+		case SDLK_c:
+			nanogui_key = Key.C;
+		break;
+		case SDLK_v:
+			nanogui_key = Key.V;
+		break;
 		default:
 			nanogui_key = sdlkey;
 	}
