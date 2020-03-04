@@ -740,10 +740,14 @@ protected:
         // }
     }
 
-	bool copySelection()
+    bool copySelection()
     {
+        import std.string : toStringz;
+        import gfm.sdl2 : SDL_SetClipboardText;
         import nanogui.screen : Screen;
-        if (mSelectionPos > -1) {
+
+        if (mSelectionPos > -1)
+        {
             Screen sc = cast(Screen) (window.parent);
             if (!sc)
                 return false;
@@ -754,11 +758,8 @@ protected:
             if (begin > end)
                 swap(begin, end);
 
-            version(__unported__)
-            {
-                // glfwSetClipboardString(sc->glfwWindow(),
-                //                     mValueTemp.substr(begin, end).c_str());
-            }
+            SDL_SetClipboardText(mValueTemp[begin..end].toStringz);
+
             return true;
         }
 
@@ -767,17 +768,26 @@ protected:
 
 	void pasteFromClipboard()
     {
+        import std.conv : text;
+        import std.string : fromStringz;
+        import gfm.sdl2 : SDL_HasClipboardText, SDL_GetClipboardText;
         import nanogui.screen : Screen;
+
         Screen sc = cast(Screen) (window.parent);
         if (!sc)
             return;
-        version(__unported__)
+        if (SDL_HasClipboardText())
         {
-            // const char* cbstr = glfwGetClipboardString(sc->glfwWindow());
-            // if (cbstr)
-            //     mValueTemp.insert(mCursorPos, std::string(cbstr));
+            const ptr = SDL_GetClipboardText();
+            if (ptr)
+            {
+                auto str = ptr.fromStringz;
+                mValueTemp = text(mValueTemp[0..mCursorPos], str, mValueTemp[mCursorPos..$]);
+                mCursorPos += str.length;
+            }
         }
     }
+
 	bool deleteSelection()
     {
         if (mSelectionPos > -1) {
