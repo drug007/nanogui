@@ -1,0 +1,70 @@
+#---------------------------------#
+#      general configuration      #
+#---------------------------------#
+
+#version: 1.0.{build}-{branch}
+
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
+# Operating system (build VM template)
+
+environment:
+  matrix:
+    - os: Visual Studio 2017
+      VS: 15
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+
+cache:
+  - C:\projects\cache\dmd2090_1.7z
+
+# scripts that are called at very beginning, before repo cloning
+init:
+  - git config --global core.autocrlf input
+
+# scripts that run after cloning repository
+install:
+  # show environment
+  - set DC=dmd
+  - set
+  - cd c:\projects
+  - if not exist cache\nul mkdir cache
+  # Download & extract D compiler
+  - ps: |
+        If ($Env:DC -eq 'dmd') {
+            If (-not (Test-Path 'cache\dmd2090_1.7z')) {
+                Start-FileDownload 'http://downloads.dlang.org/releases/2.x/2.090.1/dmd.2.090.1.windows.7z' -FileName 'cache\dmd2090_1.7z'
+            }
+            7z x cache\dmd2090_1.7z > $null
+            Set-Item -path env:DMD -value c:\projects\dmd2\windows\bin\dmd.exe
+            c:\projects\dmd2\windows\bin\dmd.exe --version
+        } ElseIf ($Env:DC -eq 'dmd-nightly') {
+            Start-FileDownload 'http://nightlies.dlang.org/dmd-nightly/dmd.master.windows.7z' -FileName 'dmd2.7z'
+            7z x dmd2.7z > $null
+            Set-Item -path env:DMD -value c:\projects\dmd2\windows\bin\dmd.exe
+            c:\projects\dmd2\windows\bin\dmd.exe --version
+        } ElseIf ($Env:DC -eq 'ldc') {
+            # LDC unsupported so far
+            Start-FileDownload 'http://github.com/ldc-developers/ldc/releases/download/v1.0.0/ldc2-1.0.0-win64-msvc.zip' -FileName 'ldc2.zip'
+            7z x ldc2.zip > $null
+            Set-Item -path env:DMD -value c:\projects\ldc2-1.0.0-win64-msvc\bin\ldmd2.exe
+            c:\projects\ldc2-1.0.0-win64-msvc\bin\ldc2 --version
+        }
+  # configure DMD path
+  - reg add "HKLM\SOFTWARE\DMD" /v InstallationFolder /t REG_SZ /d c:\projects /reg:32 /f
+  # Set environment variables
+  - set PATH=c:\projects\dmd2\windows\bin;%PATH%
+  - if not "%VS%" == "15" call "c:\Program Files (x86)\Microsoft Visual Studio %VS%.0\VC\vcvarsall.bat" x86
+  - if     "%VS%" == "15" call "c:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
+
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+build_script:
+  - cd c:\projects\nanogui
+  - git submodule update --init --recursive
+  - cd examples
+  - cd arsd && dub build --compiler=%DC% && cd ..
+  - cd sdl  && dub build --compiler=%DC%

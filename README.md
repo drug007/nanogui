@@ -1,4 +1,4 @@
-# What is it? [![Build Status](https://travis-ci.org/drug007/nanogui.svg?branch=develop)](https://travis-ci.org/drug007/nanogui)
+# What is it? [![Build Status](https://travis-ci.org/drug007/nanogui.svg?branch=develop)](https://travis-ci.org/drug007/nanogui) [![Build status](https://ci.appveyor.com/api/projects/status/ejedsr9ypr3yx5x6?svg=true)](https://ci.appveyor.com/project/drug007/nanogui)
 
 D port of [nanogui](https://github.com/wjakob/nanogui)
 
