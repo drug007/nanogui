@@ -86,6 +86,7 @@ enum Key : int
 	X,
 	C,
 	V,
+	Esc,
 }
 
 /// Cursor shapes available to use in nanogui.  Shape of actual cursor determined by Operating System.

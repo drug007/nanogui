@@ -382,6 +382,12 @@ public:
                     if (!mCommitted)
                         focusEvent(false);
                 }
+                else if (key == Key.Esc)
+                {
+                    super.focusEvent(focused);
+                    mCommitted = true;
+                    mFocused = false;
+                }
                 else if (key == Key.A && modifiers == KeyMod.Ctrl)
                 {
                     mCursorPos = cast(int) mValueTemp.byGrapheme.walkLength;

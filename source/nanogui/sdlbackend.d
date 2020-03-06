@@ -472,6 +472,9 @@ private auto convertSdlKeyToNanoguiKey(int sdlkey)
 		case SDLK_v:
 			nanogui_key = Key.V;
 		break;
+		case SDLK_ESCAPE:
+			nanogui_key = Key.Esc;
+		break;
 		default:
 			nanogui_key = sdlkey;
 	}
