@@ -8,5 +8,5 @@ targetType  "executable"
 targetName  "example-arsd"
 
 dependency "nanogui" path="../.."
-dependency "arsd-official:nanovega" version="2.1.3"
+dependency "arsd-official:nanovega" version="5.3.7"
 
