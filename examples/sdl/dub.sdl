@@ -1,7 +1,7 @@
 name "nanogui-sdl"
 description "Example of nanogui using sdl backend"
 authors "drug"
-copyright "Copyright © 2018, drug"
+copyright "Copyright © 2018-2020, drug"
 license "BSL"
 
 targetType  "executable"

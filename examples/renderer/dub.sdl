@@ -1,7 +1,7 @@
 name "treeview"
 description "Example of TreeView using"
 authors "drug007"
-copyright "Copyright © 2019, drug007"
+copyright "Copyright © 2019-2020, drug007"
 license "BSL"
 
 dependency "nanogui" path="../.."
