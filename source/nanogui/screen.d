@@ -2,6 +2,7 @@
 module nanogui.screen;
 
 import std.algorithm : min;
+import std.experimental.logger : Logger;
 
 import arsd.nanovega;
 public import gfm.math : vec2i;
@@ -42,8 +43,33 @@ class Screen : Widget
 	{
 		import arsd.simpledisplay;
 
+		// draw GLCanvas widgets to textures
+		foreach(glcanvas; mGLCanvases[])
+		{
+			// Resize GLCanvas in non optimal way
+			if (glcanvas.lastWidth  != glcanvas.width ||
+			    glcanvas.lastHeight != glcanvas.height)
+			{
+				// This is resource consuming work that
+				// can/should be avoided but considering
+				// resizing seldom operation
+				// it is appropriate currently
+				glcanvas.lastWidth  = glcanvas.width;
+				glcanvas.lastHeight = glcanvas.height;
+				glcanvas.releaseBuffers;
+				glcanvas.initBuffers;
+			}
+			glcanvas.mFbo.use;
+			glViewport(0, 0, glcanvas.width, glcanvas.height);
+			const clr = glcanvas.backgroundColor;
+			glClearColor(clr[0], clr[1], clr[2], clr[3]);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glcanvas.drawGL;
+			glcanvas.mFbo.unuse();
+		}
+
+		// draw the rest
 		glViewport(0, 0, size.x, size.y);
-		// clear window
 		glClearColor(0., 0., 0., 0);
 		glClear(glNVGClearFlags); // use NanoVega API to get flags for OpenGL call
 		ctx.beginFrame(size.x, size.y); // begin rendering
@@ -364,6 +390,8 @@ class Screen : Widget
 		return false;
 	}
 
+	Logger logger() { return null; };
+
 	/// Return the ratio between pixel and device coordinates (e.g. >= 2 on Mac Retina displays)
 	float pixelRatio() const { return mPixelRatio; }
 
@@ -378,6 +406,21 @@ class Screen : Widget
         mBlinkingCursorVisible = true;
         mBlinkingCursorTimestamp = Clock.currTime.stdTime;
     }
+
+package:
+	import nanogui.glcanvas : GLCanvas;
+
+	void addGLCanvas(GLCanvas dw)
+	{
+		mGLCanvases.insert(dw);
+	}
+
+	void removeGLCanvas(GLCanvas dw)
+	{
+		import std.algorithm : find;
+		auto r = mGLCanvases[].find!((a,b)=>a is b)(this);
+		mGLCanvases.linearRemove(r);
+	}
 
 protected:
 	import std.container.array : Array;
@@ -399,4 +442,5 @@ protected:
 	Cursor       mCursor;
 	float        mPixelRatio;
 	void delegate(Vector2i) mResizeCallback;
+	Array!GLCanvas mGLCanvases;
 }

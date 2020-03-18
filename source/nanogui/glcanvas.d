@@ -46,12 +46,24 @@ public:
      * \param parent
      *     The Widget to attach this GLCanvas to.
      */
-    this(Widget parent)
+    this(Widget parent, int w, int h)
 	{
 		super(parent);
 		mBackgroundColor = Vector4i(128, 128, 128, 255);
 		mDrawBorder = true;
-		mSize = Vector2i(250, 250);
+		mSize = Vector2i(w, h);
+		lastWidth = w;
+		lastHeight = h;
+
+		initBuffers;
+
+		screen.addGLCanvas(this);
+	}
+
+	~this()
+	{
+		screen.removeGLCanvas(this);
+		releaseBuffers;
 	}
 
     /// Returns the background color.
@@ -74,39 +86,25 @@ public:
 		if (mDrawBorder)
 			drawWidgetBorder(ctx);
 
-		ctx.endFrame;
+		auto mImage = glCreateImageFromOpenGLTexture(ctx, mColorBuf.handle, width, height, NVGImageFlag.NoDelete);
+		assert(mImage.valid);
+		auto mPaint = ctx.imagePattern(
+			mPos.x + 1,
+			mPos.y + 1.0f,
+			mSize.x - 2,
+			mSize.y - 2,
+			0,
+			mImage);
 
-		const screen = this.screen();
-		assert(screen);
-
-		float pixelRatio = screen.pixelRatio;
-		auto screenSize = cast(Vector2f) screen.size;
-		Vector2i positionInScreen = absolutePosition;
-
-		auto size = cast(Vector2i)(cast(Vector2f)mSize * pixelRatio);
-		auto imagePosition = cast(Vector2i)(Vector2f(positionInScreen[0],
-			screenSize[1] - positionInScreen[1] -
-			cast(float) mSize[1]) * pixelRatio);
-
-		import gfm.opengl;
-		GLint[4] storedViewport;
-		glGetIntegerv(GL_VIEWPORT, storedViewport.ptr);
-
-		glViewport(imagePosition[0], imagePosition[1], size[0] , size[1]);
-
-		glEnable(GL_SCISSOR_TEST);
-		glScissor(imagePosition[0], imagePosition[1], size[0], size[1]);
-		glClearColor(mBackgroundColor[0], mBackgroundColor[1],
-					mBackgroundColor[2], mBackgroundColor[3]);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-		this.drawGL();
-
-		glDisable(GL_SCISSOR_TEST);
-		glViewport(storedViewport[0], storedViewport[1],
-				storedViewport[2], storedViewport[3]);
-
-		ctx.beginFrame(screen.size.x, screen.size.y);
+		ctx.beginPath;
+		ctx.rect(
+			mPos.x + 1,
+			mPos.y + 1.0f,
+			mSize.x - 2,
+			mSize.y - 2
+		);
+		ctx.fillPaint(mPaint);
+		ctx.fill;
 	}
 
     /// Draw the GL scene. Override this method to draw the actual GL content.
@@ -134,11 +132,45 @@ protected:
 		ctx.stroke;
 	}
 
-protected:
+import gfm.opengl : GLTexture2D, GLFBO, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
+	GL_CLAMP_TO_EDGE, GL_RGBA, GL_UNSIGNED_BYTE, glClear, GL_COLOR_BUFFER_BIT,
+	GL_DEPTH_BUFFER_BIT, GL_STENCIL_BUFFER_BIT, GLRenderBuffer, GL_DEPTH_COMPONENT;
+
     /// The background color (what is used with ``glClearColor``).
     Color mBackgroundColor;
 
     /// Whether to draw the widget border or not.
     bool mDrawBorder;
+	GLTexture2D mColorBuf;
+	GLRenderBuffer mDepthBuf;
 
+package:
+	GLFBO mFbo;
+	int lastWidth, lastHeight;
+
+	void initBuffers()
+	{
+		mColorBuf = new GLTexture2D();
+		mColorBuf.setMinFilter(GL_LINEAR_MIPMAP_LINEAR);
+		mColorBuf.setMagFilter(GL_LINEAR);
+		mColorBuf.setWrapS(GL_CLAMP_TO_EDGE);
+		mColorBuf.setWrapT(GL_CLAMP_TO_EDGE);
+		mColorBuf.setImage(0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+		mColorBuf.generateMipmap();
+
+		mDepthBuf = new GLRenderBuffer(GL_DEPTH_COMPONENT, width, height);
+
+		mFbo = new GLFBO();
+		mFbo.use();
+		mFbo.color(0).attach(mColorBuf);
+		mFbo.depth.attach(mDepthBuf);
+		mFbo.unuse();
+	}
+
+	void releaseBuffers()
+	{
+		mFbo.destroy();
+		mDepthBuf.destroy();
+		mColorBuf.destroy();
+	}
 }
