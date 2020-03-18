@@ -366,8 +366,9 @@ public:
 	/// See `Layout.performLayout`.
 	override void performLayout(NanoContext ctx, Widget widget) const
 	{
-		int height = mMargin, availableWidth =
-			(widget.fixedWidth() ? widget.fixedWidth() : widget.width()) - 2*mMargin;
+		int height = mMargin;
+		int availableWidth = (widget.fixedWidth() ? widget.fixedWidth() : widget.width()) - 2*mMargin;
+		if (availableWidth < 0) availableWidth = 0;
 
 		const Window window = cast(const Window) widget;
 		if (window && window.title.length)

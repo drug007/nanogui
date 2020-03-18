@@ -40,9 +40,9 @@ class MyGlCanvas : GLCanvas
 	import gfm.math;
 	import nanogui.common;
 
-	this(Widget parent)
+	this(Widget parent, int w, int h)
 	{
-		super(parent);
+		super(parent, w, h);
 
 		const program_source = 
 			"#version 130
@@ -134,7 +134,7 @@ class MyGlCanvas : GLCanvas
 		if (start_time == 0)
 			start_time = Clock.currTime.stdTime;
 
-		auto angle = (Clock.currTime.stdTime - start_time)/10_000_000.0;
+		auto angle = (Clock.currTime.stdTime - start_time)/10_000_000.0*rotateSpeed;
 		mvp = mvp.rotation(angle, _rotation);
 
 		GLboolean depth_test_enabled;
@@ -166,6 +166,7 @@ private:
 	import std.typecons : scoped;
 	import gfm.opengl : GLVAO;
 
+	float rotateSpeed = 1.0;
 	alias ScopedGLVAO = typeof(scoped!GLVAO());
 	ScopedGLVAO    _vao;
 }
@@ -348,12 +349,16 @@ class MyGui : SdlBackend
 		}
 
 		{
-			auto window = new Window(screen, "GLCanvas Demo");
-			window.position = Vector2i(360, 400);
+			auto window = new Window(screen, "GLCanvas Demo", true);
+			window.size(Vector2i(280, 510));
+			window.position = Vector2i(400, 240);
 			window.layout = new GroupLayout();
-			auto glcanvas = new MyGlCanvas(window);
-			glcanvas.size = Vector2i(300, 300);
+			auto glcanvas = new MyGlCanvas(window, 250, 250);
 			glcanvas.backgroundColor = Color(0.1f, 0.1f, 0.1f, 1.0f);
+			glcanvas = new MyGlCanvas(window, 200, 200);
+			glcanvas.fixedSize = Vector2i(200, 200);
+			glcanvas.backgroundColor = Color(0.2f, 0.3f, 0.4f, 1.0f);
+			glcanvas.rotateSpeed = 0.5;
 		}
 
 		{
@@ -413,9 +418,8 @@ class MyGui : SdlBackend
 
 		{
 			auto window = new Window(screen, "TreeView demo", true);
-			window.position(Vector2i(400, 245));
-			window.size = Vector2i(150, 260);
-			// window.size = Vector2i(screen.size.x - 30, screen.size.y - 30);
+			window.position(Vector2i(600, 130));
+			window.size = Vector2i(140, 160);
 			window.layout(new BoxLayout(Orientation.Vertical));
 
 			import nanogui.experimental.treeview;
