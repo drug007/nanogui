@@ -299,7 +299,7 @@ class SdlBackend : Screen
 
 	abstract void onVisibleForTheFirstTime();
 
-	auto gl() { return _gl; }
+	override Logger logger() { return _log; }
 
 protected:
 	SDL2Window window;

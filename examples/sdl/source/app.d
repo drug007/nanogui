@@ -40,11 +40,9 @@ class MyGlCanvas : GLCanvas
 	import gfm.math;
 	import nanogui.common;
 
-	this(Widget parent, OpenGL gl)
+	this(Widget parent)
 	{
 		super(parent);
-
-		_gl = gl;
 
 		const program_source = 
 			"#version 130
@@ -68,7 +66,7 @@ class MyGlCanvas : GLCanvas
 			}
 			#endif";
 
-		_program = new GLProgram(_gl, program_source);
+		_program = new GLProgram(program_source);
 		assert(_program);
 		auto vert_spec = scoped!(VertexSpecification!Vertex)(_program);
 		_rotation = Vector3f(0.25f, 0.5f, 0.33f);
@@ -101,10 +99,10 @@ class MyGlCanvas : GLCanvas
 			Vertex(Vector3f( 1, -1,  1), Vector3f(0.5, 0.5, 0.5)),
 		];
 
-		auto vbo = scoped!GLBuffer(gl, GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices);
-		auto ibo = scoped!GLBuffer(gl, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices);
+		auto vbo = scoped!GLBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices);
+		auto ibo = scoped!GLBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices);
 
-		_vao = scoped!GLVAO(gl);
+		_vao = scoped!GLVAO();
 		// prepare VAO
 		{
 			_vao.bind();
@@ -159,7 +157,6 @@ class MyGlCanvas : GLCanvas
 	}
 
 private:
-	OpenGL    _gl;
 	GLProgram _program;
 	Vector3f  _rotation;
 
@@ -169,7 +166,7 @@ private:
 	import std.typecons : scoped;
 	import gfm.opengl : GLVAO;
 
-	alias ScopedGLVAO = typeof(scoped!GLVAO(OpenGL.init));
+	alias ScopedGLVAO = typeof(scoped!GLVAO());
 	ScopedGLVAO    _vao;
 }
 
@@ -354,7 +351,7 @@ class MyGui : SdlBackend
 			auto window = new Window(screen, "GLCanvas Demo");
 			window.position = Vector2i(360, 400);
 			window.layout = new GroupLayout();
-			auto glcanvas = new MyGlCanvas(window, gl);
+			auto glcanvas = new MyGlCanvas(window);
 			glcanvas.size = Vector2i(300, 300);
 			glcanvas.backgroundColor = Color(0.1f, 0.1f, 0.1f, 1.0f);
 		}

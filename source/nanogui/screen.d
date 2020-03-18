@@ -2,6 +2,7 @@
 module nanogui.screen;
 
 import std.algorithm : min;
+import std.experimental.logger : Logger;
 
 import arsd.nanovega;
 public import gfm.math : vec2i;
@@ -363,6 +364,8 @@ class Screen : Widget
 		}
 		return false;
 	}
+
+	Logger logger() { return null; };
 
 	/// Return the ratio between pixel and device coordinates (e.g. >= 2 on Mac Retina displays)
 	float pixelRatio() const { return mPixelRatio; }
