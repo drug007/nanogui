@@ -2,13 +2,14 @@
 module nanogui.common;
 
 import gfm.math : vec2i, vec2f, vec3f, vec4f, vec4i;
-import arsd.nanovega : NVGContext;
-public import arsd.nanovega;
+import nanogui.nanovega : NVGContext;
+public import nanogui.nanovega;
 
 struct NanoContext
 {
 	import std.typecons : Rebindable;
 	import nanogui.theme : Theme;
+	import nanogui.layout : Orientation;
 
 	NVGContext nvg;
 	alias nvg this;
@@ -20,14 +21,19 @@ struct NanoContext
 		nvg = nvgCreateContext(flag);
 		algn.left = true;
 		algn.top = true;
+		orientation = Orientation.Vertical;
+		int axis1 = cast(int) orientation;
+		int axis2 = (cast(int) orientation + 1)%2;
+		size[axis1] = 16;
+		size[axis2] = 120;
 	}
 
 	NVGTextAlign algn;
-	Vector2i position;
-	Vector2i mouse;
+	Vector2f position;
+	Vector2f mouse;
 	Rebindable!(const Theme) theme;
-	// current width or height (other dimension is passed to drawing function explicitely)
-	float current_size;
+	Orientation orientation;
+	Vector2f size;
 	// nesting level of current item
 	int tree_view_nesting_level;
 }
@@ -105,7 +111,7 @@ public void fillColor (NanoContext ctx, Color color) nothrow @trusted @nogc {
   NVGColor clr = void;
   clr.rgba = color[];
   clr.rgba[] /= 255f;
-  arsd.nanovega.fillColor(ctx, clr);
+  nanogui.nanovega.fillColor(ctx, clr);
 }
 
 /** Creates and returns a box gradient. Box gradient is a feathered rounded rectangle, it is useful for rendering
@@ -123,7 +129,7 @@ public NVGPaint boxGradient (NanoContext ctx, in float x, in float y, in float w
 	clr1.rgba[] /= 255f;
 	clr2.rgba = ocol[];
 	clr2.rgba[] /= 255f;
-	return arsd.nanovega.boxGradient(ctx, x, y, w, h, r, f, clr1, clr2);
+	return nanogui.nanovega.boxGradient(ctx, x, y, w, h, r, f, clr1, clr2);
 }
 
 /** Creates and returns a linear gradient. Parameters `(sx, sy) (ex, ey)` specify the start and end coordinates
@@ -139,7 +145,7 @@ public NVGPaint linearGradient (NanoContext ctx, in float sx, in float sy, in fl
 	clr1.rgba[] /= 255f;
 	clr2.rgba = ocol[];
 	clr2.rgba[] /= 255f;
-	return arsd.nanovega.linearGradient(ctx, sx, sy, ex, ey, clr1, clr2);
+	return nanogui.nanovega.linearGradient(ctx, sx, sy, ex, ey, clr1, clr2);
 }
 
 /** Creates and returns a radial gradient. Parameters (cx, cy) specify the center, inr and outr specify
@@ -154,7 +160,7 @@ public NVGPaint radialGradient (NanoContext ctx, in float cx, in float cy, in fl
 	clr1.rgba[] /= 255f;
 	clr2.rgba = ocol[];
 	clr2.rgba[] /= 255f;
-	return arsd.nanovega.radialGradient(ctx, cx, cy, inr, outr, clr1, clr2);
+	return nanogui.nanovega.radialGradient(ctx, cx, cy, inr, outr, clr1, clr2);
 }
 
 /// Sets current stroke style to a solid color.
@@ -164,5 +170,5 @@ public void strokeColor (NanoContext ctx, Color color) nothrow @trusted @nogc
 	NVGColor clr = void;
 	clr.rgba = color[];
 	clr.rgba[] /= 255f;
-	arsd.nanovega.strokeColor(ctx, clr);
+	nanogui.nanovega.strokeColor(ctx, clr);
 }

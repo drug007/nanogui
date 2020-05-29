@@ -15,7 +15,7 @@ import gfm.opengl: OpenGL;
 import gfm.sdl2: SDL2, SDL2Window, SDL_Event, SDL_Cursor, SDL_SetCursor, 
 	SDL_FreeCursor, SDL_Delay;
 
-import arsd.nanovega : nvgCreateContext, kill, NVGContextFlag;
+import nanogui.nanovega : nvgCreateContext, kill, NVGContextFlag;
 import nanogui.screen : Screen;
 import nanogui.theme : Theme;
 import nanogui.common : NanoContext, Vector2i, MouseButton, MouseAction, Cursor;
@@ -50,7 +50,7 @@ class SdlBackend : Screen
 		_sdl2.subSystemInit(SDL_INIT_EVENTS);
 
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 		SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
@@ -58,10 +58,10 @@ class SdlBackend : Screen
 		window = new SDL2Window(_sdl2,
 								SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 								width, height,
-								SDL_WINDOW_OPENGL);
+								SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
 		window.setTitle(title);
-		
+
 		// reload OpenGL now that a context exists
 		_gl.reload();
 
@@ -139,6 +139,12 @@ class SdlBackend : Screen
 							case SDL_WINDOWEVENT_SIZE_CHANGED:
 							{
 								// window size has been resized
+								with(event.window)
+								{
+									width = data1;
+									height = data2;
+									resizeEvent(size);
+								}
 								break;
 							}
 
@@ -276,6 +282,7 @@ class SdlBackend : Screen
 			{
 				import std.datetime : dur;
 
+				static auto pauseTimeMs = 0;
 				currTime = Clock.currTime.stdTime;
 				if (currTime - mBlinkingCursorTimestamp > dur!"msecs"(500).total!"hnsecs")
 				{
@@ -286,13 +293,19 @@ class SdlBackend : Screen
 
 				if (needToDraw)
 				{
+					pauseTimeMs = 0;
 					size = Vector2i(width, height);
 					super.draw(ctx);
 
 					window.swapBuffers();
 				}
 				else
-					SDL_Delay(1);
+				{
+					pauseTimeMs = pauseTimeMs * 2 + 1; // exponential pause
+					if (pauseTimeMs > 100)
+						pauseTimeMs = 100; // max 100ms of pause
+					SDL_Delay(pauseTimeMs);
+				}
 			}
 		}
 	}

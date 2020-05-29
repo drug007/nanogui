@@ -10,7 +10,7 @@ module nanogui.slider;
 
 import std.algorithm : min, max;
 
-import arsd.nanovega;
+import nanogui.nanovega;
 import nanogui.widget : Widget;
 import nanogui.common : Vector2i, MouseButton, Color, boxGradient, 
 	fillColor, Vector2f, radialGradient, linearGradient;

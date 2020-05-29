@@ -74,7 +74,7 @@ public:
     /// Draw the popup window
     override void draw(ref NanoContext ctx)
     {
-        import arsd.nanovega;
+        import nanogui.nanovega;
         import nanogui.common;
 
         refreshRelativePlacement();

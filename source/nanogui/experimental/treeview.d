@@ -11,19 +11,18 @@ module nanogui.experimental.treeview;
 */
 
 import nanogui.widget;
-import nanogui.common : Vector2i, Vector2f, MouseButton;
+import nanogui.common : MouseButton, Vector2f, Vector2i;
+import nanogui.experimental.utils : Model;
 
 /**
  * Tree view widget.
- *
- * Remarks:
- *     This class overrides `nanogui.Widget.mIconExtraScale` to be `1.2f`,
- *     which affects all subclasses of this Widget.  Subclasses must explicitly
- *     set a different value if needed (e.g., in their constructor).
  */
-class TreeView(TreeModel) : Widget
+class TreeView(Data) : Widget
 {
 public:
+
+	enum modelHasCollapsed = is(typeof(Model!Data.collapsed) == bool);
+
 	/**
 	 * Adds a TreeView to the specified `parent`.
 	 *
@@ -35,16 +34,21 @@ public:
 	 *     `nanogui.TreeView.mPushed` for the difference between "pushed"
 	 *     and "checked".
 	 */
-	this(Widget parent, const string caption, TreeModel model, void delegate(bool) callback)
+	this(Widget parent, string caption, Data data, void delegate(bool) callback)
 	{
 		super(parent);
 		mCaption = caption;
-		mPushed = false;
-		mChecked = false;
-		mCallback = callback;
-		mIconExtraScale = 1.2f;// widget override
-
-		this.model = model;
+		static if (modelHasCollapsed)
+		{
+			mPushed = false;
+			mChecked = false;
+			mCallback = callback;
+		}
+		_data = data;
+		_model = makeModel(_data);
+		import nanogui.experimental.utils : MeasureVisitor, Orientation;
+		auto v = MeasureVisitor(size.x, fontSize, Orientation.Vertical);
+		_model.visitForward(_data, v);
 	}
 
 	/// The caption of this TreeView.
@@ -53,23 +57,26 @@ public:
 	/// Sets the caption of this TreeView.
 	final void caption(string caption) { mCaption = caption; }
 
-	/// Whether or not this TreeView is currently checked.
-	final bool checked() const { return mChecked; }
+	static if (modelHasCollapsed)
+	{
+		/// Whether or not this TreeView is currently checked.
+		final bool checked() const { return _model.collapsed; }
 
-	/// Sets whether or not this TreeView is currently checked.
-	final void checked(bool checked) { mChecked = checked; }
+		/// Sets whether or not this TreeView is currently checked.
+		final void checked(bool checked) { _model.collapsed = checked; }
 
-	/// Whether or not this TreeView is currently pushed.  See `nanogui.TreeView.mPushed`.
-	final bool pushed() const { return mPushed; }
+		/// Whether or not this TreeView is currently pushed.  See `nanogui.TreeView.mPushed`.
+		final bool pushed() const { return mPushed; }
 
-	/// Sets whether or not this TreeView is currently pushed.  See `nanogui.TreeView.mPushed`.
-	final void pushed(bool pushed) { mPushed = pushed; }
+		/// Sets whether or not this TreeView is currently pushed.  See `nanogui.TreeView.mPushed`.
+		final void pushed(bool pushed) { mPushed = pushed; }
 
-	/// Returns the current callback of this TreeView.
-	final void delegate(bool) callback() const { return mCallback; }
+		/// Returns the current callback of this TreeView.
+		final void delegate(bool) callback() const { return mCallback; }
 
-	/// Sets the callback to be executed when this TreeView is checked / unchecked.
-	final void callback(void delegate(bool) callback) { mCallback = callback; }
+		/// Sets the callback to be executed when this TreeView is checked / unchecked.
+		final void callback(void delegate(bool) callback) { mCallback = callback; }
+	}
 
 	/**
 	 * The mouse button callback will return `true` when all three conditions are met:
@@ -91,33 +98,47 @@ public:
 	 */
 	override bool mouseButtonEvent(Vector2i p, MouseButton button, bool down, int modifiers)
 	{
-		super.mouseButtonEvent(p, button, down, modifiers);
 		if (!mEnabled)
 			return false;
 
-		import nanogui.experimental.utils : isPointInRect;
-		const rect_size = Vector2i(mSize.x, mChecked ? cast(int) (fontSize() * 1.3f) : mSize.y);
-
-		if (button == MouseButton.Left)
+		static if (modelHasCollapsed)
 		{
-			import std.stdio;
-			writeln(tree_path);
-			if (!isPointInRect(mPos, rect_size, p))
-				return false;
-			if (down)
+			import nanogui.experimental.utils : isPointInRect;
+			const rect_size = Vector2i(mSize.x, !_model.collapsed ? cast(int) (fontSize() * 1.3f) : mSize.y);
+
+			if (button == MouseButton.Left)
 			{
-				mPushed = true;
+				import nanogui.experimental.utils : setPropertyByTreePath, getPropertyByTreePath;
+				if (!down && tree_path.value.length)
+				{
+					const value = getPropertyByTreePath!("collapsed", bool)(_data, _model, tree_path.value[]);
+					if (!value.isNull)
+					{
+						setPropertyByTreePath!"collapsed"(_data, _model, tree_path.value[], !value.get);
+						import nanogui.experimental.utils : MeasureVisitor, Orientation;
+						auto mv = MeasureVisitor(size.x, fontSize, Orientation.Vertical);
+						_model.visitForward(_data, mv);
+						screen.needToPerfomLayout = true;
+					}
+				}
+				if (!isPointInRect(mPos, rect_size, p))
+					return false;
+				if (down)
+				{
+					mPushed = true;
+				}
+				else if (mPushed)
+				{
+					mChecked = !mChecked;
+					if (mCallback)
+						mCallback(mChecked);
+					mPushed = false;
+				}
+				return true;
 			}
-			else if (mPushed)
-			{
-				mChecked = !mChecked;
-				if (mCallback)
-					mCallback(mChecked);
-				mPushed = false;
-			}
-			return true;
 		}
-		return false;
+
+		return super.mouseButtonEvent(p, button, down, modifiers);
 	}
 
 	/// The preferred size of this TreeView.
@@ -128,11 +149,11 @@ public:
 		ctx.fontSize(fontSize());
 		ctx.fontFace("sans");
 		float[4] bounds;
-		const extra = mChecked ? (fontSize() * 1.3f * 1/*model.length*/) : 0;
+
 		return cast(Vector2i) Vector2f(
 			(ctx.textBounds(0, 0, mCaption, bounds[]) +
 				1.8f * fontSize()),
-			fontSize() * 1.3f + extra);
+			_model.size);
 	}
 
 	/// Draws this TreeView.
@@ -140,122 +161,30 @@ public:
 	{
 		// do not call super.draw() because we do custom drawing
 
-		Vector2i titleSize = void;
-		titleSize.x = mSize.x;
-		titleSize.y = mChecked ? cast(int) (fontSize() * 1.3f) : mSize.y;
+		//ctx.fontSize(theme.mButtonFontSize);
+		//ctx.fontFace("sans-bold");
 
-		ctx.save;
-		scope(exit) ctx.restore;
-		{
-			// background for icon
-			NVGPaint bg = ctx.boxGradient(mPos.x + 1.5f, mPos.y + 1.5f,
-										titleSize.y - 2.0f, titleSize.y - 2.0f, 3, 3,
-										mPushed ? Color(0, 0, 0, 100) : Color(0, 0, 0, 32),
-										Color(0, 0, 0, 180));
-
-			ctx.beginPath;
-			ctx.roundedRect(mPos.x + 1.0f, mPos.y + 1.0f, titleSize.y - 2.0f,
-						titleSize.y - 2.0f, 3);
-			ctx.fillPaint(bg);
-			ctx.fill;
-		}
-
-		ctx.position = mPos;
 		ctx.theme = theme;
-		ctx.current_size = 0; // prevents highlighting of icon
-		const old = ctx.mouse;
-		ctx.mouse -= window.absolutePosition;
-		scope(exit) ctx.mouse = old;
+		ctx.size = Vector2f(size.x, ctx.fontSize);
+		ctx.position = mPos;
 
-		import nanogui.experimental.utils : drawItem, indent, unindent;
+		//ctx.mouse -= mPos;
+		//scope(exit) ctx.mouse += mPos;
+
+		auto renderer = RenderingVisitor(ctx);
 		{
-			// icon
-			ctx.fontSize(titleSize.y * icon_scale());
-			ctx.fontFace("icons");
-			ctx.fillColor(mEnabled ? mTheme.mIconColor
-										: mTheme.mDisabledTextColor);
-			// NVGTextAlign algn;
-			// algn.center = true;
-			// algn.middle = true;
-			// ctx.textAlign(algn);
-
-			import nanogui.entypo : Entypo;
-			drawItem(ctx, titleSize.y, 
-					[mChecked ? cast(dchar)Entypo.ICON_CHEVRON_DOWN :
-								cast(dchar)Entypo.ICON_CHEVRON_RIGHT
-					]);
-			ctx.position -= Vector2i(0, titleSize.y);
+			import nanogui.experimental.utils;
+			renderer.orientation = Orientation.Vertical;
 		}
-
-		ctx.current_size = size.x - titleSize.y;
-
-		ctx.tree_view_nesting_level = 0;
-
-		{
-			// Caption
-			ctx.position += Vector2i(cast(int)(1.6f * fontSize), 0);
-			scope(exit) ctx.position -= Vector2i(cast(int)(1.6f * fontSize), 0);
-			ctx.fontSize(fontSize);
-			ctx.fontFace("sans");
-			ctx.fillColor(mEnabled ? mTheme.mTextColor : mTheme.mDisabledTextColor);
-			tree_path.length = 0;
-			if (drawItem(ctx, titleSize.y, mCaption))
-			{
-				tree_path.length = 1;
-				tree_path[ctx.tree_view_nesting_level] = 0;
-			}
-		}
-
-		// content of tree view
-		if (mChecked)
-		{
-			ctx.indent;
-			ctx.tree_view_nesting_level++;
-			scope(exit)
-			{
-				assert(ctx.tree_view_nesting_level > 0);
-				ctx.tree_view_nesting_level--;
-				ctx.unindent;
-			}
-
-			ctx.fontSize(fontSize);
-			ctx.fontFace("sans");
-
-			import std.algorithm : min;
-			import std.range : isRandomAccessRange;
-			static if (isRandomAccessRange!TreeModel)
-			{
-				foreach(i, item; model)
-				{
-					ctx.save;
-					scope(exit) ctx.restore;
-
-					if (drawItem(ctx, cast(int)(fontSize() * 1.3f), item))
-					{
-						if (tree_path.length < ctx.tree_view_nesting_level+1)
-							tree_path.length = ctx.tree_view_nesting_level+1;
-						tree_path[ctx.tree_view_nesting_level] = i;
-					}
-				}
-			}
-			else static if (is(TreeModel == struct))
-			{
-				ctx.save;
-				scope(exit) ctx.restore;
-
-				if (drawItem(ctx, cast(int)(fontSize() * 1.3f), model))
-				{
-					if (tree_path.length < ctx.tree_view_nesting_level+1)
-						tree_path.length = ctx.tree_view_nesting_level+1;
-					tree_path[ctx.tree_view_nesting_level] = 0;
-				}
-			}
-			else
-			{
-			 	// static assert(0, "Unsupported type of TreeModel: " ~ TreeModel.stringof);
-				drawItem(ctx, cast(int)(fontSize() * 1.3f), model);
-			}
-		}
+		renderer.path.clear;
+		renderer.position = 0;
+		renderer.path_position = 0;
+		renderer.size = [width, fontSize];
+		renderer.destination = ctx.position.y + size.y;
+		import nanogui.layout : Orientation;
+		renderer.ctx.orientation = Orientation.Vertical;
+		_model.visitForward(_data, renderer);
+		tree_path = renderer.selected_item;
 	}
 
 // // Saves this TreeView to the specified Serializer.
@@ -265,39 +194,142 @@ public:
 //override bool load(Serializer &s);
 
 protected:
+
+	import nanogui.experimental.utils : makeModel, visit, visitForward, TreePath;
+
 	/// The caption text of this TreeView.
 	string mCaption;
 
-	/**
-	 * Internal tracking variable to distinguish between mouse click and release.
-	 * `nanogui.TreeView.mCallback` is only called upon release.  See
-	 * `nanogui.TreeView.mouseButtonEvent` for specific conditions.
-	 */
-	bool mPushed;
-
-	/// Whether or not this TreeView is currently checked or unchecked.
-	bool _mChecked;
-	
-	bool mChecked() const { return _mChecked; };
-	auto mChecked(bool v)
+	static if (modelHasCollapsed)
 	{
-		if (_mChecked != v)
+		/**
+		* Internal tracking variable to distinguish between mouse click and release.
+		* `nanogui.TreeView.mCallback` is only called upon release.  See
+		* `nanogui.TreeView.mouseButtonEvent` for specific conditions.
+		*/
+		bool mPushed;
+
+		bool mChecked() const
 		{
-			_mChecked = v;
-			import std.stdio;
-			writeln("mChecked changed: ", v);
-			mSize += Vector2i(0, v ? 100 : -100);
-			screen.needToPerfomLayout = true;
+			static if (is(typeof(_model.collapsed) == bool))
+				return !_model.collapsed;
+			else
+				return false;
+		}
+
+		auto mChecked(bool v)
+		{
+			static if (is(typeof(_model.collapsed) == bool))
+				if (_model.collapsed == v)
+				{
+					_model.collapsed = !v;
+					import nanogui.experimental.utils : MeasureVisitor, Orientation;
+					auto mv = MeasureVisitor(size.x, fontSize, Orientation.Vertical);
+					_model.visitForward(_data, mv);
+					screen.needToPerfomLayout = true;
+				}
+		}
+
+		/// The function to execute when `nanogui.TreeView.mChecked` is changed.
+		void delegate(bool) mCallback;
+	}
+
+	Data _data;
+	typeof(makeModel(_data)) _model;
+
+	// sequence of indices to get access to current element of current treeview
+	TreePath tree_path;
+}
+
+private struct RenderingVisitor
+{
+	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath;
+	import aux.model;
+
+	NanoContext ctx;
+	DefaultVisitorImpl!(TreePathEnabled.yes) default_visitor;
+	alias default_visitor this;
+
+	TreePath selected_item;
+	float finish;
+
+	bool complete()
+	{
+		return ctx.position.y > finish;
+	}
+
+	void indent()
+	{
+		ctx.indent;
+	}
+
+	void unindent()
+	{
+		ctx.unindent;
+	}
+
+	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		ctx.save;
+		scope(exit) ctx.restore;
+
+		{
+			// background for icon
+			NVGPaint bg = ctx.boxGradient(
+				ctx.position.x + 1.5f, ctx.position.y + 1.5f,
+				ctx.size[ctx.orientation] - 2.0f, ctx.size[ctx.orientation] - 2.0f, 3, 3,
+				true/*pushed*/ ? Color(0, 0, 0, 100) : Color(0, 0, 0, 32),
+				Color(0, 0, 0, 180)
+			);
+
+			ctx.beginPath;
+			ctx.roundedRect(ctx.position.x + 1.0f, ctx.position.y + 1.0f,
+				ctx.size[ctx.orientation] - 2.0f, ctx.size[ctx.orientation] - 2.0f, 3);
+			ctx.fillPaint(bg);
+			ctx.fill;
+		}
+
+		{
+			// icon
+			ctx.fontSize(ctx.size.y);
+			ctx.fontFace("icons");
+			ctx.fillColor(model.enabled ? ctx.theme.mIconColor
+			                            : ctx.theme.mDisabledTextColor);
+			NVGTextAlign algn;
+			algn.center = true;
+			algn.middle = true;
+			ctx.textAlign(algn);
+
+			import nanogui.entypo : Entypo;
+			int axis2 = (cast(int)ctx.orientation+1)%2;
+			const old = ctx.size[axis2];
+			ctx.size[axis2] = ctx.size[ctx.orientation]; // icon has width equals to its height
+			dchar symb = model.collapsed ? Entypo.ICON_CHEVRON_RIGHT :
+			                               Entypo.ICON_CHEVRON_DOWN;
+			if (drawItem(ctx, [symb]))
+				selected_item = tree_path;
+			ctx.size[axis2] = old; // restore full width
+			ctx.position[ctx.orientation] -= ctx.size[ctx.orientation];
+		}
+
+		{
+			// Caption
+			ctx.position.x += 1.6f * ctx.size.y;
+			scope(exit) ctx.position.x -= 1.6f * ctx.size.y;
+			ctx.fontSize(ctx.size.y);
+			ctx.fontFace("sans");
+			ctx.fillColor(model.enabled ? ctx.theme.mTextColor : ctx.theme.mDisabledTextColor);
+			if (drawItem(ctx, Data.stringof))
+				selected_item = tree_path;
 		}
 	}
 
-	TreeModel model;
-
-	/// The function to execute when `nanogui.TreeView.mChecked` is changed.
-	void delegate(bool) mCallback;
-
-	// sequence of indices to get access to current element of current treeview
-	size_t[] tree_path;
-	// // number of current dimension (nesting level) of current tree path
-	// size_t current_dimension;
+	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		ctx.fontSize(ctx.size.y);
+		ctx.fontFace("sans");
+		ctx.fillColor(ctx.theme.mTextColor);
+		if (drawItem(ctx, data))
+			selected_item = tree_path;
+	}
 }

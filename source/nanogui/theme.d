@@ -83,7 +83,7 @@ public:
 		mTextBoxUpIcon                    = Entypo.ICON_CHEVRON_UP;
 		mTextBoxDownIcon                  = Entypo.ICON_CHEVRON_DOWN;
 
-		import arsd.nanovega : createFontMem;
+		import nanogui.nanovega : createFontMem;
 		import nanogui.resources;
 		mFontNormal = ctx.createFontMem("sans", roboto_regular_ttf.ptr,
 									   cast(int) roboto_regular_ttf.length, 0);

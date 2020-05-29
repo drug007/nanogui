@@ -1,259 +1,70 @@
 ///
 module nanogui.experimental.list;
 
+/*
+	NanoGUI was developed by Wenzel Jakob <wenzel.jakob@epfl.ch>.
+	The widget drawing code is based on the NanoVG demo application
+	by Mikko Mononen.
+
+	All rights reserved. Use of this source code is governed by a
+	BSD-style license that can be found in the LICENSE.txt file.
+*/
+
 import std.algorithm : min, max;
+import std.range : isRandomAccessRange, ElementType;
 import nanogui.widget;
 import nanogui.common : MouseButton, Vector2f, Vector2i, NanoContext;
-import nanogui.experimental.utils : DataItem;
+import nanogui.experimental.utils : Model, isProcessible;
 
-private class IListImplementor
+/**
+ * Tree view widget.
+ */
+class List(D) : Widget
+	if (isProcessible!D)
 {
-	import nanogui.layout : BoxLayout;
-
-	abstract void     size(Vector2i v);
-	abstract void     position(Vector2i v);
-	abstract void     layout(BoxLayout l);
-	abstract Vector2i preferredSize(NanoContext ctx) const;
-	abstract void     performLayout(NanoContext ctx);
-	abstract void     currentItemIndicesToHeight(ref float start, ref float finish);
-	abstract void     draw(NanoContext ctx);
-}
-
-private class ListImplementor(T) : IListImplementor
-{
-	import std.range : isRandomAccessRange;
-	import nanogui.layout : BoxLayout;
-
-	private
-	{
-		DataItem!T[] _data;
-		BoxLayout    _layout;
-		Vector2i     _size;
-		Vector2i     _pos;
-		List         _parent;
-
-		static int _last_id;
-		int        _id;
-
-		size_t _scroll_position;
-		size_t _start_item;
-		size_t _finish_item;
-		size_t _shift;
-	}
-
-	@disable this();
-
-	this(R)(List p, R data) if (isRandomAccessRange!R)
-	{
-		import std.exception : enforce;
-
-		enforce(p);
-
-		_id = ++_id;
-		_parent = p;
-
-		import std.array : array;
-		_data = data.array;
-		_scroll_position = _scroll_position.max-1;
-	}
-
-	override void size(Vector2i v)
-	{
-		_size = v;
-	}
-
-	override void position(Vector2i v)
-	{
-		_pos = v;
-	}
-
-	override void layout(BoxLayout l)
-	{
-		_layout = l;
-	}
-
-	/// Draw the widget (and all child widgets)
-	override void draw(NanoContext ctx)
-	{
-		int fontSize = _parent.theme.mButtonFontSize;
-		ctx.fontSize(fontSize);
-		ctx.fontFace("sans-bold");
-
-		ctx.save;
-
-		int size_y = (_parent.fixedSize.y) ? _parent.fixedSize.y : _parent.size.y;
-		assert(_size.y >= _parent.size.y);
-		const scroll_position = cast(size_t) (_parent.mScroll * (_size.y - _parent.size.y));
-		if (_scroll_position != scroll_position)
-		{
-			_shift = heightToItemIndex(_data, scroll_position, size_y, _layout.spacing, _start_item, _finish_item, _shift);
-			_scroll_position = scroll_position;
-		}
-
-		ctx.theme = _parent.theme;
-		ctx.current_size = _parent.size.x;
-		ctx.position.x = _pos.x;
-		ctx.position.y = cast(int) _shift + _pos.y;
-
-		ctx.mouse -= _parent.absolutePosition;
-		scope(exit) ctx.mouse += _parent.absolutePosition;
-
-		import std.algorithm : min;
-		foreach(child; _data[_start_item..min(_finish_item, $)])
-		{
-			ctx.save;
-			scope(exit) ctx.restore;
-
-			import std.conv : text;
-			child.draw(ctx, text(child.size.y), child.size.y);
-			ctx.position.y += cast(int) _layout.spacing;
-		}
-		ctx.restore;
-	}
-
-	/// Convert given range of items indices to to corresponding List height range
-	private auto itemIndexToHeight(size_t start_index, size_t last_index, ref float start, ref float finish)
-	{
-		import nanogui.layout : BoxLayout;
-		double curr = 0;
-		double spacing = _layout.spacing;
-		size_t idx;
-		assert(start_index < last_index);
-		start = 0;
-		finish = 0;
-
-		foreach(ref const e; _data)
-		{
-			if (idx >= start_index)
-			{
-				start = curr;
-				idx++;
-				curr += e.size.y + spacing;
-				break;
-			}
-			idx++;
-			curr += e.size.y + spacing;
-		}
-
-		if (start_index >= _data.length)
-		{
-			finish = start;
-			return;
-		}
-
-		const low_boundary = ++idx;
-		foreach(ref const e; _data[low_boundary..$])
-		{
-			if (idx >= last_index)
-			{
-				finish = curr;
-				break;
-			}
-			idx++;
-			curr += e.size.y + spacing;
-		}
-
-		if (last_index >= _data.length)
-			finish = curr + spacing;
-	}
-
-	override void currentItemIndicesToHeight(ref float start, ref float finish)
-	{
-		return itemIndexToHeight(_start_item, _finish_item, start, finish);
-	}
-
-	/// Compute the preferred size of the widget
-	override Vector2i preferredSize(NanoContext ctx) const
-	{
-		static Vector2i[int] size_inited;
-
-		if (_id !in size_inited)
-			size_inited[_id] = Vector2i();
-		else if (size_inited[_id] != Vector2i())
-			return size_inited[_id];
-
-		import nanogui.layout : BoxLayout, Orientation, axisIndex, nextAxisIndex;
-
-		Vector2i size;
-		int yOffset = 0;
-
-		uint visible_widget_count;
-		int axis1 = _layout.orientation.axisIndex;
-		int axis2 = _layout.orientation.nextAxisIndex;
-		foreach(ref dataitem; _data)
-		{
-			if (!dataitem.visible) 
-				continue;
-			visible_widget_count++;
-			// accumulate the primary axis size
-			size[axis1] += dataitem.size[axis1];
-			// the secondary axis size is equal to the max size of dataitems
-			size[axis2] = max(size[axis2], dataitem.size[axis2]);
-		}
-		if (visible_widget_count > 1)
-			size[axis1] += (visible_widget_count - 1) * _layout.spacing;
-		size_inited[_id] = size;
-		return size + Vector2i(0, yOffset);
-	}
-
-	/// Invoke the associated layout generator to properly place child widgets, if any
-	override void performLayout(NanoContext ctx)
-	{
-		_scroll_position++; // little hack to force updating item indices
-		foreach(ref dataitem; _data)
-		{
-			if (!dataitem.visible)
-				continue;
-
-			dataitem.performLayout(ctx);
-		}
-	}
-
-	/// Handle a mouse button event (default implementation: propagate to children)
-	bool mouseButtonEvent(Vector2i p, MouseButton button, bool down, int modifiers)
-	{
-		// foreach_reverse(ch; mChildren)
-		// {
-		// 	Widget child = ch;
-		// 	if (child.visible && child.contains(p - mPos) &&
-		// 		child.mouseButtonEvent(p - mPos, button, down, modifiers))
-		// 		return true;
-		// }
-		// if (button == MouseButton.Left && down && !mFocused)
-		// 	requestFocus();
-		return false;
-	}
-}
-
-class List : Widget
-{
-	import std.range : isRandomAccessRange, ElementType;
 public:
 
-	this(R)(Widget parent, R range) if (isRandomAccessRange!R)
+	alias Data = D;
+
+	enum modelHasCollapsed = is(typeof(Model!Data.collapsed) == bool);
+
+	/**
+	 * Adds a TreeView to the specified `parent`.
+	 *
+	 * Params:
+	 *     parent = The Widget to add this TreeView to.
+	 *     data   = The content of the widget.
+	 */
+	this(Widget parent, Data data)
 	{
 		super(parent);
-		mChildPreferredHeight = 0;
+		_data = data;
+		_model = makeModel(_data);
 		mScroll = 0.0f;
-		mUpdateLayout = false;
+		this.data = data;
+	}
 
-		alias T = ElementType!R;
-		DataItem!T[] data;
-		data.reserve(range.length);
-		foreach(e; range)
-		{
-			import std.random : uniform;
-			data ~= DataItem!T(e, Vector2i(80, 30 + uniform(0, 30)));
-		}
+	// the getter for the data is private because
+	// the widget does not own the data and
+	// the widget can not be considered as
+	// a data source
+	private @property ref auto data() const
+	{
+		return _data;
+	}
 
-		list_implementor = new ListImplementor!string(this, data);
-		list_implementor.size = Vector2i(width, height);
-
-		import nanogui.layout : BoxLayout, Orientation;
-		auto layout = new BoxLayout(Orientation.Vertical);
-		layout.margin = 40;
-		layout.setSpacing = 20;
-		list_implementor.layout = layout;
+	@property
+	auto data(Data data)
+	{
+		_data = data;
+		_model.update(data);
+		_model.size = 0;
+		_model_changed = true;
+		calculateScrollableState;
+		rm.path_position = 0;
+		rm.position = 0;
+		rm.size = [width, fontSize];
+		visit(_model, _data, rm, 1);
 	}
 
 	/// Return the current scroll amount as a value between 0 and 1. 0 means scrolled to the top and 1 to the bottom.
@@ -265,222 +76,502 @@ public:
 	{
 		super.performLayout(ctx);
 
-		if (list_implementor is null)
-			return;
-
-		const list_implementor_preferred_size = list_implementor.preferredSize(ctx);
 		mSize.y = parent.size.y - 2*parent.layout.margin;
+		import nanogui.window : Window;
+		if (auto window = cast(const Window)(parent) && window.title.length)
+			mSize.y -= parent.theme.mWindowHeaderHeight;
 		if (mSize.y < 0)
 			mSize.y = 0;
 
-		mChildPreferredHeight = list_implementor.preferredSize(ctx).y;
-
-		if (mChildPreferredHeight > mSize.y)
-		{
-			auto y = cast(int) (-mScroll*(mChildPreferredHeight - mSize.y));
-			list_implementor.position = Vector2i(0, y);
-			list_implementor.size = Vector2i(mSize.x-12, mChildPreferredHeight);
-		}
-		else 
-		{
-			list_implementor.position = Vector2i(0, 0);
-			list_implementor.size = mSize;
-			mScroll = 0;
-		}
-		list_implementor.performLayout(ctx);
+		calculateScrollableState();
 	}
 
+	private void calculateScrollableState()
+	{
+		if (_model_changed)
+		{
+			const scroll_position = mScroll * (_model.size - size.y);
+			import nanogui.experimental.utils : MeasureVisitor, Orientation;
+			auto mv = MeasureVisitor(size.x, fontSize, Orientation.Vertical);
+			_model.visitForward(_data, mv);
+			mScroll = scroll_position / (_model.size - size.y);
+			_model_changed = false;
+		}
+
+		if (_model.size <= mSize.y)
+			mScroll = 0;
+	}
+
+	private bool isMouseInside(Vector2i p)
+	{
+		import nanogui.experimental.utils : isPointInRect;
+		const rect_size = Vector2i(mSize.x, mSize.y);
+		return isPointInRect(mPos, rect_size, p);
+	}
+
+	override bool mouseDragEvent(Vector2i p, Vector2i rel, MouseButton button, int modifiers)
+	{
+		if (!isMouseInside(p))
+			return false;
+
+		if (_pushed_scroll_btn)
+		{
+			// scroll button height
+			float scrollh = height * min(1.0f, height / _model.size);
+
+			mScroll = max(0.0f, min(1.0f, mScroll + rel.y / (mSize.y - 8.0f - scrollh)));
+			return true;
+		}
+
+		return super.mouseDragEvent(p, rel, button, modifiers);
+	}
+
+	override bool scrollEvent(Vector2i p, Vector2f rel)
+	{
+		if (_model.size > mSize.y)
+		{
+			mScroll = max(0.0f, min(1.0f, mScroll - 10*rel.y/_model.size));
+			return true;
+		}
+
+		return super.scrollEvent(p, rel);
+	}
+
+	static if (modelHasCollapsed)
+	{
+		import std.typecons : Nullable;
+
+		Nullable!bool collapsed(int[] path)
+		{
+			import nanogui.experimental.utils : getPropertyByTreePath;
+
+			return getPropertyByTreePath!("collapsed", bool)(_data, _model, path);
+		}
+
+		bool collapsed()
+		{
+			import std.exception : enforce;
+			import nanogui.experimental.utils : getPropertyByTreePath;
+
+			auto v = getPropertyByTreePath!("collapsed", bool)(_data, _model, (int[]).init);
+			enforce(!v.isNull);
+			return v.get;
+		}
+
+		void collapsed(bool value)
+		{
+			collapsed(null, value);
+		}
+
+		void collapsed(int[] path, bool value)
+		{
+			import nanogui.experimental.utils : setPropertyByTreePath;
+
+			setPropertyByTreePath!"collapsed"(_data, _model, path, value);
+			_model_changed = true;
+			calculateScrollableState;
+			screen.needToPerfomLayout = true;
+		}
+	}
+
+	override bool mouseEnterEvent(Vector2i p, bool enter)
+	{
+		if (!enter)
+			_pushed_scroll_btn = false;
+		return super.mouseEnterEvent(p, enter);
+	}
+
+	/**
+	 * The mouse button callback will return `true` when all three conditions are met:
+	 *
+	 * 1. This TreeView is "enabled" (see `nanogui.Widget.mEnabled`).
+	 * 2. `p` is inside this TreeView.
+	 * 3. `button` is `MouseButton.Left`.
+	 *
+	 * Since a mouse button event is issued for both when the mouse is pressed, as well
+	 * as released, this function sets `nanogui.TreeView.mPushed` to `true` when
+	 * parameter `down == true`.  When the second event (`down == false`) is fired,
+	 * `nanogui.TreeView.mChecked` is inverted and `nanogui.TreeView.mCallback`
+	 * is called.
+	 *
+	 * That is, the callback provided is only called when the mouse button is released,
+	 * **and** the click location remains within the TreeView boundaries.  If the user
+	 * clicks on the TreeView and releases away from the bounds of the TreeView,
+	 * `nanogui.TreeView.mPushed` is simply set back to `false`.
+	 */
+	override bool mouseButtonEvent(Vector2i p, MouseButton button, bool down, int modifiers)
+	{
+		if (!mEnabled)
+			return false;
+
+		if (!isMouseInside(p))
+			return false;
+
+		static if (modelHasCollapsed)
+		{
+			import nanogui.experimental.utils : isPointInRect;
+			const scroll_bar_available = _model.size > mSize.y;
+			// get the area over the header of the widget
+			auto header_area = Vector2i(mSize.x, cast(int)_model.header_size);
+			if (scroll_bar_available)
+				header_area.x -= ScrollBarWidth;
+			const over_header_area = isPointInRect(mPos, header_area, p);
+
+			bool over_scroll_area;
+			Vector2i scroll_area_pos;
+			if (scroll_bar_available) // there is a scroll bar
+			{
+				scroll_area_pos = mPos + Vector2i(header_area.x, 0);
+				auto scroll_area_size = Vector2i(ScrollBarWidth, mSize.y);
+				over_scroll_area = isPointInRect(scroll_area_pos, scroll_area_size, p);
+			}
+			// if the event happens over neither the header nor scroll bar
+			// nor any item - ignore it
+			if (!over_header_area && !over_scroll_area && !tree_path.value.length)
+				return false;
+
+			if (button == MouseButton.Left)
+			{
+				if (down)
+				{
+					if (over_scroll_area)
+					{
+						const scroll = scrollBtnSize;
+						import nanogui.experimental.utils : isPointInRect;
+						const rtopleft = scroll_area_pos + Vector2f(0, scroll.y);
+						const rsize = Vector2f(ScrollBarWidth, scroll.h);
+						if (isPointInRect(rtopleft, rsize, Vector2f(p)))
+							_pushed_scroll_btn = true;
+					}
+					else
+						mPushed = true;
+				}
+				else
+				{
+					if (mPushed)
+					{
+						if (!over_scroll_area)
+						{
+							const value = collapsed(tree_path.value[]);
+							if (!value.isNull)
+								collapsed(tree_path.value[], !value.get);
+							// if (mCallback)
+							// 	mCallback(mChecked);
+						}
+						mPushed = false;
+					}
+					_pushed_scroll_btn = false;
+				}
+				if (button == MouseButton.Left && down && !mFocused)
+					requestFocus();
+				return true;
+			}
+		}
+
+		return true;
+	}
+
+	/// The preferred size of this TreeView.
 	override Vector2i preferredSize(NanoContext ctx) const
 	{
 		// always return 0 because the size is defined by the parent container
 		return Vector2i(0, 0);
 	}
-	
-	override bool mouseDragEvent(Vector2i p, Vector2i rel, MouseButton button, int modifiers)
-	{
-		if (list_implementor !is null && mChildPreferredHeight > mSize.y)
-		{
-			float scrollh = height * min(1.0f, height / cast(float)mChildPreferredHeight);
 
-			mScroll = max(cast(float) 0.0f, min(cast(float) 1.0f,
-						mScroll + rel.y / cast(float)(mSize.y - 8 - scrollh)));
-			mUpdateLayout = true;
-			return true;
-		}
-		else
-		{
-			return super.mouseDragEvent(p, rel, button, modifiers);
-		}
-	}
-
-	override bool scrollEvent(Vector2i p, Vector2f rel)
-	{
-		if (list_implementor !is null && mChildPreferredHeight > mSize.y)
-		{
-			const scrollAmount = rel.y * 10;
-			mScroll = max(0.0f, min(1.0f, mScroll - scrollAmount/cast(typeof(mScroll))mChildPreferredHeight));
-			mUpdateLayout = true;
-			return true;
-		}
-		else
-		{
-			return super.scrollEvent(p, rel);
-		}
-	}
-
-	/// Handle a mouse button event (default implementation: propagate to children)
-	override bool mouseButtonEvent(Vector2i p, MouseButton button, bool down, int modifiers)
-	{
-		const r = super.mouseButtonEvent(p, button, down, modifiers);
-		if (p.x < mPos.x + mSize.x - 12)
-			return r;
-
-		if (!down)
-			return false;
-
-		const l = mScroll * height;
-		if (list_implementor !is null && mChildPreferredHeight > mSize.y)
-		{
-			float s, f;
-			list_implementor.currentItemIndicesToHeight(s, f);
-			const scrollAmount = l > p.y ? (f - s) : -(f - s);
-
-			mScroll = max(0.0f, min(1.0f, mScroll - scrollAmount/2/cast(float)mChildPreferredHeight));
-			mUpdateLayout = true;
-			return true;
-		}
-		return false;
-	}
-
+	/// Draws this TreeView.
 	override void draw(ref NanoContext ctx)
 	{
-		if (list_implementor is null)
-			return;
-		auto y = cast(int) (-mScroll*(mChildPreferredHeight - mSize.y));
-		list_implementor.position = Vector2i(0, y);
-		mChildPreferredHeight = list_implementor.preferredSize(ctx).y;
-		float scrollh = max(16, height *
-			min(1.0f, height / cast(float) mChildPreferredHeight));
+		ctx.save;
 
-		if (mUpdateLayout)
+		ctx.fontSize(theme.mButtonFontSize);
+		ctx.fontFace("sans-bold");
+
+		const scroll_position = cast(size_t) (mScroll * (_model.size - size.y));
+
+		if (_scroll_position != scroll_position)
 		{
-			list_implementor.performLayout(ctx);
-			mUpdateLayout = false;
+			_scroll_position = scroll_position;
+			rm.position = rm.path_position;
+			visit(_model, _data, rm, _scroll_position);
 		}
 
-		ctx.save;
+		ctx.theme = theme;
+		ctx.size = Vector2f(size.x, fontSize);
+		if (_model.size > mSize.y)
+			ctx.size.x -= ScrollBarWidth;
+		ctx.position.x = 0;
+		ctx.position.y = rm.position[1] - rm.destination[1];
+
+		ctx.mouse -= mPos;
+		scope(exit) ctx.mouse += mPos;
 		ctx.translate(mPos.x, mPos.y);
-		ctx.intersectScissor(0, 0, mSize.x, mSize.y);
-		list_implementor.draw(ctx);
+		ctx.intersectScissor(0, 0, ctx.size.x, mSize.y);
+		auto renderer = RenderingVisitor(ctx);
+		{
+			import nanogui.experimental.utils : Orientation;
+			renderer.orientation = Orientation.Vertical;
+		}
+		renderer.path = rm.path;
+		renderer.position = 0;
+		renderer.path_position = rm.path_position;
+		renderer.size = [width, fontSize];
+		renderer.finish = rm.destination[1] + size.y;
+		import nanogui.layout : Orientation;
+		renderer.ctx.orientation = Orientation.Vertical;
+		visit(_model, _data, renderer, rm.destination[1] + size.y + 50); // FIXME `+ 50` is dirty hack
+		tree_path = renderer.selected_item;
+
 		ctx.restore;
 
-		if (mChildPreferredHeight <= mSize.y)
-			return;
+		if (_model.size > mSize.y)
+			drawScrollBar(ctx);
+	}
 
+	private ScrollButtonSize scrollBtnSize()
+	{
+		const float scrollh = max(16, height * min(1.0f, height / _model.size));
+		return ScrollButtonSize((mSize.y - 8 - scrollh) * mScroll, scrollh);
+	}
+
+	private void drawScrollBar(ref NanoContext ctx)
+	{
+		const scroll = scrollBtnSize;
+
+		// scroll bar
 		NVGPaint paint = ctx.boxGradient(
-			mPos.x + mSize.x - 12 + 1, mPos.y + 4 + 1, 8,
-			mSize.y - 8, 3, 4, Color(0, 0, 0, 32), Color(0, 0, 0, 92));
+			mPos.x + mSize.x - ScrollBarWidth + 1, mPos.y + 4 + 1, 8,
+			mSize.y - 8, 3, 4, Color(0, 0, 0, 32), Color(0, 0, 0, 192));
 		ctx.beginPath;
-		ctx.roundedRect(mPos.x + mSize.x - 12, mPos.y + 4, 8,
+		ctx.roundedRect(mPos.x + mSize.x - ScrollBarWidth, mPos.y + 4, 8,
 					mSize.y - 8, 3);
 		ctx.fillPaint(paint);
 		ctx.fill;
 
+		// scroll button
 		paint = ctx.boxGradient(
-			mPos.x + mSize.x - 12 - 1,
-			mPos.y + 4 + (mSize.y - 8 - scrollh) * mScroll - 1, 8, scrollh,
-			3, 4, Color(220, 220, 220, 100), Color(128, 128, 128, 100));
+			mPos.x + mSize.x - ScrollBarWidth - 1,
+			mPos.y + 4 + scroll.y - 1, 8, scroll.h,
+			3, 4, Color(220, 220, 220, 200), Color(128, 128, 128, 200));
 
 		ctx.beginPath;
 		ctx.roundedRect(
-			mPos.x + mSize.x - 12 + 1,
-			mPos.y + 4 + 1 + (mSize.y - 8 - scrollh) * mScroll, 8 - 2,
-			scrollh - 2, 2);
+			mPos.x + mSize.x - ScrollBarWidth + 1,
+			mPos.y + 4 + 1 + scroll.y, 8 - 2,
+			scroll.h - 2, 2);
 		ctx.fillPaint(paint);
 		ctx.fill;
 	}
-	// override void save(Serializer &s) const;
-	// override bool load(Serializer &s);
+
+// // Saves this TreeView to the specified Serializer.
+//override void save(Serializer &s) const;
+
+// // Loads the state of the specified Serializer to this TreeView.
+//override bool load(Serializer &s);
+
 protected:
-	int mChildPreferredHeight;
-	float mScroll;
-	bool mUpdateLayout;
-	IListImplementor list_implementor;
+
+	static struct ScrollButtonSize
+	{
+		float y; // y position of the scroll button
+		float h; // height of the scroll button
+	}
+
+	import nanogui.experimental.utils : makeModel, visit, visitForward, TreePath;
+
+	enum ScrollBarWidth = 8;
+	Data _data;
+	typeof(makeModel(_data)) _model;
+	RelativeMeasurer rm;
+
+	// sequence of indices to get access to current element of current treeview
+	TreePath tree_path;
+
+	double mScroll;
+	bool mPushed;
+
+	// y coordinate of first item
+	size_t _scroll_position;
+	size_t _start_item;
+	size_t _finish_item;
+	// y coordinate of the widget in space of first item
+	size_t _shift;
+	// if model size should be recalculated
+	bool _model_changed;
+	// if mouse left button has been pressed and not released over scroll button
+	bool _pushed_scroll_btn;
 }
 
-/// Convert given range of List height to corresponding items indices
-private auto heightToItemIndex(R)(R data, double start, double delta, double spacing, ref size_t start_index, ref size_t last_index, double e0)
+// This visitor renders the current visible elements
+private struct RenderingVisitor
 {
-	const N = data.length;
-	size_t idx = start_index;
-	assert(delta >= 0);
+	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath;
+	import aux.model;
 
-	if (e0 > start)
+	NanoContext ctx;
+	DefaultVisitorImpl!(TreePathEnabled.yes) default_visitor;
+	alias default_visitor this;
+
+	TreePath selected_item;
+	float finish;
+
+	typeof(ctx.orientation) old_orientation;
+	double old_x;
+
+	this(ref NanoContext ctx)
 	{
-		assert(0 <= idx && idx < N);
-		for(; idx > 0; idx--)
+		this.ctx = ctx;
+	}
+
+	bool complete()
+	{
+		return ctx.position.y > finish;
+	}
+
+	void indent()
+	{
+		ctx.indent;
+	}
+
+	void unindent()
+	{
+		ctx.unindent;
+	}
+
+	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		ctx.save;
+		scope(exit) ctx.restore;
+		version(none)
 		{
-			if (e0 - data[idx-1].size.y - spacing <= start &&
-				e0 > start)
+			ctx.strokeWidth(1.0f);
+			ctx.beginPath;
+			ctx.rect(ctx.position.x + 1.0f, ctx.position.y + 1.0f, ctx.size.x - 2, model.size-2);
+			ctx.strokeColor(Color(255, 0, 0, 255));
+			ctx.stroke;
+		}
+
+		static import nanogui.layout;
+		static if (is(typeof(model.orientation)))
+		{
+			old_orientation = ctx.orientation;
+			old_x = ctx.position.x;
+			ctx.orientation = cast(nanogui.layout.Orientation)(cast(int) model.orientation);
+		}
+
+		const shift = 1.6f * ctx.size.y;
+		if (ctx.orientation == nanogui.layout.Orientation.Vertical)
+		{
+			// background for icon
+			NVGPaint bg = ctx.boxGradient(
+				ctx.position.x + 1.5f, ctx.position.y + 1.5f,
+				ctx.size[ctx.orientation] - 2.0f, ctx.size[ctx.orientation] - 2.0f, 3, 3,
+				true/*pushed*/ ? Color(0, 0, 0, 100) : Color(0, 0, 0, 32),
+				Color(0, 0, 0, 180)
+			);
+
+			ctx.beginPath;
+			ctx.roundedRect(ctx.position.x + 1.0f, ctx.position.y + 1.0f,
+				ctx.size[ctx.orientation] - 2.0f, ctx.size[ctx.orientation] - 2.0f, 3);
+			ctx.fillPaint(bg);
+			ctx.fill;
+
+			// icon
+			ctx.fontSize(ctx.size.y);
+			ctx.fontFace("icons");
+			ctx.fillColor(model.enabled ? ctx.theme.mIconColor
+			                            : ctx.theme.mDisabledTextColor);
+			NVGTextAlign algn;
+			algn.center = true;
+			algn.middle = true;
+			ctx.textAlign(algn);
+
+			import nanogui.entypo : Entypo;
+			int axis2 = (cast(int)ctx.orientation+1)%2;
+			const old = ctx.size[axis2];
+			ctx.size[axis2] = ctx.size[ctx.orientation]; // icon has width equals to its height
+			dchar[1] symb;
+			symb[0] = model.collapsed ? Entypo.ICON_CHEVRON_RIGHT :
+			                            Entypo.ICON_CHEVRON_DOWN;
+			if (drawItem(ctx, symb[]))
+				selected_item = tree_path;
+			ctx.size[axis2] = old; // restore full width
+			ctx.position[ctx.orientation] -= ctx.size[ctx.orientation];
+
+			ctx.position.x += shift;
+			ctx.size.x -= shift;
+		}
+
+		{
+			// Caption
+			ctx.fontSize(ctx.size.y);
+			ctx.fontFace("sans");
+			ctx.fillColor(model.enabled ? ctx.theme.mTextColor : ctx.theme.mDisabledTextColor);
+
+			import nanogui.experimental.utils : hasRenderHeader;
+			static if (hasRenderHeader!data)
 			{
-				start_index = idx-1;
-				e0 -= data[idx-1].size.y + spacing;
-				break;
+				import aux.model : FixedAppender;
+				FixedAppender!512 app;
+				data.renderHeader(app);
+				auto header = app[];
 			}
 			else
-			{
-				e0 -= data[idx-1].size.y + spacing;
-			}
+				auto header = Data.stringof;
+			auto old = ctx.size[ctx.orientation];
+			ctx.size[ctx.orientation] = model.header_size;
+			if (drawItem(ctx, header))
+				selected_item = tree_path;
+			ctx.size[ctx.orientation] = old;
 		}
-	}
-	else
-	{
-		idx = start_index;
-		for(; idx < N; idx++)
+
+		if (ctx.orientation == nanogui.layout.Orientation.Vertical)
 		{
-			if (e0 <= start && e0 + data[idx].size.y + spacing > start)
-			{
-				start_index = idx;
-				break;
-			}
-			else
-			{
-				e0 += data[idx].size.y + spacing;
-			}
+			ctx.position.x -= shift;
+			ctx.size.x += shift;
 		}
-		assert(0 <= idx);
-		assert(idx <= N);
-		assert(
-			(e0 <= start && idx == data.length) ||
-			(e0 <= start && (e0 + data[idx].size.y + spacing) > start) || 
-			(idx == N /*&& e0 == E*/)
-		);
 	}
 
-	if (idx == N)
+	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		// assert(e0 == E);
-		start_index = N - 1;
-		last_index = N;
-		return cast(size_t) e0; // start (and finish too) is beyond the last index
-	}
+		if (model.orientation == Orientation.Horizontal)
+			ctx.position.y += ctx.size.y + model.Spacing;
 
-	auto e1 = e0;
-	last_index = 0;
-
-	for(; idx < N; idx++)
-	{
-		if (e1 > start + delta)
+		static if (is(typeof(model.orientation)))
 		{
-			last_index = idx + 1;
-			break;
+			ctx.orientation = old_orientation;
+			ctx.position.x = old_x;
 		}
-		else
-			e1 += data[idx].size.y + spacing;
 	}
 
-	if (idx == data.length)
-		last_index = idx; // start is before and finish is beyond the last index
+	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		ctx.save;
+		scope(exit) ctx.restore;
+		version(none)
+		{
+			ctx.strokeWidth(1.0f);
+			ctx.beginPath;
+			ctx.rect(ctx.position.x + 1.0f, ctx.position.y + 1.0f, ctx.size.x - 2, model.size - 2);
+			ctx.strokeColor(Color(255, 0, 0, 255));
+			ctx.stroke;
+		}
+		ctx.fontSize(ctx.size.y);
+		ctx.fontFace("sans");
+		ctx.fillColor(ctx.theme.mTextColor);
+		auto old = ctx.size[ctx.orientation];
+		ctx.size[ctx.orientation] = model.size;
+		if (drawItem(ctx, data))
+			selected_item = tree_path;
+		ctx.size[ctx.orientation] = old;
+	}
+}
 
-	return cast(size_t) e0;
+// This visitor updates current path to the first visible element
+struct RelativeMeasurer
+{
+	import aux.model;
+
+	alias DefVisitor = DefaultVisitorImpl!(TreePathEnabled.yes);
+	DefVisitor default_visitor;
+	alias default_visitor this;
 }

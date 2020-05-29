@@ -120,7 +120,6 @@ protected:
     /// Internal helper function for drawing the widget border
     void drawWidgetBorder(NanoContext ctx) const
 	{
-		// import arsd.nanovega;
 		ctx.beginPath;
 		ctx.strokeWidth(1.0f);
 		ctx.roundedRect(mPos.x - 0.5f, mPos.y - 0.5f,

@@ -4,7 +4,7 @@ module nanogui.screen;
 import std.algorithm : min;
 import std.experimental.logger : Logger;
 
-import arsd.nanovega;
+import nanogui.nanovega;
 public import gfm.math : vec2i;
 
 import nanogui.widget : Widget;
@@ -41,7 +41,7 @@ class Screen : Widget
 
 	override void draw(ref NanoContext ctx)
 	{
-		import arsd.simpledisplay;
+		import gfm.opengl;
 
 		// draw GLCanvas widgets to textures
 		foreach(glcanvas; mGLCanvases[])
@@ -128,7 +128,7 @@ class Screen : Widget
 				mTooltipShown = (alpha > threshold - 0.01) ? true : false;
 
 				ctx.beginPath;
-				ctx.fillColor(Color(0, 0, 0, 255));
+				ctx.fillColor(nvgRGBA(0, 0, 0, 255));
 				ctx.roundedRect(bounds[0] - 4 - h, bounds[1] - 4,
 							   cast(int) (bounds[2] - bounds[0]) + 8,
 							   cast(int) (bounds[3] - bounds[1]) + 8, 3);
@@ -139,7 +139,7 @@ class Screen : Widget
 				ctx.lineTo(px - 7, bounds[1] + 1);
 				ctx.fill();
 
-				ctx.fillColor(Color(255, 255, 255, 255));
+				ctx.fillColor(nvgRGBA(255, 255, 255, 255));
 				ctx.fontBlur(0.0f);
 				ctx.textBox(pos.x - h, pos.y, tooltipWidth,
 						   widget.tooltip);
@@ -395,9 +395,11 @@ class Screen : Widget
 	/// Return the ratio between pixel and device coordinates (e.g. >= 2 on Mac Retina displays)
 	float pixelRatio() const { return mPixelRatio; }
 
-	bool needToDraw() const pure @safe nothrow { return mNeedToDraw; }
-	bool needToPerfomLayout() const pure @safe nothrow { return mNeedToPerfomLayout; }
-	void needToPerfomLayout(bool value) pure @safe nothrow { mNeedToPerfomLayout = value; }
+	package bool needToDraw() const pure @safe nothrow { return mNeedToDraw; }
+	// TODO add package qualifier at least but better to remove it completely
+	void needToDraw(bool value) pure @safe nothrow { if (value) mNeedToDraw = value; }
+	package bool needToPerfomLayout() const pure @safe nothrow { return mNeedToPerfomLayout; }
+	package void needToPerfomLayout(bool value) pure @safe nothrow { if (value) mNeedToPerfomLayout = value; }
 	package bool blinkingCursorIsVisibleNow() const pure @safe nothrow { return mBlinkingCursorVisible; }
 
     package void resetBlinkingCursor() @safe

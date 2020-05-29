@@ -2,13 +2,23 @@
 	"fileVersion": 1,
 	"versions": {
 		"arsd-official": "5.3.8",
+		"automem": "0.6.1",
+		"aux": {"path":"../../aux"},
+		"bindbc-freetype": "0.8.0",
+		"bindbc-loader": "0.2.1",
+		"bindbc-opengl": "0.12.0",
 		"derelict-gl3": "2.0.0-beta.8",
 		"derelict-sdl2": "3.1.0-alpha.4",
 		"derelict-util": "3.0.0-beta.2",
 		"gfm": "8.0.3",
 		"gfm7": "1.0.0",
 		"intel-intrinsics": "1.2.2",
+		"localimport": "1.3.0",
 		"nanogui": {"path":"../.."},
-		"resusage": "0.2.8"
+		"nogc": "0.5.0",
+		"resusage": "0.2.8",
+		"taggedalgebraic": "0.11.9",
+		"test_allocator": "0.3.2",
+		"unit-threaded": "0.10.7"
 	}
 }
