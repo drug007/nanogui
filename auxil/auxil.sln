@@ -1,0 +1,48 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "auxil", ".dub\auxil.visualdproj", "{C6909E8E-10B3-4722-853F-7B4983E6D655}"
+EndProject
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "automem", ".dub\automem.visualdproj", "{D72590BC-67D0-4BFD-9848-966C8A13533F}"
+EndProject
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "nogc", ".dub\nogc.visualdproj", "{149DF732-633E-4EB0-A604-2716B6D0550C}"
+EndProject
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "localimport", ".dub\localimport.visualdproj", "{EA2D2797-9167-45A7-8CD3-FD5F350AC99A}"
+EndProject
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "taggedalgebraic", ".dub\taggedalgebraic.visualdproj", "{75066E25-3C0F-40C2-8C6E-AB49BCFADBAC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		debug|x64 = debug|x64
+		test|x64 = test|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C6909E8E-10B3-4722-853F-7B4983E6D655}.debug|x64.ActiveCfg = debug|x64
+		{C6909E8E-10B3-4722-853F-7B4983E6D655}.debug|x64.Build.0 = debug|x64
+		{C6909E8E-10B3-4722-853F-7B4983E6D655}.test|x64.ActiveCfg = test|x64
+		{C6909E8E-10B3-4722-853F-7B4983E6D655}.test|x64.Build.0 = test|x64
+		{D72590BC-67D0-4BFD-9848-966C8A13533F}.debug|x64.ActiveCfg = debug|x64
+		{D72590BC-67D0-4BFD-9848-966C8A13533F}.debug|x64.Build.0 = debug|x64
+		{D72590BC-67D0-4BFD-9848-966C8A13533F}.test|x64.ActiveCfg = debug|x64
+		{D72590BC-67D0-4BFD-9848-966C8A13533F}.test|x64.Build.0 = debug|x64
+		{149DF732-633E-4EB0-A604-2716B6D0550C}.debug|x64.ActiveCfg = debug|x64
+		{149DF732-633E-4EB0-A604-2716B6D0550C}.debug|x64.Build.0 = debug|x64
+		{149DF732-633E-4EB0-A604-2716B6D0550C}.test|x64.ActiveCfg = debug|x64
+		{149DF732-633E-4EB0-A604-2716B6D0550C}.test|x64.Build.0 = debug|x64
+		{EA2D2797-9167-45A7-8CD3-FD5F350AC99A}.debug|x64.ActiveCfg = debug|x64
+		{EA2D2797-9167-45A7-8CD3-FD5F350AC99A}.debug|x64.Build.0 = debug|x64
+		{EA2D2797-9167-45A7-8CD3-FD5F350AC99A}.test|x64.ActiveCfg = debug|x64
+		{EA2D2797-9167-45A7-8CD3-FD5F350AC99A}.test|x64.Build.0 = debug|x64
+		{75066E25-3C0F-40C2-8C6E-AB49BCFADBAC}.debug|x64.ActiveCfg = debug|x64
+		{75066E25-3C0F-40C2-8C6E-AB49BCFADBAC}.debug|x64.Build.0 = debug|x64
+		{75066E25-3C0F-40C2-8C6E-AB49BCFADBAC}.test|x64.ActiveCfg = debug|x64
+		{75066E25-3C0F-40C2-8C6E-AB49BCFADBAC}.test|x64.Build.0 = debug|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8EEDD8B2-ABA1-4434-BE43-8DC565ACB0EC}
+	EndGlobalSection
+EndGlobal
