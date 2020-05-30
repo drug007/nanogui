@@ -1092,7 +1092,7 @@ mixin template visitImpl()
 					static if (Bubbling)
 					{
 						visitor.position[visitor.orientation] += (visitor.orientation == Orientation.Vertical) ?
-							-visitor.size[visitor.orientation] - this.Spacing : 0;
+							-header_size : 0;
 					}
 
 					debug logger.tracef("[ finish leaveNode] model: %s visitor: %s", orientation, visitor.orientation);
