@@ -944,64 +944,39 @@ struct ScalarModel(alias A)
 				}
 			}
 
-			debug logger.tracef(" [ after complete ] pos: %s\tdeferred: %s", visitor.position, visitor.deferred_change);
+			debug logger.tracef(" [ after complete ] pos: %s", visitor.position);
 			debug logger.tracef(" [ after complete ] path: %s path position: %s", visitor.path, visitor.path_position);
 
 			if (Sinking && visitor.state.among(visitor.State.first, visitor.State.rest))
 			{
-				// (+) position change (sinking)
-				visitor.position[] += visitor.deferred_change[];
-				visitor.deferred_change[] = 0;
-				debug logger.tracef("[before enterNode ] position (S) pos: %s\tdeferred: %s", visitor.position, visitor.deferred_change);
-			}
+				visitor.processLeaf!(order, Data)(data, this);
 
-			if (visitor.state.among(visitor.State.first, visitor.State.rest))
-			{
-				static if (Sinking)
+				visitor.position[visitor.orientation] += (visitor.orientation == Orientation.Vertical) ? header_size : this.size;
+				debug logger.tracef("[ finish processLeaf] pos: %s dest: %s", visitor.position, visitor.destination);
+				with(visitor) if (position[visitor.orientation] > dest)
 				{
-					visitor.processLeaf!(order, Data)(data, this);
-
-					// (+) deferred_change setup (sinking)
-					visitor.deferred_change[visitor.orientation] = (visitor.orientation == Orientation.Vertical) ? header_size : this.size;
-					debug logger.tracef("[ finish processLeaf] deferred (S) dfr: %s\t%s", visitor.deferred_change, visitor.orientation);
-					debug logger.tracef("[ finish processLeaf] pos: %s dest: %s", visitor.position, visitor.destination);
-					with(visitor) if (pos+deferred_change[visitor.orientation] > dest)
-					{
-						state = State.finishing;
-						path = tree_path;
-						path_position = position[visitor.orientation];
-					}
+					state = State.finishing;
+					path = tree_path;
+					path_position = position[visitor.orientation];
 				}
 			}
 
 			scope(exit)
 			{
-				if (Bubbling && visitor.state.among(visitor.State.first, visitor.State.rest))
-				{
-					// (+) position change (bubbling)
-					visitor.position[] += visitor.deferred_change[];
-					debug logger.tracef("[    processLeaf  ] pos: %s, deferred: %s", visitor.position, visitor.deferred_change);
-					visitor.deferred_change = 0;
-				}
-
 				static if (Bubbling)
 					visitor.processLeaf!order(data, this);
 
 				if (visitor.state.among(visitor.State.first, visitor.State.rest))
 				{
 					static if (Bubbling)
-					{
-						// (+) deferred_change setup (bubbling)
-						visitor.deferred_change[visitor.orientation] = (visitor.orientation == Orientation.Vertical) ? -header_size : -this.size;
-						visitor.deferred_change[visitor.orientation.nextAxis] = 0;
-					}
+						visitor.position[visitor.orientation] += (visitor.orientation == Orientation.Vertical) ? -header_size : -this.size;
 
-					debug logger.tracef("[   finish leaf   ] deferred dfr: %s model: %s visitor: %s", visitor.deferred_change, orientation, visitor.orientation);
+					debug logger.tracef("[   finish leaf   ] model: %s visitor: %s", orientation, visitor.orientation);
 					debug logger.tracef("[   finish leaf   ] pos: %s dest: %s", visitor.position, visitor.destination);
 
 					with(visitor) if (
-						(Sinking  && pos+deferred_change[visitor.orientation]  > dest) ||
-						(Bubbling && pos                                      <= dest)
+						(Sinking  && position[visitor.orientation]  > dest) ||
+						(Bubbling && position[visitor.orientation] <= dest)
 					) {
 						state = State.finishing;
 						path = tree_path;
@@ -1009,7 +984,7 @@ struct ScalarModel(alias A)
 					}
 				}
 
-				debug logger.tracef(" [   after leaf   ] pos: %s deferred: %s", visitor.position, visitor.deferred_change);
+				debug logger.tracef(" [   after leaf   ] pos: %s ", visitor.position);
 				debug logger.tracef(" [   after leaf   ] path: %s path position: %s", visitor.path, visitor.path_position);
 
 				debug logger.tracef(" [   after leaf   ] %s", typeof(this).stringof);
@@ -1059,9 +1034,6 @@ mixin template visitImpl()
 			return true;
 		}
 
-		const old_orientation = visitor.orientation;
-		visitor.orientation = this.orientation;
-
 		static if (hasTreePath)
 		{
 			import std.math : isNaN;
@@ -1086,20 +1058,8 @@ mixin template visitImpl()
 				}
 			}
 
-			debug logger.tracef(" [ after complete ] pos: %s\tdeferred: %s", visitor.position, visitor.deferred_change);
+			debug logger.tracef(" [ after complete ] pos: %s", visitor.position);
 			debug logger.tracef(" [ after complete ] path: %s path position: %s", visitor.path, visitor.path_position);
-
-			if (Sinking && visitor.state.among(visitor.State.first, visitor.State.rest))
-			{
-				// (+) position change (sinking)
-				visitor.position[] += visitor.deferred_change[];
-				visitor.deferred_change[] = 0;
-				debug logger.tracef("[before enterNode ] position (S) pos: %s\tdeferred: %s", visitor.position, visitor.deferred_change);
-			}
-
-			// store current position to restore it if the orientation
-			// changes
-			const old_position = visitor.position[orientation];
 
 			if (visitor.state.among(visitor.State.first, visitor.State.rest))
 			{
@@ -1107,11 +1067,10 @@ mixin template visitImpl()
 
 				static if (Sinking)
 				{
-					// (+) deferred_change setup (sinking)
-					visitor.deferred_change[visitor.orientation] = header_size;
-					debug logger.tracef("[ finish enterNode] deferred (S) dfr: %s\t%s", visitor.deferred_change, visitor.orientation);
+					visitor.position[visitor.orientation] += header_size;
+					debug logger.tracef("[ finish enterNode] %s", visitor.orientation);
 					debug logger.tracef("[ finish enterNode] pos: %s dest: %s", visitor.position, visitor.destination);
-					with(visitor) if (pos+deferred_change[visitor.orientation] > dest)
+					with(visitor) if (position[visitor.orientation] > dest)
 					{
 						state = State.finishing;
 						path = tree_path;
@@ -1122,48 +1081,22 @@ mixin template visitImpl()
 
 			scope(exit)
 			{
-				if (Bubbling && visitor.state.among(visitor.State.first, visitor.State.rest))
-				{
-					// (+) position change (bubbling)
-					visitor.position[] += visitor.deferred_change[];
-					debug logger.tracef("[       leaveNode ] pos: %s, deferred: %s", visitor.position, visitor.deferred_change);
-					visitor.deferred_change = 0;
-				}
-
 				visitor.leaveNode!order(data, this);
-
-				// restore parent orientation
-				visitor.orientation = old_orientation;
-
-				// (+) deferred_change setup (caret return)
-				if (this.orientation != visitor.orientation)
-				{
-					assert(!old_position.isNaN);
-
-					if (this.orientation == Orientation.Horizontal)
-						visitor.deferred_change = [0, visitor.size[Orientation.Vertical] + this.Spacing];
-					else
-						visitor.deferred_change[] = 0;
-					visitor.position[orientation] = old_position;
-					debug logger.tracef(" [restore position] model: %s, visitor: %s", this.orientation, visitor.orientation);
-				}
 
 				if (visitor.state.among(visitor.State.first, visitor.State.rest))
 				{
 					static if (Bubbling)
 					{
-						// (+) deferred_change setup (bubbling)
-						visitor.deferred_change[visitor.orientation] = (visitor.orientation == Orientation.Vertical) ?
+						visitor.position[visitor.orientation] += (visitor.orientation == Orientation.Vertical) ?
 							-visitor.size[visitor.orientation] - this.Spacing : 0;
-						visitor.deferred_change[visitor.orientation.nextAxis] = 0;
 					}
 
-					debug logger.tracef("[ finish leaveNode] deferred dfr: %s model: %s visitor: %s", visitor.deferred_change, orientation, visitor.orientation);
+					debug logger.tracef("[ finish leaveNode] model: %s visitor: %s", orientation, visitor.orientation);
 					debug logger.tracef("[ finish leaveNode] pos: %s dest: %s", visitor.position, visitor.destination);
 
 					with(visitor) if (
-						(Sinking  && pos+deferred_change[visitor.orientation]  > dest) ||
-						(Bubbling && pos                                      <= dest)
+						(Sinking  && position[visitor.orientation]  > dest) ||
+						(Bubbling && position[visitor.orientation] <= dest)
 					) {
 						state = State.finishing;
 						path = tree_path;
@@ -1171,7 +1104,7 @@ mixin template visitImpl()
 					}
 				}
 
-				debug logger.tracef(" [after leaveNode ] pos: %s deferred: %s", visitor.position, visitor.deferred_change);
+				debug logger.tracef(" [after leaveNode ] pos: %s", visitor.position);
 				debug logger.tracef(" [after leaveNode ] path: %s path position: %s", visitor.path, visitor.path_position);
 
 				debug logger.tracef(" [after leaveNode ] %s", typeof(this).stringof);
@@ -1181,12 +1114,7 @@ mixin template visitImpl()
 		{
 			visitor.enterNode!(order, Data)(data, this);
 			scope(exit)
-			{
 				visitor.leaveNode!order(data, this);
-
-				// restore parent orientation
-				visitor.orientation = old_orientation;
-			}
 		}
 
 		if (!this.collapsed)
@@ -1248,11 +1176,15 @@ mixin template visitImpl()
 					static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path: %s", visitor.tree_path.value[]); } ();
 					static if (hasTreePath) if (model[i].Collapsable)
 					{
-						const orientation_changed = (orientation != model[i].orientation);
-						const old = visitor.deferred_change[orientation];
-						// if orientation changed restore deferred_change to continue moving in previous
-						// direction
-						scope(exit) if (orientation_changed) visitor.deferred_change[orientation] = old;
+						const orientation_changed = (visitor.orientation != model[i].orientation);
+						const old_position = visitor.position[model[i].orientation];
+						scope(exit) if (orientation_changed)
+						{
+							assert(!old_position.isNaN);
+
+							visitor.position[model[i].orientation] = old_position;
+							debug logger.tracef(" [restore position] model[i]: %s, visitor: %s", model[i].orientation, visitor.orientation);
+						}
 					}
 					auto idx = getIndex!(Data)(this, i);
 					if (model[i].visit!order(data[idx], visitor))
@@ -1281,11 +1213,15 @@ mixin template visitImpl()
 							static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path: %s", visitor.tree_path.value[]); } ();
 							static if (hasTreePath && mixin("this." ~ member).Collapsable)
 							{
-								const orientation_changed = (orientation != mixin("this." ~ member).orientation);
-								const old = visitor.deferred_change[orientation];
-								// if orientation changed restore deferred_change to continue moving in previous
-								// direction
-								scope(exit) if (orientation_changed) visitor.deferred_change[orientation] = old;
+								const orientation_changed = (visitor.orientation !=  mixin("this." ~ member).orientation);
+								const old_position = visitor.position[ mixin("this." ~ member).orientation];
+								scope(exit) if (orientation_changed)
+								{
+									assert(!old_position.isNaN);
+
+									visitor.position[ mixin("this." ~ member).orientation] = old_position;
+									debug logger.tracef(" [restore position]  this.%s %s, visitor: %s", member, mixin("this." ~ member).orientation, visitor.orientation);
+								}
 							}
 							if (mixin("this." ~ member).visit!order(mixin("data." ~ member), visitor))
 							{
@@ -1524,7 +1460,6 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 	static if (Visitor.treePathEnabled)
 	{
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
-		visitor.deferred_change = 0;
 		if (visitor.path.value.length)
 		{
 			import std.math : isNaN;
@@ -1544,7 +1479,6 @@ void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, re
 	static if (Visitor.treePathEnabled)
 	{
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
-		visitor.deferred_change = 0;
 		if (visitor.path.value.length)
 		{
 			import std.math : isNaN;
@@ -1722,7 +1656,7 @@ struct DefaultVisitorImpl(
 		State state;
 		TreePath tree_path, path;
 		alias SizeType = double;
-		SizeType[2] position, deferred_change, destination;
+		SizeType[2] position, destination;
 		SizeType path_position;
 
 		@property
@@ -1741,7 +1675,7 @@ struct DefaultVisitorImpl(
 			state = State.seeking;
 			tree_path.clear;
 			path.clear;
-			position[] = deferred_change[] = 0;
+			position[] = 0;
 			destination[] = destination[0].nan;
 			orientation = Orientation.Vertical;
 		}
