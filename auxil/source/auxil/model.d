@@ -1071,7 +1071,8 @@ mixin template visitImpl()
 
 				static if (Sinking)
 				{
-					visitor.position[visitor.orientation] += header_size;
+					visitor.last_change = header_size;
+					visitor.position[visitor.orientation] += visitor.last_change;
 					debug logger.tracef("[ finish enterNode] %s", visitor.orientation);
 					debug logger.tracef("[ finish enterNode] pos: %s dest: %s", visitor.position, visitor.destination);
 					with(visitor) if (position[visitor.orientation] > dest)
@@ -1091,8 +1092,9 @@ mixin template visitImpl()
 				{
 					static if (Bubbling)
 					{
-						visitor.position[visitor.orientation] += (visitor.orientation == Orientation.Vertical) ?
+						visitor.last_change = (visitor.orientation == Orientation.Vertical) ?
 							-header_size : 0;
+						visitor.position[visitor.orientation] += visitor.last_change;
 					}
 
 					debug logger.tracef("[ finish leaveNode] model: %s visitor: %s", orientation, visitor.orientation);
@@ -1480,6 +1482,7 @@ void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, re
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
 		if (visitor.dest != visitor.dest)
 			visitor.dest = -1;
+		scope(exit) visitor.position[visitor.orientation] -= visitor.last_change;
 	}
 	visitor.enterTree!order(data, model);
 	model.visit!order(data, visitor);
@@ -1650,7 +1653,7 @@ struct DefaultVisitorImpl(
 		TreePath tree_path, path;
 		alias SizeType = double;
 		SizeType[2] position, destination;
-		SizeType path_position, last_change;
+		SizeType path_position, last_change = 0;
 
 		@property
 		{
