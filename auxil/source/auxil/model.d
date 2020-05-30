@@ -951,7 +951,8 @@ struct ScalarModel(alias A)
 			{
 				visitor.processLeaf!(order, Data)(data, this);
 
-				visitor.position[visitor.orientation] += (visitor.orientation == Orientation.Vertical) ? header_size : this.size;
+				visitor.last_change = (visitor.orientation == Orientation.Vertical) ? header_size : this.size;
+				visitor.position[visitor.orientation] += visitor.last_change;
 				debug logger.tracef("[ finish processLeaf] pos: %s dest: %s", visitor.position, visitor.destination);
 				with(visitor) if (position[visitor.orientation] > dest)
 				{
@@ -969,7 +970,10 @@ struct ScalarModel(alias A)
 				if (visitor.state.among(visitor.State.first, visitor.State.rest))
 				{
 					static if (Bubbling)
-						visitor.position[visitor.orientation] += (visitor.orientation == Orientation.Vertical) ? -header_size : -this.size;
+					{
+						visitor.last_change = (visitor.orientation == Orientation.Vertical) ? -header_size : -this.size;
+						visitor.position[visitor.orientation] += visitor.last_change;
+					}
 
 					debug logger.tracef("[   finish leaf   ] model: %s visitor: %s", orientation, visitor.orientation);
 					debug logger.tracef("[   finish leaf   ] pos: %s dest: %s", visitor.position, visitor.destination);
@@ -1641,7 +1645,7 @@ struct DefaultVisitorImpl(
 		TreePath tree_path, path;
 		alias SizeType = double;
 		SizeType[2] position, destination;
-		SizeType path_position;
+		SizeType path_position, last_change;
 
 		@property
 		{
