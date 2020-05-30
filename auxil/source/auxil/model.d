@@ -1460,14 +1460,6 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 	static if (Visitor.treePathEnabled)
 	{
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
-		if (visitor.path.value.length)
-		{
-			import std.math : isNaN;
-			assert(!visitor.path_position.isNaN);
-			visitor.position[visitor.orientation] = visitor.path_position;
-		}
-		else if (visitor.position[visitor.orientation] != visitor.position[visitor.orientation])
-			visitor.position[visitor.orientation] = 0;
 	}
 	visitor.enterTree!order(data, model);
 	model.visit!order(data, visitor);
@@ -1479,14 +1471,6 @@ void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, re
 	static if (Visitor.treePathEnabled)
 	{
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
-		if (visitor.path.value.length)
-		{
-			import std.math : isNaN;
-			assert(!visitor.path_position.isNaN);
-			visitor.position[visitor.orientation] = visitor.path_position;
-		}
-		else if (visitor.position[visitor.orientation] != visitor.position[visitor.orientation])
-			visitor.position[visitor.orientation] = 0;
 	}
 	visitor.enterTree!order(data, model);
 	model.visit!order(data, visitor);
