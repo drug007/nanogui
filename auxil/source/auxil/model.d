@@ -1464,6 +1464,7 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 	static if (Visitor.treePathEnabled)
 	{
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
+		scope(exit) visitor.position[visitor.orientation] -= visitor.last_change;
 	}
 	visitor.enterTree!order(data, model);
 	model.visit!order(data, visitor);
