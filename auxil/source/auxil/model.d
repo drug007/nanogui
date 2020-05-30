@@ -1223,15 +1223,9 @@ mixin template visitImpl()
 			{
 				if (visitor.state.among(visitor.State.seeking, visitor.State.first))
 				{
-					auto idx = visitor.tree_path.value.length;
-					if (idx && visitor.path.value.length >= idx)
-					{
-						start_value = visitor.path.value[idx-1];
-						// position should change only if we've got the initial path
-						// and don't get the end
-						// (+) deferred_change setup (seeking)
-						if (visitor.state == visitor.State.seeking) visitor.deferred_change[] = 0;
-					}
+					auto l = visitor.tree_path.value.length;
+					if (l && visitor.path.value.length >= l)
+						start_value = visitor.path.value[l-1];
 				}
 			}
 
