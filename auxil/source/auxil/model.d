@@ -1266,8 +1266,6 @@ mixin template visitImpl()
 						return true;
 					}
 				}
-				if (visitor.orientation == Orientation.Horizontal)
-					visitor.size = vs;
 			}
 			else static if (dataHasAggregateModel!Data)
 			{
@@ -1311,9 +1309,10 @@ mixin template visitImpl()
 					default:
 						assert(0);
 				}
-				if (visitor.orientation == Orientation.Horizontal)
-					visitor.size = vs;
+
 			}
+			if (visitor.orientation == Orientation.Horizontal)
+				visitor.size = vs;
 		}
 
 		return false;
