@@ -264,12 +264,11 @@ unittest
 			PositionState("processLeaf ScalarModel!(a) ",    [0], [0, 10]), 
 			PositionState("processLeaf ScalarModel!(b) ",    [1], [0, 20]), 
 			PositionState("processLeaf ScalarModel!(c) ",    [2], [0, 30]), 
-			PositionState("leaveNode   AggregateModel!(V) ", [],  [0, 30])
+			PositionState("leaveNode   AggregateModel!(V) ", [],  [0, 40])
 		];
 
 		rv = RenderVisitor(120, 9, Orientation.Vertical);
-		rv.position = 0;
-		rv.path_position = 50;
+		rv.position = [0, 50];
 		rv.path.value = [0];
 		debug logger.trace("------ RenderVisitor V ---------------------");
 		model.visitForward(data, rv);
@@ -279,7 +278,7 @@ unittest
 			PositionState("processLeaf ScalarModel!(a) ",    [0], [0, 50]), 
 			PositionState("processLeaf ScalarModel!(b) ",    [1], [0, 60]), 
 			PositionState("processLeaf ScalarModel!(c) ",    [2], [0, 70]), 
-			PositionState("leaveNode   AggregateModel!(V) ", [],  [0, 70])
+			PositionState("leaveNode   AggregateModel!(V) ", [],  [0, 80])
 		];
 	}
 	{
@@ -310,11 +309,11 @@ unittest
 		model.visitForward(data, rv);
 
 		rv.output_position[].should.be == [
-			PositionState("enterNode   AggregateModel!(H) ", [],  [ 0.0000, 0]), 
-			PositionState("processLeaf ScalarModel!(a) ",    [0], [ 0.0000, 0]), 
-			PositionState("processLeaf ScalarModel!(b) ",    [1], [40.3333, 0]), 
-			PositionState("processLeaf ScalarModel!(c) ",    [2], [80.6667, 0]), 
-			PositionState("leaveNode   AggregateModel!(H) ", [],  [80.6667, 0])
+			PositionState("enterNode   AggregateModel!(H) ", [],  [  0.0000, 0]), 
+			PositionState("processLeaf ScalarModel!(a) ",    [0], [  0.0000, 0]), 
+			PositionState("processLeaf ScalarModel!(b) ",    [1], [ 40.3333, 0]), 
+			PositionState("processLeaf ScalarModel!(c) ",    [2], [ 80.6667, 0]), 
+			PositionState("leaveNode   AggregateModel!(H) ", [],  [121.0000, 0])
 		];
 	}
 	{
@@ -352,7 +351,7 @@ unittest
 			PositionState("enterNode   AggregateModel!(h) ",  [1], [0, 20]), 
 			PositionState("leaveNode   AggregateModel!(h) ",  [1], [0, 20]), 
 			PositionState("processLeaf ScalarModel!(b) ",     [2], [0, 30]), 
-			PositionState("leaveNode   AggregateModel!(VH) ", [],  [0, 30]),
+			PositionState("leaveNode   AggregateModel!(VH) ", [],  [0, 40]),
 		];
 
 		mv = MeasureVisitor2(120, 9);
@@ -390,15 +389,15 @@ unittest
 		debug logger.trace("--------------------------------------------");
 
 		rv.output_position[].should.be == [
-			PositionState("enterNode   AggregateModel!(VH) ", [],     [ 0.0000, 0]), 
-			PositionState("processLeaf ScalarModel!(a) ",     [0],    [ 0.0000, 10]), 
-			PositionState("enterNode   AggregateModel!(h) ",  [1],    [ 0.0000, 20]), 
-			PositionState("processLeaf ScalarModel!(a) ",     [1, 0], [ 0.0000, 20]), 
-			PositionState("processLeaf ScalarModel!(b) ",     [1, 1], [40.3333, 20]), 
-			PositionState("processLeaf ScalarModel!(c) ",     [1, 2], [80.6667, 20]), 
-			PositionState("leaveNode   AggregateModel!(h) ",  [1],    [80.6667, 20]), 
-			PositionState("processLeaf ScalarModel!(b) ",     [2],    [ 0.0000, 30]), 
-			PositionState("leaveNode   AggregateModel!(VH) ", [],     [ 0.0000, 30]),
+			PositionState("enterNode   AggregateModel!(VH) ", [],     [  0.0000, 0]), 
+			PositionState("processLeaf ScalarModel!(a) ",     [0],    [  0.0000, 10]), 
+			PositionState("enterNode   AggregateModel!(h) ",  [1],    [  0.0000, 20]), 
+			PositionState("processLeaf ScalarModel!(a) ",     [1, 0], [  0.0000, 20]), 
+			PositionState("processLeaf ScalarModel!(b) ",     [1, 1], [ 40.3333, 20]), 
+			PositionState("processLeaf ScalarModel!(c) ",     [1, 2], [ 80.6667, 20]), 
+			PositionState("leaveNode   AggregateModel!(h) ",  [1],    [121.0000, 20]), 
+			PositionState("processLeaf ScalarModel!(b) ",     [2],    [  0.0000, 30]), 
+			PositionState("leaveNode   AggregateModel!(VH) ", [],     [  0.0000, 40]),
 		]; 
 	}
 	{
@@ -437,12 +436,12 @@ unittest
 		<-HV.a: 40.3333-><-HV.v: 40.333-><-HV.b: 40.3333-> // 40.3333 = 121/3.0
 		*/
 		rv.output_position[].should.be == [
-			PositionState("enterNode   AggregateModel!(HV) ", [],  [ 0, 0]), 
-			PositionState("processLeaf ScalarModel!(a) ",     [0], [ 0, 0]), 
-			PositionState("enterNode   AggregateModel!(v) ",  [1], [40.3333, 0]), 
-			PositionState("leaveNode   AggregateModel!(v) ",  [1], [40.3333, 0]), 
-			PositionState("processLeaf ScalarModel!(b) ",     [2], [80.6667, 0]), 
-			PositionState("leaveNode   AggregateModel!(HV) ", [],  [80.6667, 0]),
+			PositionState("enterNode   AggregateModel!(HV) ", [],  [  0, 0]), 
+			PositionState("processLeaf ScalarModel!(a) ",     [0], [  0, 0]), 
+			PositionState("enterNode   AggregateModel!(v) ",  [1], [ 40.3333, 0]), 
+			PositionState("leaveNode   AggregateModel!(v) ",  [1], [ 40.3333, 10]), 
+			PositionState("processLeaf ScalarModel!(b) ",     [2], [ 80.6667, 0]), 
+			PositionState("leaveNode   AggregateModel!(HV) ", [],  [121.0000, 0]),
 		];
 
 		model.size.should.be == 121;
@@ -495,15 +494,15 @@ unittest
 		                 \/               \/
 		*/
 		rv.output_position[].should.be == [
-			PositionState("enterNode   AggregateModel!(HV) ", [],     [ 0.0000,  0]), 
-			PositionState("processLeaf ScalarModel!(a) ",     [0],    [ 0.0000,  0]), 
-			PositionState("enterNode   AggregateModel!(v) ",  [1],    [40.3333,  0]), 
-			PositionState("processLeaf ScalarModel!(a) ",     [1, 0], [40.3333, 10]), 
-			PositionState("processLeaf ScalarModel!(b) ",     [1, 1], [40.3333, 20]), 
-			PositionState("processLeaf ScalarModel!(c) ",     [1, 2], [40.3333, 30]), 
-			PositionState("leaveNode   AggregateModel!(v) ",  [1],    [40.3333, 30]), 
-			PositionState("processLeaf ScalarModel!(b) ",     [2],    [80.6667,  0]), 
-			PositionState("leaveNode   AggregateModel!(HV) ", [],     [80.6667,  0]),
+			PositionState("enterNode   AggregateModel!(HV) ", [],     [  0.0000,  0]), 
+			PositionState("processLeaf ScalarModel!(a) ",     [0],    [  0.0000,  0]), 
+			PositionState("enterNode   AggregateModel!(v) ",  [1],    [ 40.3333,  0]), 
+			PositionState("processLeaf ScalarModel!(a) ",     [1, 0], [ 40.3333, 10]), 
+			PositionState("processLeaf ScalarModel!(b) ",     [1, 1], [ 40.3333, 20]), 
+			PositionState("processLeaf ScalarModel!(c) ",     [1, 2], [ 40.3333, 30]), 
+			PositionState("leaveNode   AggregateModel!(v) ",  [1],    [ 40.3333, 40]), 
+			PositionState("processLeaf ScalarModel!(b) ",     [2],    [ 80.6667,  0]), 
+			PositionState("leaveNode   AggregateModel!(HV) ", [],     [121.0000,  0]),
 		];
 	}
 	{
@@ -581,11 +580,11 @@ unittest
 			PositionState("processLeaf ScalarModel!(a) ",       [1, 1, 0], [ 53.7778, 10]), 
 			PositionState("processLeaf ScalarModel!(b) ",       [1, 1, 1], [ 53.7778, 20]), 
 			PositionState("processLeaf ScalarModel!(c) ",       [1, 1, 2], [ 53.7778, 30]), 
-			PositionState("leaveNode   AggregateModel!(v) ",    [1, 1],    [ 53.7778, 30]), 
+			PositionState("leaveNode   AggregateModel!(v) ",    [1, 1],    [ 53.7778, 40]), 
 			PositionState("processLeaf ScalarModel!(b) ",       [1, 2],    [ 67.2223,  0]), 
-			PositionState("leaveNode   AggregateModel!(hv) ",   [1],       [ 67.2223,  0]), 
+			PositionState("leaveNode   AggregateModel!(hv) ",   [1],       [ 80.6667,  0]), 
 			PositionState("processLeaf ScalarModel!(b) ",       [2],       [ 80.6667,  0]), 
-			PositionState("leaveNode   AggregateModel!(HVHV) ", [],        [ 80.6667,  0]),
+			PositionState("leaveNode   AggregateModel!(HVHV) ", [],        [121.0000,  0]),
 		];
 	}
 }
