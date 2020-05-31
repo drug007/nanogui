@@ -1372,6 +1372,8 @@ unittest
 		TreePosition([3], [0, 40]),
 	];
 
+	visitor.path.value = [1,];
+	visitor.position[visitor.orientation] = 20;
 	model.visitBackward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([1], [0, 20]),
