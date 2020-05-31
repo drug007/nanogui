@@ -1364,7 +1364,7 @@ unittest
 	];
 
 	visitor.path.value = [1,];
-	visitor.path_position = 20;
+	visitor.position[visitor.orientation] = 20;
 	model.visitForward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([1], [0, 20]),
@@ -1460,8 +1460,8 @@ unittest
 
 	{
 		visitor.path.value = [0];
-		visitor.path_position = 130;
-		visitor.dest = visitor.path_position + 20;
+		visitor.position[visitor.orientation] = 130;
+		visitor.destination[visitor.orientation] = visitor.position[visitor.orientation] + 20;
 		model.visitForward(data, visitor);
 		visitor.output.should.be == [
 			TreePosition([0], [0, 130]),
@@ -1472,8 +1472,8 @@ unittest
 	}
 
 	visitor.path.value = [2];
-	visitor.path_position = 30;
-	visitor.dest = visitor.dest.nan;
+	visitor.position[visitor.orientation] = 30;
+	visitor.destination[visitor.orientation] = visitor.dest.nan;
 	model.visitForward(data, visitor);
 
 	visitor.output.should.be == [
