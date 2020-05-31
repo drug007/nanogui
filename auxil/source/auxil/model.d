@@ -1192,6 +1192,11 @@ mixin template visitImpl()
 
 							visitor.position[model[i].orientation] = old_position;
 							debug logger.tracef(" [restore position] model[i]: %s, visitor: %s", model[i].orientation, visitor.orientation);
+							const delta = (old_orientation == Orientation.Vertical) ? header_size : size;
+							static if (Sinking) 
+								visitor.position[old_orientation] += delta;
+							else
+								visitor.position[old_orientation] -= delta;
 						}
 					}
 					auto idx = getIndex!(Data)(this, i);
@@ -1232,6 +1237,11 @@ mixin template visitImpl()
 
 									visitor.position[ mixin("this." ~ member).orientation] = old_position;
 									debug logger.tracef(" [restore position]  this.%s %s, visitor: %s", member, mixin("this." ~ member).orientation, visitor.orientation);
+									const delta = (old_orientation == Orientation.Vertical) ? header_size : size;
+									static if (Sinking) 
+										visitor.position[old_orientation] += delta;
+									else
+										visitor.position[old_orientation] -= delta;
 								}
 							}
 							if (mixin("this." ~ member).Collapsable) visitor.orientation = mixin("this." ~ member).orientation;
