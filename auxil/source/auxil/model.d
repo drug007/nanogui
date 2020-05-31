@@ -1452,9 +1452,9 @@ void visit(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visito
 	debug logger.tracef("=== destination: %s", destination);
 	debug logger.tracef("=============");
 	visitor.destination = destination;
-	if (destination == visitor.path_position)
+	if (destination == visitor.position[visitor.orientation])
 		return;
-	else if (destination < visitor.path_position)
+	else if (destination < visitor.position[visitor.orientation])
 		model.visitBackward(data, visitor);
 	else
 		model.visitForward(data, visitor);
