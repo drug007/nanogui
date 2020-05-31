@@ -1428,6 +1428,7 @@ unittest
 		TreePosition([3], [0, 40]),
 		TreePosition([4], [0, 50]),
 	];
+	visitor.path.value[].should.be == [4];
 	visitor.pos.should.be == 50;
 
 	{
@@ -1441,6 +1442,7 @@ unittest
 			TreePosition([1], [0, 20]),
 			TreePosition([2], [0, 30]),
 		];
+		visitor.path.value[].should.be == [2];
 		visitor.pos.should.be == 30;
 	}
 
@@ -1455,6 +1457,7 @@ unittest
 			TreePosition([1], [0, 50]),
 			TreePosition([2], [0, 60]),
 		];
+		visitor.path.value[].should.be == [2];
 		visitor.pos.should.be == 60;
 	}
 
@@ -1468,6 +1471,7 @@ unittest
 			TreePosition([1], [0, 140]),
 			TreePosition([2], [0, 150]),
 		];
+		visitor.path.value[].should.be == [2];
 		visitor.pos.should.be == 150;
 	}
 
@@ -1481,6 +1485,8 @@ unittest
 		TreePosition([3], [0, 40]),
 		TreePosition([4], [0, 50]),
 	];
+	visitor.path.value[].should.be == [4];
+	visitor.pos.should.be == 50;
 
 	visitor.path.clear;
 	visitor.dest = visitor.dest.nan;
@@ -1493,4 +1499,6 @@ unittest
 		TreePosition([0], [0, 10]),
 		TreePosition([],  [0,  0]),
 	];
+	visitor.path.value[].should.be == [];
+	visitor.pos.should.be == 0;
 }
