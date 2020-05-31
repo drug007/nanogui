@@ -914,6 +914,7 @@ struct ScalarModel(alias A)
 		enum hasTreePath = Visitor.treePathEnabled;
 
 		debug logger.tracef(" [before complete ] %s", typeof(this).stringof);
+		static if (hasTreePath) debug logger.tracef(" [before complete ] %s %s", typeof(this).stringof, visitor.state);
 
 		if (visitor.complete)
 		{
@@ -1032,7 +1033,7 @@ mixin template visitImpl()
 		enum hasTreePath = Visitor.treePathEnabled;
 
 		debug logger.tracef(" [before complete ] %s", typeof(this).stringof);
-
+		static if (hasTreePath) debug logger.tracef(" [before complete ] %s %s", typeof(this).stringof, visitor.state);
 		if (visitor.complete)
 		{
 			return true;
@@ -1062,7 +1063,7 @@ mixin template visitImpl()
 				}
 			}
 
-			debug logger.tracef(" [ after complete ] pos: %s", visitor.position);
+			debug logger.tracef(" [ after complete ] pos: %s dest: %s", visitor.position, visitor.destination);
 			debug logger.tracef(" [ after complete ] path: %s path position: %s", visitor.path, visitor.path_position);
 
 			if (visitor.state.among(visitor.State.first, visitor.State.rest))
@@ -1197,6 +1198,7 @@ mixin template visitImpl()
 								visitor.position[old_orientation] += delta;
 							else
 								visitor.position[old_orientation] -= delta;
+							debug logger.tracef(" [   move position] %s %s %s", old_orientation, visitor.position[old_orientation], delta);
 						}
 					}
 					auto idx = getIndex!(Data)(this, i);
@@ -1242,6 +1244,7 @@ mixin template visitImpl()
 										visitor.position[old_orientation] += delta;
 									else
 										visitor.position[old_orientation] -= delta;
+									debug logger.tracef(" [   move position] %s %s %s", old_orientation, visitor.position[old_orientation], delta);
 								}
 							}
 							if (mixin("this." ~ member).Collapsable) visitor.orientation = mixin("this." ~ member).orientation;
