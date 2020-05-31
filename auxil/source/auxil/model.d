@@ -1488,8 +1488,8 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 		const old_dest = visitor.dest;
 		if (visitor.dest != visitor.dest)
 		{
-			const d = (visitor.orientation == model.orientation) ? model.size-1 : model.header_size-1;
-			visitor.dest = d + visitor.position[visitor.orientation];
+			const d = (visitor.orientation == Orientation.Vertical) ? model.size-1 : model.header_size-1;
+			visitor.dest = visitor.position[visitor.orientation] + d;
 		}
 		scope(exit)
 		{
