@@ -1512,7 +1512,7 @@ void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, re
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
 		const old_dest = visitor.dest;
 		if (visitor.dest != visitor.dest)
-			visitor.dest = visitor.position[visitor.orientation]-1;
+			visitor.dest = -1;
 		scope(exit)
 		{
 			visitor.position[visitor.orientation] -= visitor.last_change;
