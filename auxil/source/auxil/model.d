@@ -1193,7 +1193,7 @@ mixin template visitImpl()
 
 							visitor.position[model[i].orientation] = old_position;
 							debug logger.tracef(" [restore position] model[i]: %s, visitor: %s", model[i].orientation, visitor.orientation);
-							const delta = (old_orientation == Orientation.Vertical) ? header_size : size;
+							const delta = (old_orientation == Orientation.Vertical) ? header_size : visitor.size[old_orientation]+model[i].Spacing;
 							static if (Sinking) 
 								visitor.position[old_orientation] += delta;
 							else
@@ -1239,7 +1239,7 @@ mixin template visitImpl()
 
 									visitor.position[ mixin("this." ~ member).orientation] = old_position;
 									debug logger.tracef(" [restore position]  this.%s %s, visitor: %s", member, mixin("this." ~ member).orientation, visitor.orientation);
-									const delta = (old_orientation == Orientation.Vertical) ? header_size : size;
+									const delta = (old_orientation == Orientation.Vertical) ? header_size : visitor.size[old_orientation]+mixin("this." ~ member).Spacing;
 									static if (Sinking) 
 										visitor.position[old_orientation] += delta;
 									else
