@@ -1467,7 +1467,10 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 	{
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
 		if (visitor.dest != visitor.dest)
-			visitor.dest = (visitor.orientation == model.orientation) ? model.size-1 : model.header_size-1;
+		{
+			const d = (visitor.orientation == model.orientation) ? model.size-1 : model.header_size-1;
+			visitor.dest = d + visitor.position[visitor.orientation];
+		}
 		scope(exit) visitor.position[visitor.orientation] -= visitor.last_change;
 	}
 	visitor.enterTree!order(data, model);
@@ -1481,7 +1484,7 @@ void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, re
 	{
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
 		if (visitor.dest != visitor.dest)
-			visitor.dest = -1;
+			visitor.dest = visitor.position[visitor.orientation]-1;
 		scope(exit) visitor.position[visitor.orientation] -= visitor.last_change;
 	}
 	visitor.enterTree!order(data, model);
