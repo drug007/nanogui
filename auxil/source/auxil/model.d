@@ -980,7 +980,7 @@ struct ScalarModel(alias A)
 
 					with(visitor) if (
 						(Sinking  && position[visitor.orientation]  > dest) ||
-						(Bubbling && position[visitor.orientation] <= dest)
+						(Bubbling && position[visitor.orientation] - last_change <= dest)
 					) {
 						state = State.finishing;
 						path = tree_path;
@@ -1102,7 +1102,7 @@ mixin template visitImpl()
 
 					with(visitor) if (
 						(Sinking  && position[visitor.orientation]  > dest) ||
-						(Bubbling && position[visitor.orientation] <= dest)
+						(Bubbling && position[visitor.orientation] - last_change <= dest)
 					) {
 						state = State.finishing;
 						path = tree_path;
