@@ -1104,7 +1104,7 @@ version(unittest)
 			];
 			v.pos.should.be == 170;
 
-			v.path_position = 0;
+			v.position = 0;
 			v.path.value = [4,2,1];
 			model.visitForward(data, v);
 			v.output.should.be == [
