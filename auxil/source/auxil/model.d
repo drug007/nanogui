@@ -1178,11 +1178,13 @@ mixin template visitImpl()
 				}
 				foreach(i; childIndices)
 				{
+					const old_orientation = visitor.orientation;
+					scope(exit) visitor.orientation = old_orientation;
 					static if (hasTreePath) visitor.tree_path.back = i;
 					static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path: %s", visitor.tree_path.value[]); } ();
 					static if (hasTreePath) if (model[i].Collapsable)
 					{
-						const orientation_changed = (visitor.orientation != model[i].orientation);
+						const orientation_changed = (old_orientation != model[i].orientation);
 						const old_position = visitor.position[model[i].orientation];
 						scope(exit) if (orientation_changed)
 						{
@@ -1193,6 +1195,7 @@ mixin template visitImpl()
 						}
 					}
 					auto idx = getIndex!(Data)(this, i);
+					if (model[i].Collapsable) visitor.orientation = model[i].orientation;
 					if (model[i].visit!order(data[idx], visitor))
 					{
 						return true;
@@ -1215,11 +1218,13 @@ mixin template visitImpl()
 						{
 							enum FieldNo = (Sinking) ? i : len - i - 1;
 							enum member = DrawableMembers!Data[FieldNo];
+							const old_orientation = visitor.orientation;
+							scope(exit) visitor.orientation = old_orientation;
 							static if (hasTreePath) visitor.tree_path.back = cast(int) FieldNo;
 							static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path: %s", visitor.tree_path.value[]); } ();
 							static if (hasTreePath && mixin("this." ~ member).Collapsable)
 							{
-								const orientation_changed = (visitor.orientation !=  mixin("this." ~ member).orientation);
+								const orientation_changed = (old_orientation !=  mixin("this." ~ member).orientation);
 								const old_position = visitor.position[ mixin("this." ~ member).orientation];
 								scope(exit) if (orientation_changed)
 								{
@@ -1229,6 +1234,7 @@ mixin template visitImpl()
 									debug logger.tracef(" [restore position]  this.%s %s, visitor: %s", member, mixin("this." ~ member).orientation, visitor.orientation);
 								}
 							}
+							if (mixin("this." ~ member).Collapsable) visitor.orientation = mixin("this." ~ member).orientation;
 							if (mixin("this." ~ member).visit!order(mixin("data." ~ member), visitor))
 							{
 								return true;
@@ -1478,6 +1484,9 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 			visitor.dest = old_dest;
 		}
 	}
+	const old_orientation = visitor.orientation;
+	if (model.Collapsable) visitor.orientation = model.orientation;
+	scope(exit) visitor.orientation = old_orientation;
 	visitor.enterTree!order(data, model);
 	model.visit!order(data, visitor);
 }
@@ -1497,6 +1506,9 @@ void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, re
 			visitor.dest = old_dest;
 		}
 	}
+	const old_orientation = visitor.orientation;
+	if (model.Collapsable) visitor.orientation = model.orientation;
+	scope(exit) visitor.orientation = old_orientation;
 	visitor.enterTree!order(data, model);
 	model.visit!order(data, visitor);
 }
@@ -1712,7 +1724,7 @@ struct MeasureVisitor
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		assert(model.orientation == this.orientation);
+		assert(model.orientation == this.orientation || !model.Collapsable);
 		model.size = size[model.orientation] + model.Spacing;
 		model.header_size = (orientation == Orientation.Vertical) ? model.size : 0;
 	}
