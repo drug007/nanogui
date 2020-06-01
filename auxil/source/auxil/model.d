@@ -391,7 +391,6 @@ struct TaggedAlgebraicModel(alias A)// if (dataHasTaggedAlgebraicModel!(TypeOf!A
 
 	import std.traits : Fields;
 	import std.meta : anySatisfy;
-	enum Collapsable = anySatisfy!(isCollapsable, Fields!Payload);
 
 	private static struct Payload
 	{
@@ -405,6 +404,20 @@ struct TaggedAlgebraicModel(alias A)// if (dataHasTaggedAlgebraicModel!(TypeOf!A
 	{
 		TaggedAlgebraic!Payload value;
 		alias value this;
+
+		@property bool Collapsable() const
+		{
+			final switch(value.kind)
+			{
+				foreach (i, FT; value.UnionType.FieldTypes)
+				{
+					case __traits(getMember, value.Kind, value.UnionType.fieldNames[i]):
+						static if (is(typeof(taget!FT(value).Collapsable) == bool))
+							return taget!FT(value).Collapsable;
+				}
+			}
+			assert(0); // never reached
+		}
 
 		@property void collapsed(bool v)
 		{
@@ -1183,11 +1196,11 @@ mixin template visitImpl()
 					scope(exit) visitor.orientation = old_orientation;
 					static if (hasTreePath) visitor.tree_path.back = i;
 					static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path: %s", visitor.tree_path.value[]); } ();
-					static if (hasTreePath) if (model[i].Collapsable)
+					static if (hasTreePath)
 					{
 						const orientation_changed = (old_orientation != model[i].orientation);
 						const old_position = visitor.position[model[i].orientation];
-						scope(exit) if (orientation_changed)
+						scope(exit) if (orientation_changed && model[i].Collapsable)
 						{
 							assert(!old_position.isNaN);
 
@@ -1229,11 +1242,11 @@ mixin template visitImpl()
 							scope(exit) visitor.orientation = old_orientation;
 							static if (hasTreePath) visitor.tree_path.back = cast(int) FieldNo;
 							static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path: %s", visitor.tree_path.value[]); } ();
-							static if (hasTreePath && mixin("this." ~ member).Collapsable)
+							static if (hasTreePath)
 							{
 								const orientation_changed = (old_orientation !=  mixin("this." ~ member).orientation);
 								const old_position = visitor.position[ mixin("this." ~ member).orientation];
-								scope(exit) if (orientation_changed)
+								scope(exit) if (orientation_changed && mixin("this." ~ member).Collapsable)
 								{
 									assert(!old_position.isNaN);
 
