@@ -970,31 +970,31 @@ struct ScalarModel(alias A)
 				visitor.updateState!Sinking;
 			}
 
-			scope(exit)
+			static if (Bubbling)
+				visitor.processLeaf!order(data, this);
+
+			if (visitor.state.among(visitor.State.first, visitor.State.rest))
 			{
-				static if (Bubbling)
-					visitor.processLeaf!order(data, this);
+				static if (Bubbling) visitor.updatePositionBubbling(this);
 
-				if (visitor.state.among(visitor.State.first, visitor.State.rest))
-				{
-					static if (Bubbling) visitor.updatePositionBubbling(this);
+				debug logger.tracef("[   finish leaf   ] model: %s visitor: %s", orientation, visitor.orientation);
+				debug logger.tracef("[   finish leaf   ] pos: %s dest: %s", visitor.position, visitor.destination);
 
-					debug logger.tracef("[   finish leaf   ] model: %s visitor: %s", orientation, visitor.orientation);
-					debug logger.tracef("[   finish leaf   ] pos: %s dest: %s", visitor.position, visitor.destination);
-
-					visitor.updateState!Sinking;
-				}
-
-				debug logger.tracef(" [   after leaf   ] pos: %s ", visitor.position);
-				debug logger.tracef(" [   after leaf   ] path: %s path position: %s", visitor.path, visitor.path_position);
-
-				debug logger.tracef(" [   after leaf   ] %s", typeof(this).stringof);
+				visitor.updateState!Sinking;
 			}
+
+			debug logger.tracef(" [   after leaf   ] pos: %s ", visitor.position);
+			debug logger.tracef(" [   after leaf   ] path: %s path position: %s", visitor.path, visitor.path_position);
+
+			debug logger.tracef(" [   after leaf   ] %s", typeof(this).stringof);
+
+			return visitor.state == visitor.State.finishing;
 		}
 		else
+		{
 			visitor.processLeaf!order(data, this);
-
-		return false;
+			return false;
+		}
 	}
 }
 
@@ -1075,37 +1075,9 @@ mixin template visitImpl()
 					visitor.updateState!Sinking;
 				}
 			}
-
-			scope(exit)
-			{
-				visitor.leaveNode!order(data, this);
-
-				if (visitor.state.among(visitor.State.first, visitor.State.rest))
-				{
-					static if (Bubbling)
-					{
-						visitor.last_change = (visitor.orientation == Orientation.Vertical) ? -header_size : -visitor.size[visitor.orientation]-this.Spacing;
-						visitor.position[visitor.orientation] += visitor.last_change;
-					}
-
-					debug logger.tracef("[ finish leaveNode] model: %s visitor: %s visitor.size: %s", orientation, visitor.orientation, visitor.size);
-					debug logger.tracef("[ finish leaveNode] pos: %s dest: %s last change: %s", visitor.position, visitor.destination, visitor.last_change);
-
-					visitor.updateState!Sinking;
-				}
-
-				debug logger.tracef(" [after leaveNode ] pos: %s", visitor.position);
-				debug logger.tracef(" [after leaveNode ] path: %s path position: %s", visitor.path, visitor.path_position);
-
-				debug logger.tracef(" [after leaveNode ] %s", typeof(this).stringof);
-			}
 		}
 		else
-		{
 			visitor.enterNode!(order, Data)(data, this);
-			scope(exit)
-				visitor.leaveNode!order(data, this);
-		}
 
 		if (!this.collapsed)
 		{
@@ -1256,7 +1228,36 @@ mixin template visitImpl()
 				visitor.size = vs;
 		}
 
-		return false;
+		static if (hasTreePath)
+		{
+			visitor.leaveNode!order(data, this);
+
+			if (visitor.state.among(visitor.State.first, visitor.State.rest))
+			{
+				static if (Bubbling)
+				{
+					visitor.last_change = (visitor.orientation == Orientation.Vertical) ? -header_size : -visitor.size[visitor.orientation]-this.Spacing;
+					visitor.position[visitor.orientation] += visitor.last_change;
+				}
+
+				debug logger.tracef("[ finish leaveNode] model: %s visitor: %s visitor.size: %s", orientation, visitor.orientation, visitor.size);
+				debug logger.tracef("[ finish leaveNode] pos: %s dest: %s last change: %s", visitor.position, visitor.destination, visitor.last_change);
+
+				visitor.updateState!Sinking;
+			}
+
+			debug logger.tracef(" [after leaveNode ] pos: %s", visitor.position);
+			debug logger.tracef(" [after leaveNode ] path: %s path position: %s", visitor.path, visitor.path_position);
+
+			debug logger.tracef(" [after leaveNode ] %s", typeof(this).stringof);
+
+			return visitor.state == visitor.State.finishing;
+		}
+		else
+		{
+			visitor.leaveNode!order(data, this);
+			return false;
+		}
 	}
 }
 
@@ -1474,7 +1475,7 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 		const old_dest = visitor.dest;
 		if (visitor.dest != visitor.dest)
 		{
-			const d = (visitor.orientation == Orientation.Vertical) ? model.size-1 : model.header_size-1;
+			const d = (visitor.orientation == Orientation.Vertical) ? model.size : model.header_size;
 			visitor.dest = visitor.position[visitor.orientation] + d;
 		}
 		scope(exit)
