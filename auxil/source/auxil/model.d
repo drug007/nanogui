@@ -965,7 +965,7 @@ struct ScalarModel(alias A)
 			{
 				visitor.processLeaf!(order, Data)(data, this);
 
-				visitor.updatePositionSinking(this);
+				visitor.updateChildPositionSinking(this);
 				debug logger.tracef("[ finish processLeaf] pos: %s dest: %s", visitor.position, visitor.destination);
 				visitor.updateState!Sinking;
 			}
@@ -975,7 +975,7 @@ struct ScalarModel(alias A)
 
 			if (visitor.state.among(visitor.State.first, visitor.State.rest))
 			{
-				static if (Bubbling) visitor.updatePositionBubbling(this);
+				static if (Bubbling) visitor.updateChildPositionBubbling(this);
 
 				debug logger.tracef("[   finish leaf   ] model: %s visitor: %s", orientation, visitor.orientation);
 				debug logger.tracef("[   finish leaf   ] pos: %s dest: %s", visitor.position, visitor.destination);
@@ -1068,7 +1068,7 @@ mixin template visitImpl()
 
 				static if (Sinking)
 				{
-					visitor.updatePositionSinking(this);
+					visitor.updateHeaderPositionSinking(this);
 					debug logger.tracef("[ finish enterNode] %s", visitor.orientation);
 					debug logger.tracef("[ finish enterNode] pos: %s dest: %s", visitor.position, visitor.destination);
 					visitor.updateState!Sinking;
@@ -1198,7 +1198,7 @@ mixin template visitImpl()
 
 			if (visitor.state.among(visitor.State.first, visitor.State.rest))
 			{
-				static if (Bubbling) visitor.updatePositionBubbling(this);
+				static if (Bubbling) visitor.updateHeaderPositionBubbling(this);
 
 				debug logger.tracef("[ finish leaveNode] model: %s visitor: %s visitor.size: %s", orientation, visitor.orientation, visitor.size);
 				debug logger.tracef("[ finish leaveNode] pos: %s dest: %s last change: %s", visitor.position, visitor.destination, visitor.last_change);
@@ -1660,15 +1660,27 @@ struct DefaultVisitorImpl(
 			}
 		}
 
-		void updatePositionSinking(M)(ref const(M) model)
+		void updateHeaderPositionSinking(M)(ref const(M) model)
 		{
-			last_change = (model.orientation == Orientation.Vertical) ? model.header_size : size[orientation]+model.Spacing;
+			last_change = (model.orientation == Orientation.Vertical) ? model.header_size : 0;
 			position[orientation] += last_change;
 		}
 
-		void updatePositionBubbling(M)(ref const(M) model)
+		void updateHeaderPositionBubbling(M)(ref const(M) model)
 		{
-			last_change = (model.orientation == Orientation.Vertical) ? -model.header_size : -size[orientation]-model.Spacing;
+			last_change = (model.orientation == Orientation.Vertical) ? -model.header_size : 0;
+			position[orientation] += last_change;
+		}
+
+		void updateChildPositionSinking(M)(ref const(M) model)
+		{
+			last_change = size[orientation]+model.Spacing;
+			position[orientation] += last_change;
+		}
+
+		void updateChildPositionBubbling(M)(ref const(M) model)
+		{
+			last_change = -size[orientation]-model.Spacing;
 			position[orientation] += last_change;
 		}
 	}
