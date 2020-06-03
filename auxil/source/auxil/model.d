@@ -1133,31 +1133,14 @@ mixin template visitImpl()
 				}
 				foreach(i; childIndices)
 				{
-					const old_orientation = visitor.orientation;
-					scope(exit) visitor.orientation = old_orientation;
 					static if (hasTreePath) visitor.tree_path.back = i;
 					static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path: %s", visitor.tree_path.value[]); } ();
 					static if (hasTreePath)
 					{
-						const orientation_changed = (old_orientation != model[i].orientation);
+						const orientation_changed = (visitor.orientation != model[i].orientation);
 						const old_position = visitor.position[model[i].orientation];
-						scope(exit) if (orientation_changed && model[i].Collapsable)
-						{
-							assert(!old_position.isNaN);
-
-							visitor.position[model[i].orientation] = old_position;
-							debug logger.tracef(" [restore position] model[i]: %s, visitor: %s", model[i].orientation, visitor.orientation);
-							visitor.last_change = (old_orientation == Orientation.Vertical) ? header_size : visitor.size[old_orientation]+model[i].Spacing;
-							static if (Bubbling) 
-								visitor.last_change = -visitor.last_change;
-							visitor.position[old_orientation] += visitor.last_change;
-							debug logger.tracef(" [   move position] %s %s %s", old_orientation, visitor.position[old_orientation], visitor.last_change);
-
-							visitor.updateState!Sinking;
-						}
 					}
 					auto idx = getIndex!(Data)(this, i);
-					if (model[i].Collapsable) visitor.orientation = model[i].orientation;
 					if (model[i].visit!order(data[idx], visitor))
 					{
 						return true;
@@ -1180,31 +1163,13 @@ mixin template visitImpl()
 						{
 							enum FieldNo = (Sinking) ? i : len - i - 1;
 							enum member = DrawableMembers!Data[FieldNo];
-							const old_orientation = visitor.orientation;
-							scope(exit) visitor.orientation = old_orientation;
 							static if (hasTreePath) visitor.tree_path.back = cast(int) FieldNo;
 							static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path: %s", visitor.tree_path.value[]); } ();
 							static if (hasTreePath)
 							{
-								const orientation_changed = (old_orientation !=  mixin("this." ~ member).orientation);
+								const orientation_changed = (visitor.orientation !=  mixin("this." ~ member).orientation);
 								const old_position = visitor.position[ mixin("this." ~ member).orientation];
-								scope(exit) if (orientation_changed && mixin("this." ~ member).Collapsable)
-								{
-									assert(!old_position.isNaN);
-
-									visitor.position[ mixin("this." ~ member).orientation] = old_position;
-									debug logger.tracef(" [restore position]  this.%s %s, visitor: %s", member, mixin("this." ~ member).orientation, visitor.orientation);
-									visitor.last_change = (old_orientation == Orientation.Vertical) ? header_size : visitor.size[old_orientation]+mixin("this." ~ member).Spacing;
-									static if (Sinking) 
-										visitor.position[old_orientation] += visitor.last_change;
-									else
-										visitor.position[old_orientation] -= visitor.last_change;
-									debug logger.tracef(" [   move position] %s %s %s", old_orientation, visitor.position[old_orientation], visitor.last_change);
-
-									visitor.updateState!Sinking;
-								}
 							}
-							if (mixin("this." ~ member).Collapsable) visitor.orientation = mixin("this." ~ member).orientation;
 							if (mixin("this." ~ member).visit!order(mixin("data." ~ member), visitor))
 							{
 								return true;
@@ -1697,14 +1662,14 @@ struct DefaultVisitorImpl(
 
 		void updatePositionSinking(M)(ref const(M) model)
 		{
-			last_change = (orientation == Orientation.Vertical) ? model.header_size : size[orientation]+model.Spacing;
+			last_change = (model.orientation == Orientation.Vertical) ? model.header_size : size[orientation]+model.Spacing;
 			position[orientation] += last_change;
 		}
 
 		void updatePositionBubbling(M)(ref const(M) model)
 		{
-			last_change = (orientation == Orientation.Vertical) ? model.header_size : size[orientation]+model.Spacing;
-			position[orientation] -= last_change;
+			last_change = (model.orientation == Orientation.Vertical) ? -model.header_size : -size[orientation]-model.Spacing;
+			position[orientation] += last_change;
 		}
 	}
 
@@ -1743,14 +1708,12 @@ struct MeasureVisitor
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		assert(model.orientation == this.orientation || !model.Collapsable);
 		model.size = size[model.orientation] + model.Spacing;
 		model.header_size = (orientation == Orientation.Vertical) ? model.size : 0;
 	}
 
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		assert(this.orientation == model.orientation);
 		if (model.orientation == Orientation.Vertical)
 			model.size += model.childrenSize(size);
 	}
