@@ -1068,8 +1068,7 @@ mixin template visitImpl()
 
 				static if (Sinking)
 				{
-					visitor.last_change = (visitor.orientation == Orientation.Vertical) ? header_size : visitor.size[visitor.orientation]+this.Spacing;
-					visitor.position[visitor.orientation] += visitor.last_change;
+					visitor.updatePositionSinking(this);
 					debug logger.tracef("[ finish enterNode] %s", visitor.orientation);
 					debug logger.tracef("[ finish enterNode] pos: %s dest: %s", visitor.position, visitor.destination);
 					visitor.updateState!Sinking;
@@ -1234,11 +1233,7 @@ mixin template visitImpl()
 
 			if (visitor.state.among(visitor.State.first, visitor.State.rest))
 			{
-				static if (Bubbling)
-				{
-					visitor.last_change = (visitor.orientation == Orientation.Vertical) ? -header_size : -visitor.size[visitor.orientation]-this.Spacing;
-					visitor.position[visitor.orientation] += visitor.last_change;
-				}
+				static if (Bubbling) visitor.updatePositionBubbling(this);
 
 				debug logger.tracef("[ finish leaveNode] model: %s visitor: %s visitor.size: %s", orientation, visitor.orientation, visitor.size);
 				debug logger.tracef("[ finish leaveNode] pos: %s dest: %s last change: %s", visitor.position, visitor.destination, visitor.last_change);
@@ -1702,13 +1697,13 @@ struct DefaultVisitorImpl(
 
 		void updatePositionSinking(M)(ref const(M) model)
 		{
-			last_change = (orientation == Orientation.Vertical) ? model.header_size : model.size;
+			last_change = (orientation == Orientation.Vertical) ? model.header_size : size[orientation]+model.Spacing;
 			position[orientation] += last_change;
 		}
 
 		void updatePositionBubbling(M)(ref const(M) model)
 		{
-			last_change = (orientation == Orientation.Vertical) ? model.header_size : model.size;
+			last_change = (orientation == Orientation.Vertical) ? model.header_size : size[orientation]+model.Spacing;
 			position[orientation] -= last_change;
 		}
 	}
