@@ -1074,6 +1074,8 @@ mixin template visitImpl()
 					visitor.updateState!Sinking;
 				}
 			}
+
+			const old_position = visitor.position;
 		}
 		else
 			visitor.enterNode!(order, Data)(data, this);
@@ -1126,6 +1128,12 @@ mixin template visitImpl()
 			           dataHasAssociativeArrayModel!Data)
 			{
 				auto childIndices = TwoFacedRange!order(start_value, data.length);
+				static if (hasTreePath)
+				{
+					const old_orientation = visitor.orientation;
+					visitor.orientation = this.orientation;
+					scope(exit) visitor.orientation = old_orientation;
+				}
 				if (visitor.orientation == Orientation.Horizontal)
 				{
 					vs = visitor.size;
@@ -1135,11 +1143,6 @@ mixin template visitImpl()
 				{
 					static if (hasTreePath) visitor.tree_path.back = i;
 					static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path: %s", visitor.tree_path.value[]); } ();
-					static if (hasTreePath)
-					{
-						const orientation_changed = (visitor.orientation != model[i].orientation);
-						const old_position = visitor.position[model[i].orientation];
-					}
 					auto idx = getIndex!(Data)(this, i);
 					if (model[i].visit!order(data[idx], visitor))
 					{
@@ -1149,6 +1152,12 @@ mixin template visitImpl()
 			}
 			else static if (dataHasAggregateModel!Data)
 			{
+				static if (hasTreePath)
+				{
+					const old_orientation = visitor.orientation;
+					visitor.orientation = this.orientation;
+					scope(exit) visitor.orientation = old_orientation;
+				}
 				if (visitor.orientation == Orientation.Horizontal)
 				{
 					vs = visitor.size;
@@ -1165,11 +1174,6 @@ mixin template visitImpl()
 							enum member = DrawableMembers!Data[FieldNo];
 							static if (hasTreePath) visitor.tree_path.back = cast(int) FieldNo;
 							static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path: %s", visitor.tree_path.value[]); } ();
-							static if (hasTreePath)
-							{
-								const orientation_changed = (visitor.orientation !=  mixin("this." ~ member).orientation);
-								const old_position = visitor.position[ mixin("this." ~ member).orientation];
-							}
 							if (mixin("this." ~ member).visit!order(mixin("data." ~ member), visitor))
 							{
 								return true;
@@ -1194,6 +1198,16 @@ mixin template visitImpl()
 
 		static if (hasTreePath)
 		{
+			static if (Sinking)
+			{
+				debug logger.tracef("[ sinking make up ] %s model: %s visitor: %s state %s", typeof(this).stringof, orientation, visitor.orientation, visitor.state);
+				if (visitor.orientation == visitor.orientation.Vertical &&
+				    this.orientation == visitor.orientation.Horizontal)
+				{
+					visitor.makeUpHeaderPositionSinking(this);
+					visitor.position[this.orientation] = old_position[this.orientation];
+				}
+			}
 			visitor.leaveNode!order(data, this);
 
 			if (visitor.state.among(visitor.State.first, visitor.State.rest))
@@ -1204,6 +1218,17 @@ mixin template visitImpl()
 				debug logger.tracef("[ finish leaveNode] pos: %s dest: %s last change: %s", visitor.position, visitor.destination, visitor.last_change);
 
 				visitor.updateState!Sinking;
+			}
+
+			static if (Bubbling)
+			{
+				debug logger.tracef("[ bubbling make up ] %s model: %s visitor: %s state %s", typeof(this).stringof, orientation, visitor.orientation, visitor.state);
+				if (visitor.orientation == visitor.orientation.Vertical &&
+				    this.orientation == visitor.orientation.Horizontal)
+				{
+					visitor.makeUpHeaderPositionBubbling(this);
+					visitor.position[this.orientation] = old_position[this.orientation];
+				}
 			}
 
 			debug logger.tracef(" [after leaveNode ] pos: %s", visitor.position);
@@ -1658,6 +1683,20 @@ struct DefaultVisitorImpl(
 				path = tree_path;
 				path_position = position[orientation];
 			}
+		}
+
+		void makeUpHeaderPositionSinking(M)(ref const(M) model)
+		{
+			assert(orientation == Orientation.Vertical && model.orientation == Orientation.Horizontal);
+			last_change = +size[Orientation.Vertical]+model.Spacing;
+			position[orientation] += last_change;
+		}
+
+		void makeUpHeaderPositionBubbling(M)(ref const(M) model)
+		{
+			assert(orientation == Orientation.Vertical && model.orientation == Orientation.Horizontal);
+			last_change = -size[Orientation.Vertical]-model.Spacing;
+			position[orientation] += last_change;
 		}
 
 		void updateHeaderPositionSinking(M)(ref const(M) model)
