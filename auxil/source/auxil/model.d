@@ -1207,6 +1207,12 @@ mixin template visitImpl()
 					visitor.makeUpHeaderPositionSinking(this);
 					visitor.position[this.orientation] = old_position[this.orientation];
 				}
+				if (visitor.orientation == visitor.orientation.Horizontal &&
+				    this.orientation == visitor.orientation.Vertical)
+				{
+					visitor.makeUpChildPositionSinking(this);
+					visitor.position[this.orientation] = old_position[this.orientation];
+				}
 			}
 			visitor.leaveNode!order(data, this);
 
@@ -1227,6 +1233,12 @@ mixin template visitImpl()
 				    this.orientation == visitor.orientation.Horizontal)
 				{
 					visitor.makeUpHeaderPositionBubbling(this);
+					visitor.position[this.orientation] = old_position[this.orientation];
+				}
+				if (visitor.orientation == visitor.orientation.Horizontal &&
+				    this.orientation == visitor.orientation.Vertical)
+				{
+					visitor.makeUpChildPositionBubbling(this);
 					visitor.position[this.orientation] = old_position[this.orientation];
 				}
 			}
@@ -1696,6 +1708,20 @@ struct DefaultVisitorImpl(
 		{
 			assert(orientation == Orientation.Vertical && model.orientation == Orientation.Horizontal);
 			last_change = -size[Orientation.Vertical]-model.Spacing;
+			position[orientation] += last_change;
+		}
+
+		void makeUpChildPositionSinking(M)(ref const(M) model)
+		{
+			assert(orientation == Orientation.Horizontal && model.orientation == Orientation.Vertical);
+			last_change = +size[Orientation.Horizontal]+model.Spacing;
+			position[orientation] += last_change;
+		}
+
+		void makeUpChildPositionBubbling(M)(ref const(M) model)
+		{
+			assert(orientation == Orientation.Horizontal && model.orientation == Orientation.Vertical);
+			last_change = -size[Orientation.Horizontal]-model.Spacing;
 			position[orientation] += last_change;
 		}
 
