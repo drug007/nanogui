@@ -95,7 +95,7 @@ struct MeasureVisitor2
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		output_orientation.put(OrientationState("enterNode   " ~ Model.stringof ~ " ", orientation));
+		output_orientation.put(OrientationState("enterNode   " ~ Model.stringof ~ " ", model.orientation));
 
 		mvisitor.enterNode!order(data, model);
 
@@ -107,12 +107,12 @@ struct MeasureVisitor2
 		mvisitor.leaveNode!order(data, model);
 
 		output_size.put(SizeState("leaveNode   " ~ Model.stringof ~ " ", model.size));
-		output_orientation.put(OrientationState("leaveNode   " ~ Model.stringof ~ " ", orientation));
+		output_orientation.put(OrientationState("leaveNode   " ~ Model.stringof ~ " ", model.orientation));
 	}
 
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		output_orientation.put(OrientationState("processLeaf " ~ Model.stringof ~ " ", orientation));
+		output_orientation.put(OrientationState("processLeaf " ~ Model.stringof ~ " ", model.orientation));
 
 		mvisitor.processLeaf!order(data, model);
 
@@ -239,9 +239,9 @@ unittest
 
 		mv.output_orientation[].should.be == [
 			OrientationState("enterNode   AggregateModel!(V) ", Orientation.Vertical), 
-			OrientationState("processLeaf ScalarModel!(a) ",    Orientation.Vertical), 
-			OrientationState("processLeaf ScalarModel!(b) ",    Orientation.Vertical), 
-			OrientationState("processLeaf ScalarModel!(c) ",    Orientation.Vertical), 
+			OrientationState("processLeaf ScalarModel!(a) ",    Orientation.Horizontal), 
+			OrientationState("processLeaf ScalarModel!(b) ",    Orientation.Horizontal), 
+			OrientationState("processLeaf ScalarModel!(c) ",    Orientation.Horizontal), 
 			OrientationState("leaveNode   AggregateModel!(V) ", Orientation.Vertical)
 		];
 
@@ -273,6 +273,7 @@ unittest
 		debug logger.trace("------ RenderVisitor V ---------------------");
 		model.visitForward(data, rv);
 		debug logger.trace("--------------------------------------------");
+		debug logger.trace("dest ", rv.dest);
 
 		rv.output_position[].should.be == [
 			PositionState("processLeaf ScalarModel!(a) ",    [0], [0, 50]), 
@@ -325,10 +326,10 @@ unittest
 
 		mv.output_orientation[].should.be == [
 			OrientationState("enterNode   AggregateModel!(VH) ", Orientation.Vertical  ), 
-			OrientationState("processLeaf ScalarModel!(a) ",     Orientation.Vertical  ), 
+			OrientationState("processLeaf ScalarModel!(a) ",     Orientation.Horizontal), 
 			OrientationState("enterNode   AggregateModel!(h) ",  Orientation.Horizontal), 
 			OrientationState("leaveNode   AggregateModel!(h) ",  Orientation.Horizontal), 
-			OrientationState("processLeaf ScalarModel!(b) ",     Orientation.Vertical  ), 
+			OrientationState("processLeaf ScalarModel!(b) ",     Orientation.Horizontal), 
 			OrientationState("leaveNode   AggregateModel!(VH) ", Orientation.Vertical  ),
 		];
 
@@ -349,7 +350,7 @@ unittest
 			PositionState("enterNode   AggregateModel!(VH) ", [],  [0, 0]), 
 			PositionState("processLeaf ScalarModel!(a) ",     [0], [0, 10]), 
 			PositionState("enterNode   AggregateModel!(h) ",  [1], [0, 20]), 
-			PositionState("leaveNode   AggregateModel!(h) ",  [1], [0, 20]), 
+			PositionState("leaveNode   AggregateModel!(h) ",  [1], [0, 30]), 
 			PositionState("processLeaf ScalarModel!(b) ",     [2], [0, 30]), 
 			PositionState("leaveNode   AggregateModel!(VH) ", [],  [0, 40]),
 		];
@@ -360,13 +361,13 @@ unittest
 
 		mv.output_orientation[].should.be == [
 			OrientationState("enterNode   AggregateModel!(VH) ", Orientation.Vertical  ), 
-			OrientationState("processLeaf ScalarModel!(a) ",     Orientation.Vertical  ), 
+			OrientationState("processLeaf ScalarModel!(a) ",     Orientation.Horizontal), 
 			OrientationState("enterNode   AggregateModel!(h) ",  Orientation.Horizontal), 
 			OrientationState("processLeaf ScalarModel!(a) ",     Orientation.Horizontal), 
 			OrientationState("processLeaf ScalarModel!(b) ",     Orientation.Horizontal), 
 			OrientationState("processLeaf ScalarModel!(c) ",     Orientation.Horizontal), 
 			OrientationState("leaveNode   AggregateModel!(h) ",  Orientation.Horizontal), 
-			OrientationState("processLeaf ScalarModel!(b) ",     Orientation.Vertical  ), 
+			OrientationState("processLeaf ScalarModel!(b) ",     Orientation.Horizontal), 
 			OrientationState("leaveNode   AggregateModel!(VH) ", Orientation.Vertical  ),
 		];
 
@@ -374,9 +375,9 @@ unittest
 			SizeState("enterNode   AggregateModel!(VH) ", 10.0), 
 			SizeState("processLeaf ScalarModel!(a) ",     10.0), 
 			SizeState("enterNode   AggregateModel!(h) ", 121.0), 
-			SizeState("processLeaf ScalarModel!(a) ",     40.3333), 
-			SizeState("processLeaf ScalarModel!(b) ",     40.3333), 
-			SizeState("processLeaf ScalarModel!(c) ",     40.3333), 
+			SizeState("processLeaf ScalarModel!(a) ",     10.0), 
+			SizeState("processLeaf ScalarModel!(b) ",     10.0), 
+			SizeState("processLeaf ScalarModel!(c) ",     10.0), 
 			SizeState("leaveNode   AggregateModel!(h) ", 121.0), 
 			SizeState("processLeaf ScalarModel!(b) ",     10.0), 
 			SizeState("leaveNode   AggregateModel!(VH) ", 40.0),
@@ -395,7 +396,7 @@ unittest
 			PositionState("processLeaf ScalarModel!(a) ",     [1, 0], [  0.0000, 20]), 
 			PositionState("processLeaf ScalarModel!(b) ",     [1, 1], [ 40.3333, 20]), 
 			PositionState("processLeaf ScalarModel!(c) ",     [1, 2], [ 80.6667, 20]), 
-			PositionState("leaveNode   AggregateModel!(h) ",  [1],    [121.0000, 20]), 
+			PositionState("leaveNode   AggregateModel!(h) ",  [1],    [  0.0000, 30]), 
 			PositionState("processLeaf ScalarModel!(b) ",     [2],    [  0.0000, 30]), 
 			PositionState("leaveNode   AggregateModel!(VH) ", [],     [  0.0000, 40]),
 		]; 
@@ -636,12 +637,12 @@ unittest
 
 		mv.output_orientation[].should.be == [
 			OrientationState("enterNode   RaRModel!(TaggedAlgebraic!(Payload)[]) ", Orientation.Vertical  ), 
-			OrientationState("processLeaf ScalarModel!string ",                     Orientation.Vertical  ), 
-			OrientationState("processLeaf ScalarModel!int ",                        Orientation.Vertical  ), 
+			OrientationState("processLeaf ScalarModel!string ",                     Orientation.Horizontal), 
+			OrientationState("processLeaf ScalarModel!int ",                        Orientation.Horizontal), 
 			OrientationState("enterNode   AggregateModel!(Test3) ",                 Orientation.Horizontal), 
 			OrientationState("leaveNode   AggregateModel!(Test3) ",                 Orientation.Horizontal), 
-			OrientationState("processLeaf ScalarModel!int ",                        Orientation.Vertical  ), 
-			OrientationState("processLeaf ScalarModel!int ",                        Orientation.Vertical  ), 
+			OrientationState("processLeaf ScalarModel!int ",                        Orientation.Horizontal), 
+			OrientationState("processLeaf ScalarModel!int ",                        Orientation.Horizontal), 
 			OrientationState("leaveNode   RaRModel!(TaggedAlgebraic!(Payload)[]) ", Orientation.Vertical  ),
 		];
 
@@ -663,84 +664,71 @@ unittest
 		debug logger.trace("--------------------------------------------");
 
 		rv.output_position[].should.be == [
-			PositionState("enterNode   RaRModel!(TaggedAlgebraic!(Payload)[]) ", [], [0,   0]), 
-			PositionState("processLeaf ScalarModel!string ",                    [0], [0,  17]), 
-			PositionState("processLeaf ScalarModel!int ",                       [1], [0,  34]), 
-			PositionState("enterNode   AggregateModel!(Test3) ",                [2], [0,  51]), 
-			PositionState("leaveNode   AggregateModel!(Test3) ",                [2], [0,  51]), 
-			PositionState("processLeaf ScalarModel!int ",                       [3], [0,  68]), 
-			PositionState("processLeaf ScalarModel!int ",                       [4], [0,  85]), 
-			PositionState("leaveNode   RaRModel!(TaggedAlgebraic!(Payload)[]) ", [], [0,  85])
+			PositionState("enterNode   RaRModel!(TaggedAlgebraic!(Payload)[]) ", [], [  0,   0]), 
+			PositionState("processLeaf ScalarModel!string ",                    [0], [  0,  17]), 
+			PositionState("processLeaf ScalarModel!int ",                       [1], [  0,  34]), 
+			PositionState("enterNode   AggregateModel!(Test3) ",                [2], [  0,  51]), 
+			PositionState("leaveNode   AggregateModel!(Test3) ",                [2], [  0,  68]), 
+			PositionState("processLeaf ScalarModel!int ",                       [3], [  0,  68]), 
+			PositionState("processLeaf ScalarModel!int ",                       [4], [  0,  85]), 
+			PositionState("leaveNode   RaRModel!(TaggedAlgebraic!(Payload)[]) ", [], [  0, 102])
 		];
 
 		RelativeMeasurer rm;
-		rm.path_position = 0;
 		rm.position = 0;
 		rm.size = [120, 16];
 		rm.orientation = Orientation.Vertical;
 		visit(model, data, rm, 1);
 
 		rm.path.value[].should.be == [];
-		rm.path_position.should.be == 0;
+		rm.position[rm.orientation].should.be == 0;
 
-		rm.position[rm.orientation] = rm.path_position;
 		visit(model, data, rm, 9);
 		rm.path.value[].should.be == [];
-		rm.path_position.should.be == 0;
+		rm.position[rm.orientation].should.be == 0;
 
-		rm.position[rm.orientation] = rm.path_position;
 		visit(model, data, rm, 19);
 		rm.path.value[].should.be == [0];
-		rm.path_position.should.be == 17;
+		rm.position[rm.orientation].should.be == 17;
 
-		rm.position[rm.orientation] = rm.path_position;
 		visit(model, data, rm, 29);
 		rm.path.value[].should.be == [0];
-		rm.path_position.should.be == 17;
+		rm.position[rm.orientation].should.be == 17;
 
-		rm.position[rm.orientation] = rm.path_position;
 		visit(model, data, rm, 39);
 		rm.path.value[].should.be == [1];
-		rm.path_position.should.be == 34;
+		rm.position[rm.orientation].should.be == 34;
 
-		rm.position[rm.orientation] = rm.path_position;
 		visit(model, data, rm, 49);
 		rm.path.value[].should.be == [1];
-		rm.path_position.should.be == 34;
+		rm.position[rm.orientation].should.be == 34;
 
-		rm.position[rm.orientation] = rm.path_position;
 		visit(model, data, rm, 59);
 		rm.path.value[].should.be == [2];
-		rm.path_position.should.be == 51;
+		rm.position[rm.orientation].should.be == 51;
 
-		rm.position[rm.orientation] = rm.path_position;
 		visit(model, data, rm, 49);
 		rm.path.value[].should.be == [1];
-		rm.path_position.should.be == 34;
+		rm.position.should.be == [0, 34];
 
-		rm.position[rm.orientation] = rm.path_position;
 		visit(model, data, rm, 39);
 		rm.path.value[].should.be == [1];
-		rm.path_position.should.be == 34;
+		rm.position[rm.orientation].should.be == 34;
 
-		rm.position[rm.orientation] = rm.path_position;
 		visit(model, data, rm, 29);
 		rm.path.value[].should.be == [0];
-		rm.path_position.should.be == 17;
+		rm.position[rm.orientation].should.be == 17;
 
-		rm.position[rm.orientation] = rm.path_position;
 		visit(model, data, rm, 19);
 		rm.path.value[].should.be == [0];
-		rm.path_position.should.be == 17;
+		rm.position[rm.orientation].should.be == 17;
 
-		rm.position[rm.orientation] = rm.path_position;
 		visit(model, data, rm, 9);
 		rm.path.value[].should.be == [];
-		rm.path_position.should.be == 0;
+		rm.position[rm.orientation].should.be == 0;
 
-		rm.position[rm.orientation] = rm.path_position;
 		visit(model, data, rm, 0);
 		rm.path.value[].should.be == [];
-		rm.path_position.should.be == 0;
+		rm.position[rm.orientation].should.be == 0;
 	}
 }
