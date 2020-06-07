@@ -1120,6 +1120,10 @@ mixin template visitImpl()
 				}
 			}
 
+			const old_orientation = visitor.orientation;
+			visitor.orientation = this.orientation;
+			scope(exit) visitor.orientation = old_orientation;
+
 			// stashed visitor size
 			typeof(visitor.size) vs = void;
 
@@ -1128,10 +1132,6 @@ mixin template visitImpl()
 			           dataHasAssociativeArrayModel!Data)
 			{
 				auto childIndices = TwoFacedRange!order(start_value, data.length);
-
-				const old_orientation = visitor.orientation;
-				visitor.orientation = this.orientation;
-				scope(exit) visitor.orientation = old_orientation;
 
 				if (visitor.orientation == Orientation.Horizontal)
 				{
@@ -1151,10 +1151,6 @@ mixin template visitImpl()
 			}
 			else static if (dataHasAggregateModel!Data)
 			{
-				const old_orientation = visitor.orientation;
-				visitor.orientation = this.orientation;
-				scope(exit) visitor.orientation = old_orientation;
-
 				if (visitor.orientation == Orientation.Horizontal)
 				{
 					vs = visitor.size;
