@@ -1069,7 +1069,7 @@ mixin template visitImpl()
 				static if (Sinking)
 				{
 					visitor.updateHeaderPositionSinking(this);
-					debug logger.tracef("[ finish enterNode] %s", visitor.orientation);
+					debug logger.tracef("[ finish enterNode] visitor %s model %s model.header size %s", visitor.orientation, this.orientation, this.header_size);
 					debug logger.tracef("[ finish enterNode] pos: %s dest: %s", visitor.position, visitor.destination);
 					visitor.updateState!Sinking;
 				}
@@ -1096,7 +1096,7 @@ mixin template visitImpl()
 			}
 
 			static if (hasTreePath) visitor.tree_path.put(0);
-			static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path: %s", visitor.tree_path.value[]); } ();
+			static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path #1: %s", visitor.tree_path.value[]); } ();
 			static if (hasTreePath) scope(exit) visitor.tree_path.popBack;
 			const len = getLength!(Data, data);
 			static if (is(typeof(model.length)))
@@ -1141,7 +1141,7 @@ mixin template visitImpl()
 				foreach(i; childIndices)
 				{
 					static if (hasTreePath) visitor.tree_path.back = i;
-					static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path: %s", visitor.tree_path.value[]); } ();
+					static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path #2: %s", visitor.tree_path.value[]); } ();
 					auto idx = getIndex!(Data)(this, i);
 					if (model[i].visit!order(data[idx], visitor))
 					{
@@ -1170,7 +1170,7 @@ mixin template visitImpl()
 							enum FieldNo = (Sinking) ? i : len - i - 1;
 							enum member = DrawableMembers!Data[FieldNo];
 							static if (hasTreePath) visitor.tree_path.back = cast(int) FieldNo;
-							static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path: %s", visitor.tree_path.value[]); } ();
+							static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path #3: %s", visitor.tree_path.value[]); } ();
 							if (mixin("this." ~ member).visit!order(mixin("data." ~ member), visitor))
 							{
 								return true;
