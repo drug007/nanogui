@@ -1126,6 +1126,10 @@ mixin template visitImpl()
 
 			// stashed visitor size
 			typeof(visitor.size) vs = void;
+			if (visitor.orientation == Orientation.Horizontal)
+			{
+				vs = visitor.size;
+			}
 
 			static if (dataHasStaticArrayModel!Data || 
 			           dataHasRandomAccessRangeModel!Data ||
@@ -1134,10 +1138,8 @@ mixin template visitImpl()
 				auto childIndices = TwoFacedRange!order(start_value, data.length);
 
 				if (visitor.orientation == Orientation.Horizontal)
-				{
-					vs = visitor.size;
 					visitor.size[visitor.orientation] = (visitor.size[visitor.orientation] - this.Spacing*(childIndices.length-1)) / childIndices.length;
-				}
+
 				foreach(i; childIndices)
 				{
 					static if (hasTreePath) visitor.tree_path.back = i;
@@ -1152,10 +1154,8 @@ mixin template visitImpl()
 			else static if (dataHasAggregateModel!Data)
 			{
 				if (visitor.orientation == Orientation.Horizontal)
-				{
-					vs = visitor.size;
 					visitor.size[visitor.orientation] = (visitor.size[visitor.orientation] - this.Spacing*(len-1)) / len;
-				}
+
 				switch(start_value)
 				{
 					static foreach(i; 0..len)
