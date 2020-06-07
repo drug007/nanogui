@@ -1128,12 +1128,11 @@ mixin template visitImpl()
 			           dataHasAssociativeArrayModel!Data)
 			{
 				auto childIndices = TwoFacedRange!order(start_value, data.length);
-				static if (hasTreePath)
-				{
-					const old_orientation = visitor.orientation;
-					visitor.orientation = this.orientation;
-					scope(exit) visitor.orientation = old_orientation;
-				}
+
+				const old_orientation = visitor.orientation;
+				visitor.orientation = this.orientation;
+				scope(exit) visitor.orientation = old_orientation;
+
 				if (visitor.orientation == Orientation.Horizontal)
 				{
 					vs = visitor.size;
@@ -1152,12 +1151,10 @@ mixin template visitImpl()
 			}
 			else static if (dataHasAggregateModel!Data)
 			{
-				static if (hasTreePath)
-				{
-					const old_orientation = visitor.orientation;
-					visitor.orientation = this.orientation;
-					scope(exit) visitor.orientation = old_orientation;
-				}
+				const old_orientation = visitor.orientation;
+				visitor.orientation = this.orientation;
+				scope(exit) visitor.orientation = old_orientation;
+
 				if (visitor.orientation == Orientation.Horizontal)
 				{
 					vs = visitor.size;
