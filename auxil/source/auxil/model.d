@@ -1153,6 +1153,7 @@ mixin template visitImpl()
 			if (visitor.orientation == Orientation.Horizontal)
 			{
 				vs = visitor.size;
+				visitor.size[visitor.orientation] -= this.header_size;
 			}
 
 			static if (dataHasStaticArrayModel!Data || 
@@ -1218,17 +1219,13 @@ mixin template visitImpl()
 			static if (Sinking)
 			{
 				debug logger.tracef("[ sinking make up ] %s model: %s visitor: %s state %s", typeof(this).stringof, orientation, visitor.orientation, visitor.state);
-				if (visitor.orientation == visitor.orientation.Vertical &&
-				    this.orientation == visitor.orientation.Horizontal)
+				debug logger.tracef("[ sinking make up ] pos: %s old position %s", visitor.position, old_position);
+				if (visitor.orientation != this.orientation)
 				{
-					visitor.makeUpHeaderPositionSinking(this);
-					visitor.position[this.orientation] = old_position[this.orientation];
-				}
-				if (visitor.orientation == visitor.orientation.Horizontal &&
-				    this.orientation == visitor.orientation.Vertical)
-				{
-					visitor.makeUpChildPositionSinking(this);
-					visitor.position[this.orientation] = old_position[this.orientation];
+					visitor.position[this.orientation] = old_position[this.orientation];	
+					visitor.last_change = visitor.size[visitor.orientation]+this.Spacing;
+					visitor.position[visitor.orientation] += visitor.last_change;
+					debug logger.tracef("[ sinking make up ] pos: %s last_change %s", visitor.position, visitor.last_change);
 				}
 			}
 			visitor.leaveNode!order(data, this);
@@ -1246,17 +1243,14 @@ mixin template visitImpl()
 			static if (Bubbling)
 			{
 				debug logger.tracef("[ bubbling make up ] %s model: %s visitor: %s state %s", typeof(this).stringof, orientation, visitor.orientation, visitor.state);
-				if (visitor.orientation == visitor.orientation.Vertical &&
-				    this.orientation == visitor.orientation.Horizontal)
-				{
-					visitor.makeUpHeaderPositionBubbling(this);
-					visitor.position[this.orientation] = old_position[this.orientation];
-				}
+				
+				if (visitor.orientation != this.orientation)
+					visitor.position[orientation] = old_position[orientation];
+
 				if (visitor.orientation == visitor.orientation.Horizontal &&
 				    this.orientation == visitor.orientation.Vertical)
 				{
 					visitor.makeUpChildPositionBubbling(this);
-					visitor.position[this.orientation] = old_position[this.orientation];
 				}
 			}
 
@@ -1744,14 +1738,14 @@ struct DefaultVisitorImpl(
 
 		void updateHeaderPositionSinking(M)(ref const(M) model)
 		{
-			last_change = (model.orientation == Orientation.Vertical) ? model.header_size : 0;
-			position[orientation] += last_change;
+			last_change = model.header_size;
+			position[model.orientation] += last_change;
 		}
 
 		void updateHeaderPositionBubbling(M)(ref const(M) model)
 		{
-			last_change = (model.orientation == Orientation.Vertical) ? -model.header_size : 0;
-			position[orientation] += last_change;
+			last_change = (orientation == model.orientation) ? -model.header_size : -(size[model.orientation] + model.Spacing);
+			position[model.orientation] += last_change;
 		}
 
 		void updateChildPositionSinking(M)(ref const(M) model)
@@ -1802,9 +1796,17 @@ struct MeasureVisitor
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		model.size = size[model.orientation] + model.Spacing;
-		model.header_size = (orientation == Orientation.Vertical) ? model.size : 0;
-	}
+		if (model.orientation == Orientation.Horizontal)
+		{
+			model.size = size[model.orientation] + model.Spacing;
+			model.header_size = model.size / (1 + model.childCount);
+		}
+		else
+		{
+			model.size = size[model.orientation] + model.Spacing;
+			model.header_size = model.size;
+		}
+}
 
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
