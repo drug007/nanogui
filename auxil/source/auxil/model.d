@@ -1085,6 +1085,9 @@ mixin template visitImpl()
 			debug logger.tracef(" [ after complete ] pos: %s dest: %s", visitor.position, visitor.destination);
 			debug logger.tracef(" [ after complete ] path: %s path position: %s", visitor.path, visitor.path_position);
 
+			const old_position = visitor.position;
+			debug logger.tracef("[ finish enterNode ] old position %s", old_position);
+
 			if (visitor.state.among(visitor.State.first, visitor.State.rest))
 			{
 				visitor.enterNode!(order, Data)(data, this);
@@ -1097,8 +1100,6 @@ mixin template visitImpl()
 					visitor.updateState!Sinking;
 				}
 			}
-
-			const old_position = visitor.position;
 		}
 		else
 			visitor.enterNode!(order, Data)(data, this);
