@@ -229,6 +229,12 @@ struct StaticArrayModel(alias A)// if (dataHasStaticArrayModel!(TypeOf!A))
 
 	auto childCount() const { return model.length; }
 
+	void foreachChild(alias dg)()
+	{
+		foreach(ref child; model)
+			dg(child);
+	}
+
 	this()(const(Data) data) if (Data.sizeof <= (void*).sizeof)
 	{
 		initialization;
@@ -278,6 +284,12 @@ struct RaRModel(alias A)// if (dataHasRandomAccessRangeModel!(TypeOf!A))
 	alias model this;
 
 	auto childCount() const { return model.length; }
+
+	void foreachChild(alias dg)()
+	{
+		foreach(ref child; model)
+			dg(child);
+	}
 
 	this()(const(Data) data) if (Data.sizeof <= (void*).sizeof)
 	{
@@ -342,6 +354,12 @@ struct AssocArrayModel(alias A)// if (dataHasAssociativeArrayModel!(TypeOf!A))
 	alias model this;
 
 	auto childCount() const { return model.length; }
+
+	void foreachChild(alias dg)()
+	{
+		foreach(ref child; model)
+			dg(child);
+	}
 
 	this()(const(Data) data) if (Data.sizeof <= (void*).sizeof)
 	{
@@ -498,6 +516,20 @@ struct TaggedAlgebraicModel(alias A)// if (dataHasTaggedAlgebraicModel!(TypeOf!A
 			assert(0);
 		}
 
+		void foreachChild(alias dg)()
+		{
+			final switch(value.kind)
+			{
+				foreach (i, FT; value.UnionType.FieldTypes)
+				{
+					case __traits(getMember, value.Kind, value.UnionType.fieldNames[i]):
+						(taget!FT(value)).foreachChild!dg;
+					break;
+				}
+			}
+			assert(0);
+		}
+
 		auto childrenSize(double[2] visitor_size) const @safe
 		{
 			final switch(value.kind)
@@ -609,6 +641,12 @@ template AggregateModel(alias A) // if (dataHasAggregateModel!(TypeOf!A) && !is(
 				mixin("Model!(Data.%1$s) %1$s;".format(member));
 
 			enum childCount = DrawableMembers!Data.length;
+
+			void foreachChild(alias dg)()
+			{				
+				static foreach(member; DrawableMembers!Data)
+					dg(mixin(member));
+			}
 
 			auto childrenSize(double[2] visitor_size) const @safe
 			{
@@ -925,6 +963,11 @@ struct ScalarModel(alias A)
 	@property header_size() const { return size; }
 
 	@property childCount() const { return 0; }
+
+	void foreachChild(alias dg)()
+	{
+		// do nothing
+	}
 
 	alias Data = TypeOf!A;
 	static assert(isProcessible!Data);
