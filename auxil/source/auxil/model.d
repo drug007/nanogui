@@ -112,7 +112,7 @@ private enum dataHasTaggedAlgebraicModel(T) = is(T == struct) && isInstanceOf!(T
 mixin template State()
 {
 	enum Spacing = 1;
-	double size = 0, header_size = 0;
+	double _size = 0, header_size = 0;
 	int _placeholder = 1 << Field.Collapsed | 
 	                   1 << Field.Enabled   |
 	                   1 << Field.Orientation;
@@ -167,10 +167,25 @@ mixin template State()
 			}
 		}
 	}
+
 	@property Orientation orientation() const
 	{
 		auto tmp = (_placeholder & (1 << Field.Orientation));
 		return cast(Orientation) (tmp >> Field.Orientation);
+	}
+
+	@property double size() const { return _size; }
+	@property void size(double value) { _size = value; }
+
+	@property double size(V)(ref V visitor)
+	{
+		if (orientation == visitor.orientation)
+			return size;
+		double s = header_size;
+		foreachChild!((ref child){
+			s += child.size(visitor);
+		});
+		return s;
 	}
 }
 
@@ -497,7 +512,20 @@ struct TaggedAlgebraicModel(alias A)// if (dataHasTaggedAlgebraicModel!(TypeOf!A
 				foreach (i, FT; value.UnionType.FieldTypes)
 				{
 					case __traits(getMember, value.Kind, value.UnionType.fieldNames[i]):
-						return taget!FT(value).size;
+						return taget!FT(value).size();
+				}
+			}
+			assert(0);
+		}
+
+		auto size(V)(ref V visitor)
+		{
+			final switch(value.kind)
+			{
+				foreach (i, FT; value.UnionType.FieldTypes)
+				{
+					case __traits(getMember, value.Kind, value.UnionType.fieldNames[i]):
+						return taget!FT(value).size(visitor);
 				}
 			}
 			assert(0);
@@ -956,13 +984,20 @@ struct ScalarModel(alias A)
 	    !dataHasAssociativeArrayModel!(TypeOf!A))
 {
 	enum Spacing = 1;
-	float size = 0;
+	float _size = 0;
+	float size() const { return _size; }
+	void size(float value) { _size = value; }
 
 	enum Collapsable = false;
 	enum orientation = Orientation.Horizontal;
 	@property header_size() const { return size; }
 
 	@property childCount() const { return 0; }
+
+	auto size(V)(ref V visitor)
+	{
+		return (orientation == visitor.orientation) ? size : visitor.size[visitor.orientation];
+	}
 
 	void foreachChild(alias dg)()
 	{
@@ -1526,8 +1561,8 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 		const old_dest = visitor.dest;
 		if (visitor.dest != visitor.dest)
 		{
-			const d = (visitor.orientation == Orientation.Vertical) ? model.size : model.header_size;
-			visitor.dest = visitor.position[visitor.orientation] + d;
+			visitor.dest = visitor.position[visitor.orientation] + model.size(visitor);
+			debug logger.tracef("[ visitForward ] visitor.destination %s", visitor.destination);
 		}
 		scope(exit)
 		{
@@ -1854,7 +1889,7 @@ struct MeasureVisitor
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		if (model.orientation == Orientation.Vertical)
-			model.size += model.childrenSize(size);
+			model.size = model.size + model.childrenSize(size);
 	}
 
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
@@ -1931,7 +1966,7 @@ unittest
 	static assert(FieldNameTuple!(typeof(m))                                 == AliasSeq!("single_member_model"));
 	static assert(FieldNameTuple!(typeof(m.single_member_model))             == AliasSeq!("proxy", "proxy_model"));
 	static assert(FieldNameTuple!(typeof(m.single_member_model.proxy))       == AliasSeq!(""));
-	static assert(FieldNameTuple!(typeof(m.single_member_model.proxy_model)) == AliasSeq!("size"));
+	static assert(FieldNameTuple!(typeof(m.single_member_model.proxy_model)) == AliasSeq!("_size"));
 
 	@renderedAs!string
 	Duration d;
