@@ -1884,7 +1884,7 @@ struct MeasureVisitor
 			model.size = size[model.orientation] + model.Spacing;
 			model.header_size = model.size;
 		}
-}
+	}
 
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
