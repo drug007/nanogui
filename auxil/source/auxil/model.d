@@ -1120,6 +1120,15 @@ mixin template visitImpl()
 
 	bool baseVisit(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
 	{
+
+		void checkPoint(string name)()
+		{
+			static if (is(typeof(mixin("visitor.", name, "!(order, Data)(data, this)"))))
+			{
+				mixin("visitor.", name, "!(order, Data)(data, this);");
+			}
+		}
+
 		static if (Data.sizeof > 24 && !__traits(isRef, data))
 			pragma(msg, "Warning: ", Data, " is a value type and has size larger than 24 bytes");
 
@@ -1129,10 +1138,13 @@ mixin template visitImpl()
 		enum Bubbling    = !Sinking; 
 		enum hasTreePath = Visitor.treePathEnabled;
 
+		checkPoint!"onBeforeComplete";
+
 		debug logger.tracef(" [before complete ] %s", typeof(this).stringof);
 		static if (hasTreePath) debug logger.tracef(" [before complete ] %s %s", typeof(this).stringof, visitor.state);
 		if (visitor.complete)
 		{
+			checkPoint!"onComplete";
 			return true;
 		}
 
@@ -1160,11 +1172,15 @@ mixin template visitImpl()
 				}
 			}
 
+			checkPoint!"onAfterComplete";
+
 			debug logger.tracef(" [ after complete ] pos: %s dest: %s", visitor.position, visitor.destination);
 			debug logger.tracef(" [ after complete ] path: %s path position: %s", visitor.path, visitor.path_position);
 
 			const old_position = visitor.position;
 			debug logger.tracef("[ finish enterNode ] old position %s", old_position);
+
+			checkPoint!"onBeforeEnterNode";
 
 			if (visitor.state.among(visitor.State.first, visitor.State.rest))
 			{
@@ -1172,15 +1188,22 @@ mixin template visitImpl()
 
 				static if (Sinking)
 				{
+					checkPoint!"onBeforeUpdateHeaderPositionSinking";
 					visitor.updateHeaderPositionSinking(this);
 					debug logger.tracef("[ finish enterNode] visitor %s model %s model.header size %s", visitor.orientation, this.orientation, this.header_size);
 					debug logger.tracef("[ finish enterNode] pos: %s dest: %s", visitor.position, visitor.destination);
+					checkPoint!"onBeforeupdateState";
 					visitor.updateState!Sinking;
 				}
 			}
 		}
 		else
+		{
+			checkPoint!"onBeforeEnterNode";
 			visitor.enterNode!(order, Data)(data, this);
+		}
+
+		checkPoint!"onAfterEnterNode";
 
 		if (!this.collapsed)
 		{
@@ -1291,6 +1314,9 @@ mixin template visitImpl()
 			if (visitor.orientation == Orientation.Horizontal)
 				visitor.size = vs;
 		}
+
+		checkPoint!"onBeforeLeaveNode";
+		scope(exit) checkPoint!"onAfterLeaveNode";
 
 		static if (hasTreePath)
 		{

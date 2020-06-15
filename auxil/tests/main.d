@@ -6,4 +6,5 @@ mixin runTestsMain!(
 	"aux.traits",
 	"aux.test",
 	"aux.test_aggregate",
+	"aux.test_traversing",
 );
