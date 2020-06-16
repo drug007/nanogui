@@ -1074,7 +1074,7 @@ struct ScalarModel(alias A)
 
 			checkPoint!"onAfterComplete";
 
-			debug logger.tracef(" [ after complete ] pos: %s dest: %s", visitor.position, visitor.destination);
+			debug logger.tracef(" [ after complete ] pos: %s", visitor.position);
 			debug logger.tracef(" [ after complete ] path: %s path position: %s", visitor.path, visitor.path_position);
 
 			checkPoint!"onBeforeProcessLeaf";
@@ -1473,6 +1473,11 @@ private struct PropertyVisitor(string propertyName, Value)
 		else
 			value.nullify;
 
+		processLeaf!order(data, model);
+	}
+
+	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
 		assert(!completed);
 		completed = tree_path.value[] == path.value[];
 	}
