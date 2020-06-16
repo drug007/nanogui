@@ -116,21 +116,6 @@ struct CheckingVisitor
 		output_position.put(PositionState("onEnterTree", tree_path.value[].dup, position, destination, state));
 	}
 
-	void onBeforeComplete(Order order, Data, Model)(ref const(Data) data, ref Model model)
-	{
-		output_position.put(PositionState("onBeforeComplete", tree_path.value[].dup, position, destination, state));
-	}
-
-	void onComplete(Order order, Data, Model)(ref const(Data) data, ref Model model)
-	{
-		output_position.put(PositionState("onComplete", tree_path.value[].dup, position, destination, state));
-	}
-
-	void onAfterComplete(Order order, Data, Model)(ref const(Data) data, ref Model model)
-	{
-		output_position.put(PositionState("onAfterComplete", tree_path.value[].dup, position, destination, state));
-	}
-
 	void onBeforeEnterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		output_position.put(PositionState("onBeforeEnterNode", tree_path.value[].dup, position, destination, state));
