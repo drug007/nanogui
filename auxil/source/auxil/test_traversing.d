@@ -137,23 +137,44 @@ struct CheckingVisitor
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
+		// output_orientation.put(OrientationState("enterNode   " ~ Model.stringof ~ " ", model.orientation));
+
 		tpvisitor.enterNode!order(data, model);
+
+		// output_size.put(SizeState("enterNode   " ~ Model.stringof ~ " ", model.size));
 	}
 
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		tpvisitor.leaveNode!order(data, model);
+
+		// output_size.put(SizeState("leaveNode   " ~ Model.stringof ~ " ", model.size));
+		// output_orientation.put(OrientationState("leaveNode   " ~ Model.stringof ~ " ", model.orientation));
 	}
 
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
+		// output_orientation.put(OrientationState("processLeaf " ~ Model.stringof ~ " ", model.orientation));
+
 		tpvisitor.processLeaf!order(data, model);
+
+		// output_size.put(SizeState("processLeaf " ~ Model.stringof ~ " ", model.size));
 	}
 
 	void onEnterTree(Data, Model)(ref const(Data) data, ref Model model)
 	{
 		output_position.put(PositionState("onEnterTree", tree_path.value[].dup, position, destination, last_change, state));
 	}
+
+	// void onBeforeStateCheck(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	// {
+	// 	output_position.put(PositionState("onBeforeStateCheck", tree_path.value[].dup, position, destination, last_change, state));
+	// }
+
+	// void onAfterStateCheck(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	// {
+	// 	output_position.put(PositionState("onAfterStateCheck", tree_path.value[].dup, position, destination, last_change, state));
+	// }
 
 	void onBeforeEnterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
@@ -265,7 +286,35 @@ unittest
 
 		{
 			import std;
-			writeln(cv.output_position[]);
+			cv.output_position[].each!writeln;
 		}
+
+		// cv.path.clear;
+		// cv.position = 0;
+		// cv.position[model.orientation] = model.size;
+		// cv.output_position.clear;
+		// model.visitBackward(data, cv);
+
+		// {
+		// 	import std;
+		// 	writeln;
+		// 	cv.output_position[].each!writeln;
+		// }
+
+		// cv.output_orientation[].should.be == [
+		// 	OrientationState("enterNode   AggregateModel!(V) ", Orientation.Vertical), 
+		// 	OrientationState("processLeaf ScalarModel!(a) ",    Orientation.Horizontal), 
+		// 	OrientationState("processLeaf ScalarModel!(b) ",    Orientation.Horizontal), 
+		// 	OrientationState("processLeaf ScalarModel!(c) ",    Orientation.Horizontal), 
+		// 	OrientationState("leaveNode   AggregateModel!(V) ", Orientation.Vertical)
+		// ];
+
+		// cv.output_size[].should.be == [
+		// 	SizeState("enterNode   AggregateModel!(V) ", 10), 
+		// 	SizeState("processLeaf ScalarModel!(a) ",    10), 
+		// 	SizeState("processLeaf ScalarModel!(b) ",    10), 
+		// 	SizeState("processLeaf ScalarModel!(c) ",    10), 
+		// 	SizeState("leaveNode   AggregateModel!(V) ", 40)
+		// ];
 	}
 }
