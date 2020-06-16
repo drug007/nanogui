@@ -6,13 +6,28 @@ import unit_threaded : should, be, Name;
 import std.experimental.allocator.mallocator : Mallocator;
 import automem.vector : Vector;
 
-import aux.model : Order, makeModel, visitForward, MeasureVisitor, TreePathVisitor, Orientation;
+import aux.model : Order, makeModel, visitForward, MeasureVisitor, 
+	TreePathVisitor, Orientation, visitBackward;
 
 struct PositionState
 {
+	import std.range : isOutputRange;
+
 	string label;
 	int[] path;
 	double[2] pos, dest;
+	TreePathVisitor.State state;
+
+	@disable this();
+
+	this(string l, int[] p, double[2] ps, double[2] d, TreePathVisitor.State s)
+	{
+		label = l;
+		path = p;
+		pos = ps;
+		dest = d;
+		state = s;
+	}
 
 	bool opEquals(ref const(typeof(this)) other) const
 	{
@@ -53,6 +68,21 @@ struct PositionState
 
 		return 1;
 	}
+
+	void toString(W)(ref W writer) const @safe
+		if (isOutputRange!(W, string))
+	{
+		import std.algorithm : copy;
+		import std.range : put, repeat;
+		import std.format : formattedWrite;
+		import std.conv : text;
+
+		copy(typeof(this).stringof, writer);
+		writer.put('(');
+		auto prefix = '\t'.repeat(path.length);
+		formattedWrite(writer, "%s%-19s, path: %6s, pos: %3s, dest: %3s, %s", prefix, label, path.text, pos, dest, state);
+		writer.put(')');
+	}
 }
 
 struct CheckingVisitor
@@ -81,39 +111,54 @@ struct CheckingVisitor
 	{
 	}
 
+	void onEnterTree(Data, Model)(ref const(Data) data, ref Model model)
+	{
+		output_position.put(PositionState("onEnterTree", tree_path.value[].dup, position, destination, state));
+	}
+
 	void onBeforeComplete(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		output_position.put(PositionState("onBeforeComplete", tree_path.value[].dup, position, dest));
+		output_position.put(PositionState("onBeforeComplete", tree_path.value[].dup, position, destination, state));
 	}
 
 	void onComplete(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		output_position.put(PositionState("onComplete", tree_path.value[].dup, position, dest));
+		output_position.put(PositionState("onComplete", tree_path.value[].dup, position, destination, state));
 	}
 
 	void onAfterComplete(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		output_position.put(PositionState("onAfterComplete", tree_path.value[].dup, position, dest));
+		output_position.put(PositionState("onAfterComplete", tree_path.value[].dup, position, destination, state));
 	}
 
 	void onBeforeEnterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		output_position.put(PositionState("onBeforeEnterNode", tree_path.value[].dup, position, dest));
+		output_position.put(PositionState("onBeforeEnterNode", tree_path.value[].dup, position, destination, state));
 	}
 
 	void onAfterEnterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		output_position.put(PositionState("onAfterEnterNode", tree_path.value[].dup, position, dest));
+		output_position.put(PositionState("onAfterEnterNode", tree_path.value[].dup, position, destination, state));
 	}
 
 	void onBeforeLeaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		output_position.put(PositionState("onBeforeLeaveNode", tree_path.value[].dup, position, dest));
+		output_position.put(PositionState("onBeforeLeaveNode", tree_path.value[].dup, position, destination, state));
 	}
 
 	void onAfterLeaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		output_position.put(PositionState("onAfterLeaveNode", tree_path.value[].dup, position, dest));
+		output_position.put(PositionState("onAfterLeaveNode", tree_path.value[].dup, position, destination, state));
+	}
+
+	void onBeforeProcessLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		output_position.put(PositionState("onBeforeProcessLeaf", tree_path.value[].dup, position, destination, state));
+	}
+
+	void onAfterProcessLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		output_position.put(PositionState("onAfterProcessLeaf", tree_path.value[].dup, position, destination, state));
 	}
 }
 

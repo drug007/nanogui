@@ -1018,6 +1018,14 @@ struct ScalarModel(alias A)
 
 	private bool visit(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
 	{
+		void checkPoint(string name)()
+		{
+			static if (is(typeof(mixin("visitor.", name, "!(order, Data)(data, this)"))))
+			{
+				mixin("visitor.", name, "!(order, Data)(data, this);");
+			}
+		}
+
 		static if (Data.sizeof > 24 && !__traits(isRef, data))
 			pragma(msg, "Warning: ", Data, " is a value type and has size larger than 24 bytes");
 
@@ -1027,13 +1035,18 @@ struct ScalarModel(alias A)
 		enum Bubbling    = !Sinking; 
 		enum hasTreePath = Visitor.treePathEnabled;
 
+		checkPoint!"onBeforeComplete";
+
 		debug logger.tracef(" [before complete ] %s", typeof(this).stringof);
 		static if (hasTreePath) debug logger.tracef(" [before complete ] %s %s", typeof(this).stringof, visitor.state);
 
 		if (visitor.complete)
 		{
+			checkPoint!"onComplete";
 			return true;
 		}
+
+		scope(exit) checkPoint!"onAfterProcessLeaf";
 
 		static if (hasTreePath)
 		{
@@ -1059,8 +1072,12 @@ struct ScalarModel(alias A)
 				}
 			}
 
+			checkPoint!"onAfterComplete";
+
 			debug logger.tracef(" [ after complete ] pos: %s", visitor.position);
 			debug logger.tracef(" [ after complete ] path: %s path position: %s", visitor.path, visitor.path_position);
+
+			checkPoint!"onBeforeProcessLeaf";
 
 			if (Sinking && visitor.state.among(visitor.State.first, visitor.State.rest))
 			{
@@ -1093,6 +1110,7 @@ struct ScalarModel(alias A)
 		}
 		else
 		{
+			checkPoint!"onBeforeProcessLeaf";
 			visitor.processLeaf!order(data, this);
 			return false;
 		}
@@ -1120,7 +1138,6 @@ mixin template visitImpl()
 
 	bool baseVisit(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
 	{
-
 		void checkPoint(string name)()
 		{
 			static if (is(typeof(mixin("visitor.", name, "!(order, Data)(data, this)"))))
@@ -1599,6 +1616,10 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 	const old_orientation = visitor.orientation;
 	if (model.Collapsable) visitor.orientation = model.orientation;
 	scope(exit) visitor.orientation = old_orientation;
+
+	static if (is(typeof(visitor.onEnterTree!Data(data, model))))
+		visitor.onEnterTree!Data(data, model);
+
 	visitor.enterTree!order(data, model);
 	model.visit!order(data, visitor);
 }
@@ -1621,6 +1642,10 @@ void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, re
 	const old_orientation = visitor.orientation;
 	if (model.Collapsable) visitor.orientation = model.orientation;
 	scope(exit) visitor.orientation = old_orientation;
+
+	static if (is(typeof(visitor.onEnterTree!Data(data, model))))
+		visitor.onEnterTree!Data(data, model);
+
 	visitor.enterTree!order(data, model);
 	model.visit!order(data, visitor);
 }
