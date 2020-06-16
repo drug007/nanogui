@@ -1016,105 +1016,7 @@ struct ScalarModel(alias A)
 		return visitor_size[orientation];
 	}
 
-	private bool visit(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
-	{
-		void checkPoint(string name)()
-		{
-			static if (is(typeof(mixin("visitor.", name, "!(order, Data)(data, this)"))))
-			{
-				mixin("visitor.", name, "!(order, Data)(data, this);");
-			}
-		}
-
-		static if (Data.sizeof > 24 && !__traits(isRef, data))
-			pragma(msg, "Warning: ", Data, " is a value type and has size larger than 24 bytes");
-
-		import std.algorithm : among;
-
-		enum Sinking     = order == Order.Sinking;
-		enum Bubbling    = !Sinking; 
-		enum hasTreePath = Visitor.treePathEnabled;
-
-		checkPoint!"onBeforeComplete";
-
-		debug logger.tracef(" [before complete ] %s", typeof(this).stringof);
-		static if (hasTreePath) debug logger.tracef(" [before complete ] %s %s", typeof(this).stringof, visitor.state);
-
-		if (visitor.complete)
-		{
-			checkPoint!"onComplete";
-			return true;
-		}
-
-		scope(exit) checkPoint!"onAfterProcessLeaf";
-
-		static if (hasTreePath)
-		{
-			import std.math : isNaN;
-			assert(!visitor.position[0].isNaN);
-			assert(!visitor.position[1].isNaN);
-
-			with(visitor) final switch(state)
-			{
-				case State.seeking:
-					if (tree_path.value == path.value)
-						state = State.first;
-				break;
-				case State.first:
-					state = State.rest;
-				break;
-				case State.rest:
-					// do nothing
-				break;
-				case State.finishing:
-				{
-					return true;
-				}
-			}
-
-			checkPoint!"onAfterComplete";
-
-			debug logger.tracef(" [ after complete ] pos: %s", visitor.position);
-			debug logger.tracef(" [ after complete ] path: %s path position: %s", visitor.path, visitor.path_position);
-
-			checkPoint!"onBeforeProcessLeaf";
-
-			if (Sinking && visitor.state.among(visitor.State.first, visitor.State.rest))
-			{
-				visitor.processLeaf!(order, Data)(data, this);
-
-				visitor.updateChildPositionSinking(this);
-				debug logger.tracef("[ finish processLeaf] pos: %s dest: %s", visitor.position, visitor.destination);
-				visitor.updateState!Sinking;
-			}
-
-			static if (Bubbling)
-				visitor.processLeaf!order(data, this);
-
-			if (visitor.state.among(visitor.State.first, visitor.State.rest))
-			{
-				static if (Bubbling) visitor.updateChildPositionBubbling(this);
-
-				debug logger.tracef("[   finish leaf   ] model: %s visitor: %s", orientation, visitor.orientation);
-				debug logger.tracef("[   finish leaf   ] pos: %s dest: %s", visitor.position, visitor.destination);
-
-				visitor.updateState!Sinking;
-			}
-
-			debug logger.tracef(" [   after leaf   ] pos: %s ", visitor.position);
-			debug logger.tracef(" [   after leaf   ] path: %s path position: %s", visitor.path, visitor.path_position);
-
-			debug logger.tracef(" [   after leaf   ] %s", typeof(this).stringof);
-
-			return visitor.state == visitor.State.finishing;
-		}
-		else
-		{
-			checkPoint!"onBeforeProcessLeaf";
-			visitor.processLeaf!order(data, this);
-			return false;
-		}
-	}
+	mixin visitImpl;
 }
 
 auto makeModel(T)(auto ref const(T) data)
@@ -1238,7 +1140,7 @@ mixin template visitImpl()
 
 		checkPoint!"onAfterEnterNode";
 
-		if (!this.collapsed)
+		static if (Collapsable) if (!this.collapsed)
 		{
 			visitor.indent;
 			scope(exit) visitor.unindent;
