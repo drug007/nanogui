@@ -1149,7 +1149,8 @@ mixin template visitImpl()
 		else
 			doEnterNode;
 
-		static if (Collapsable) if (!this.collapsed)
+		bool status;
+		static if (Collapsable) while (!this.collapsed)
 		{
 			visitor.indent;
 			scope(exit) visitor.unindent;
@@ -1159,9 +1160,7 @@ mixin template visitImpl()
 				// Edge case if the start path starts from this collapsable exactly
 				// then the childs of the collapsable aren't processed
 				if (visitor.path.value.length && visitor.tree_path.value[] == visitor.path.value[])
-				{
-					return false;
-				}
+					break;
 			}
 
 			static if (hasTreePath) visitor.tree_path.put(0);
@@ -1171,7 +1170,7 @@ mixin template visitImpl()
 			static if (is(typeof(model.length)))
 				assert(len == model.length);
 			if (!len)
-				return false;
+				break;
 
 			size_t start_value;
 			static if (Bubbling)
@@ -1217,7 +1216,8 @@ mixin template visitImpl()
 					auto idx = getIndex!(Data)(this, i);
 					if (model[i].visit!order(data[idx], visitor))
 					{
-						return true;
+						status = true;
+						break;
 					}
 				}
 			}
@@ -1226,7 +1226,7 @@ mixin template visitImpl()
 				if (visitor.orientation == Orientation.Horizontal)
 					visitor.size[visitor.orientation] = (visitor.size[visitor.orientation] - this.Spacing*(len-1)) / len;
 
-				switch(start_value)
+				outer: switch(start_value)
 				{
 					static foreach(i; 0..len)
 					{
@@ -1239,7 +1239,8 @@ mixin template visitImpl()
 							static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path #3: %s", visitor.tree_path.value[]); } ();
 							if (mixin("this." ~ member).visit!order(mixin("data." ~ member), visitor))
 							{
-								return true;
+								status = true;
+								break outer;
 							}
 						}
 						goto case;
@@ -1257,6 +1258,8 @@ mixin template visitImpl()
 			}
 			if (visitor.orientation == Orientation.Horizontal)
 				visitor.size = vs;
+
+			break;
 		}
 
 		static if (hasTreePath)
@@ -1304,6 +1307,8 @@ mixin template visitImpl()
 
 			debug logger.tracef(" [after leaveNode ] %s", typeof(this).stringof);
 
+			if (status)
+				return status;
 			return visitor.state == visitor.State.finishing;
 		}
 		else
