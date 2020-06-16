@@ -1157,12 +1157,18 @@ mixin template visitImpl()
 
 		void doEnterNode()
 		{
-			visitor.enterNode!(order, Data)(data, this);
+			static if (this.Collapsable)
+				visitor.enterNode!(order, Data)(data, this);
+			else static if (Sinking)
+				visitor.processLeaf!order(data, this);
 		}
 
 		void doLeaveNode()
 		{
-			visitor.leaveNode!(order, Data)(data, this);
+			static if (this.Collapsable)
+				visitor.leaveNode!(order, Data)(data, this);
+			else static if (Bubbling)
+				visitor.processLeaf!order(data, this);
 		}
 
 		checkPoint!"onBeforeComplete";
