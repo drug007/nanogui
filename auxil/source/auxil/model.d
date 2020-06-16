@@ -1149,6 +1149,7 @@ mixin template visitImpl()
 		else
 			doEnterNode;
 
+		bool status;
 		static if (Collapsable) while (!this.collapsed)
 		{
 			visitor.indent;
@@ -1215,7 +1216,7 @@ mixin template visitImpl()
 					auto idx = getIndex!(Data)(this, i);
 					if (model[i].visit!order(data[idx], visitor))
 					{
-						static if (hasTreePath) assert(visitor.state == visitor.State.finishing);
+						status = true;
 						break;
 					}
 				}
@@ -1238,7 +1239,7 @@ mixin template visitImpl()
 							static if (hasTreePath) () @trusted { debug logger.tracef(" tree_path #3: %s", visitor.tree_path.value[]); } ();
 							if (mixin("this." ~ member).visit!order(mixin("data." ~ member), visitor))
 							{
-								static if (hasTreePath) assert(visitor.state == visitor.State.finishing);
+								status = true;
 								break outer;
 							}
 						}
@@ -1306,6 +1307,8 @@ mixin template visitImpl()
 
 			debug logger.tracef(" [after leaveNode ] %s", typeof(this).stringof);
 
+			if (status)
+				return status;
 			return visitor.state == visitor.State.finishing;
 		}
 		else
