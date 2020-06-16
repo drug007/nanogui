@@ -671,7 +671,7 @@ template AggregateModel(alias A) // if (dataHasAggregateModel!(TypeOf!A) && !is(
 			enum childCount = DrawableMembers!Data.length;
 
 			void foreachChild(alias dg)()
-			{				
+			{
 				static foreach(member; DrawableMembers!Data)
 					dg(mixin(member));
 			}
