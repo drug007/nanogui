@@ -1155,6 +1155,16 @@ mixin template visitImpl()
 		enum Bubbling    = !Sinking; 
 		enum hasTreePath = Visitor.treePathEnabled;
 
+		void doEnterNode()
+		{
+			visitor.enterNode!(order, Data)(data, this);
+		}
+
+		void doLeaveNode()
+		{
+			visitor.leaveNode!(order, Data)(data, this);
+		}
+
 		checkPoint!"onBeforeComplete";
 
 		debug logger.tracef(" [before complete ] %s", typeof(this).stringof);
@@ -1201,7 +1211,7 @@ mixin template visitImpl()
 
 			if (visitor.state.among(visitor.State.first, visitor.State.rest))
 			{
-				visitor.enterNode!(order, Data)(data, this);
+				doEnterNode;
 
 				static if (Sinking)
 				{
@@ -1217,7 +1227,7 @@ mixin template visitImpl()
 		else
 		{
 			checkPoint!"onBeforeEnterNode";
-			visitor.enterNode!(order, Data)(data, this);
+			doEnterNode;
 		}
 
 		checkPoint!"onAfterEnterNode";
@@ -1349,7 +1359,7 @@ mixin template visitImpl()
 					debug logger.tracef("[ sinking make up ] pos: %s last_change %s", visitor.position, visitor.last_change);
 				}
 			}
-			visitor.leaveNode!order(data, this);
+			doLeaveNode;
 
 			if (visitor.state.among(visitor.State.first, visitor.State.rest))
 			{
@@ -1384,7 +1394,7 @@ mixin template visitImpl()
 		}
 		else
 		{
-			visitor.leaveNode!order(data, this);
+			doLeaveNode;
 			return false;
 		}
 	}
