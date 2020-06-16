@@ -1089,15 +1089,7 @@ mixin template visitImpl()
 			}
 		}
 
-		checkPoint!"onBeforeComplete";
-
-		debug logger.tracef(" [before complete ] %s", typeof(this).stringof);
-		static if (hasTreePath) debug logger.tracef(" [before complete ] %s %s", typeof(this).stringof, visitor.state);
-		if (visitor.complete)
-		{
-			checkPoint!"onComplete";
-			return true;
-		}
+		checkPoint!"onBeforeStateCheck";
 
 		static if (hasTreePath)
 		{
@@ -1123,7 +1115,7 @@ mixin template visitImpl()
 				}
 			}
 
-			checkPoint!"onAfterComplete";
+			checkPoint!"onAfterStateCheck";
 
 			debug logger.tracef(" [ after complete ] pos: %s dest: %s", visitor.position, visitor.destination);
 			debug logger.tracef(" [ after complete ] path: %s path position: %s", visitor.path, visitor.path_position);
@@ -1378,16 +1370,10 @@ private struct PropertyVisitor(string propertyName, Value)
 
 	PropertyKind propertyKind;
 	Nullable!Value value;
-	bool completed;
 
 	this(Value value)
 	{
 		this.value = value;
-	}
-
-	bool complete()
-	{
-		return completed;
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
@@ -1407,8 +1393,9 @@ private struct PropertyVisitor(string propertyName, Value)
 
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		assert(!completed);
-		completed = tree_path.value[] == path.value[];
+		assert(state != state.finishing);
+		if (tree_path.value[] == path.value[])
+			state = state.finishing;
 	}
 }
 
