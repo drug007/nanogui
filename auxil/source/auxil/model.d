@@ -1060,17 +1060,33 @@ mixin template visitImpl()
 		void doEnterNode()
 		{
 			static if (this.Collapsable)
+			{
+				checkPoint!"onBeforeEnterNode";
 				visitor.enterNode!(order, Data)(data, this);
+				checkPoint!"onAfterEnterNode";
+			}
 			else static if (Sinking)
+			{
+				checkPoint!"onBeforeProcessLeaf";
 				visitor.processLeaf!order(data, this);
+				checkPoint!"onAfterProcessLeaf";
+			}
 		}
 
 		void doLeaveNode()
 		{
 			static if (this.Collapsable)
+			{
+				checkPoint!"onBeforeLeaveNode";
 				visitor.leaveNode!(order, Data)(data, this);
+				checkPoint!"onAfterLeaveNode";
+			}
 			else static if (Bubbling)
+			{
+				checkPoint!"onBeforeProcessLeaf";
 				visitor.processLeaf!order(data, this);
+				checkPoint!"onAfterProcessLeaf";
+			}
 		}
 
 		checkPoint!"onBeforeComplete";
@@ -1115,8 +1131,6 @@ mixin template visitImpl()
 			const old_position = visitor.position;
 			debug logger.tracef("[ finish enterNode ] old position %s", old_position);
 
-			checkPoint!"onBeforeEnterNode";
-
 			if (visitor.state.among(visitor.State.first, visitor.State.rest))
 			{
 				doEnterNode;
@@ -1133,12 +1147,7 @@ mixin template visitImpl()
 			}
 		}
 		else
-		{
-			checkPoint!"onBeforeEnterNode";
 			doEnterNode;
-		}
-
-		checkPoint!"onAfterEnterNode";
 
 		static if (Collapsable) if (!this.collapsed)
 		{
@@ -1249,9 +1258,6 @@ mixin template visitImpl()
 			if (visitor.orientation == Orientation.Horizontal)
 				visitor.size = vs;
 		}
-
-		checkPoint!"onBeforeLeaveNode";
-		scope(exit) checkPoint!"onAfterLeaveNode";
 
 		static if (hasTreePath)
 		{
