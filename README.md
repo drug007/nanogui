@@ -9,6 +9,14 @@ There is difference with origin. For example:
 - as a color and vector implementation gfm.math is used (in origin eigen used as a vector implementation and own implementation of color type)
 - no locking on glfw, instead two backends are available - arsd.simpledisplay (no external dependencies) and SDL2 (depends on SDL2 library obviously), SDL backend is more developed than arsd one (due to lack of time). Other backend like glfw, sfml etc can be easily added, nanogui is agnostic to underlying layer.
 
+## Install dependencies
+
+On Ubuntu and debian based Linux run this command to install systme dependencies:
+
+```sh
+sudo apt-get install libfontconfig1-dev
+```
+
 ## Cloning source
 
 ```
