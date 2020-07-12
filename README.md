@@ -11,7 +11,7 @@ There is difference with origin. For example:
 
 ## Install dependencies
 
-On Ubuntu and debian based Linux run this command to install systme dependencies:
+On Ubuntu and debian based Linux run this command to install system dependencies:
 
 ```sh
 sudo apt-get install libfontconfig1-dev
