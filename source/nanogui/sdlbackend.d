@@ -115,8 +115,8 @@ class SdlBackend : Screen
 
 		SDL_Event event;
 
-		uint prev_tick = SDL_GetTicks();
-		while (SDL_QUIT != event.type)
+		bool running = true;
+		while (running)
 		{
 			if (_onBeforeLoopStart)
 				_onBeforeLoopStart();
@@ -168,7 +168,7 @@ class SdlBackend : Screen
 								break;
 
 							case SDL_WINDOWEVENT_CLOSE:
-								event.type = SDL_QUIT;
+								running = false;
 								break;
 							default:
 						}
