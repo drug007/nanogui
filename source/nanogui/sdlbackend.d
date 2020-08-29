@@ -40,6 +40,17 @@ class SdlBackend : Screen
 		import std.stdio : stdout;
 		_log = new FileLogger(stdout);
 
+		version(Windows)
+		{
+			import core.sys.windows.windows;
+
+			auto lib = LoadLibraryA("user32.dll");
+			alias SetProcessDPIAwareFunc = int function();
+			auto setProcessDPIAwareFunc = cast(SetProcessDPIAwareFunc) GetProcAddress(lib, "SetProcessDPIAware");
+			assert(setProcessDPIAwareFunc);
+			setProcessDPIAwareFunc();
+		}
+
 		// load dynamic libraries
 		_sdl2 = new SDL2(_log, SharedLibVersion(2, 0, 0));
 		_gl = new OpenGL(_log);
@@ -58,7 +69,7 @@ class SdlBackend : Screen
 		window = new SDL2Window(_sdl2,
 								SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 								width, height,
-								SDL_WINDOW_OPENGL);
+								SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
 
 		window.setTitle(title);
 		
