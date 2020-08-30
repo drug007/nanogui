@@ -58,6 +58,21 @@ class SdlBackend : Screen
 
 		// You have to initialize each SDL subsystem you want by hand
 		_sdl2.subSystemInit(SDL_INIT_VIDEO);
+
+		version(Windows)
+		{
+			int displayIndex = 0;
+			float dpi;
+			if (SDL_GetDisplayDPI(displayIndex, null, &dpi, null))
+			{
+				dpi = 96;//kSysDefaultDpi;
+			}
+			import std;
+			writeln("dpi: ", dpi, " ", dpi/96.0);
+			float pixelRatio = dpi / 96.0;
+		}
+		else
+			float pixelRatio = 1.0;
 		_sdl2.subSystemInit(SDL_INIT_EVENTS);
 
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -68,7 +83,8 @@ class SdlBackend : Screen
 		// create an OpenGL-enabled SDL window
 		window = new SDL2Window(_sdl2,
 								SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-								width, height,
+								cast(int)(width  * pixelRatio),
+								cast(int)(height * pixelRatio),
 								SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
 
 		window.setTitle(title);
