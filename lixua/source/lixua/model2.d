@@ -46,9 +46,9 @@ template AggregateModel(alias A)
 		{
 		}
 
-		bool visit(Order order, Visitor)(ref const(Data) data, ref Visitor visitor)
+		bool visit(Order order, string name, Visitor)(ref const(Data) data, ref Visitor visitor)
 		{
-			return visitor.visit!order(data, this);
+			return visitor.visit!(order, name)(data, this);
 		}
 	}
 }
@@ -62,9 +62,9 @@ struct ScalarModel(alias A)
 	{
 	}
 
-	bool visit(Visitor)(ref const(Data) data, ref Visitor visitor)
+	bool visit(string name, Visitor)(ref const(Data) data, ref Visitor visitor)
 	{
-		return visitor.visit(data, this);
+		return visitor.visit!name(data, this);
 	}
 }
 

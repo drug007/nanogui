@@ -29,35 +29,35 @@ struct Visitor
 
 	size_t nesting_level;
 
-	auto visit(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
+	auto visit(Order order, string name, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
-		return visit!Data(data, model);
+		return visit!(name, Data)(data, model);
 	}
 
-	auto visit(Data, Model)(auto ref const(Data) data, ref Model model)
+	auto visit(string name, Data, Model)(auto ref const(Data) data, ref Model model)
 		if (isInstanceOf!(AggregateModel, Model))
 	{
 		import std.stdio;
 		import std.algorithm : joiner;
-		writeln("	".repeat(nesting_level).joiner, "data");
+		writeln("	".repeat(nesting_level).joiner, name);
 
 		import lixua.traits2 : AggregateMembers;
 		static foreach(member; AggregateMembers!Data)
 		{{
 			nesting_level++;
 			scope(exit) nesting_level--;
-			mixin("model."~member).visit(mixin("data."~member), this);
+			mixin("model."~member).visit!member(mixin("data."~member), this);
 		}}
 
 		return true;
 	}
 
-	auto visit(Data, Model)(auto ref const(Data) data, ref Model model)
+	auto visit(string name, Data, Model)(auto ref const(Data) data, ref Model model)
 		if (isInstanceOf!(ScalarModel, Model))
 	{
 		import std.algorithm : joiner;
 		import std.stdio;
-		writeln("	".repeat(nesting_level).joiner, Data.stringof, " ", data);
+		writeln("	".repeat(nesting_level).joiner, Data.stringof, " ", name, " ", data);
 
 		return true;
 	}
@@ -78,5 +78,5 @@ void main()
 	writeln("===");
 
 	Visitor visitor;
-	fooModel.visit!(Order.Forward)(foo, visitor);
+	fooModel.visit!(Order.Forward, "foo")(foo, visitor);
 }
