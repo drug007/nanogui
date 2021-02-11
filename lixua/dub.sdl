@@ -21,3 +21,12 @@ configuration "unittest" {
 
 	dependency "unit-threaded" version="~>0.10.7"
 }
+
+configuration "test" {
+	targetType "executable"
+	targetName "test"
+
+	mainSourceFile "tests/test.d"
+
+	dflags "-dip25" "-dip1000" "-dip1008"
+}

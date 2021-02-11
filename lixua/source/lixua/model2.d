@@ -1,23 +1,52 @@
 module lixua.model2;
 
-unittest
+import lixua.traits : UnqualTypeOf = TypeOf;
+
+private enum dataHasAggregateModel(T) = 
+	(is(T == struct) || is(T == union) || is(T == class));
+private enum dataHasScalarModel(T) = (
+	is(T == byte)   ||
+	is(T == ubyte)  ||
+	is(T == short)  ||
+	is(T == ushort) ||
+	is(T == int)    ||
+	is(T == uint)   ||
+	is(T == long)   ||
+	is(T == ulong)
+);
+
+template Model(alias A)
 {
-	struct Foo
+	static if (dataHasAggregateModel!(UnqualTypeOf!A))
+		alias Model = AggregateModel!A;
+	else
+		alias Model = ScalarModel!A;
+}
+
+template AggregateModel(alias A)
+	if (dataHasAggregateModel!(UnqualTypeOf!A))
+{
+	struct AggregateModel
 	{
-		int i = -100;
-		float f = 3;
-		double d = 16;
-		private string str;
+		alias Data = UnqualTypeOf!A;
+
+		this()(auto ref const(Data) data)
+		{
+		}
 	}
+}
 
-	auto foo = Foo(99, -3, 11);
-	import lixua.model : makeModel;
-	auto fooModel = makeModel(foo);
-	import std;
-	writeln(foo);
-	writeln(fooModel);
-	foo.i.writeln;
-	fooModel.i.writeln;
+struct ScalarModel(alias A)
+	if (dataHasScalarModel!(UnqualTypeOf!A))
+{
+	alias Data = UnqualTypeOf!A;
 
-	// проверка 
+	this()(auto ref const(Data) data)
+	{
+	}
+}
+
+auto makeModel(T)(auto ref const(T) data)
+{
+	return Model!T(data);
 }
