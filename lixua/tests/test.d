@@ -25,9 +25,19 @@ struct Foo
 struct Visitor
 {
 	import std.range : repeat;
+	import std.stdio : File;
 	import std.traits : isInstanceOf;
 
 	size_t nesting_level;
+	File output;
+
+	@disable
+	this();
+
+	this(string filename)
+	{
+		output = File(filename, "w");
+	}
 
 	auto visit(Order order, string name, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
@@ -39,7 +49,7 @@ struct Visitor
 	{
 		import std.stdio;
 		import std.algorithm : joiner;
-		writeln("	".repeat(nesting_level).joiner, name);
+		output.writeln("	".repeat(nesting_level).joiner, name);
 
 		import lixua.traits2 : AggregateMembers;
 		static foreach(member; AggregateMembers!Data)
@@ -57,7 +67,7 @@ struct Visitor
 	{
 		import std.algorithm : joiner;
 		import std.stdio;
-		writeln("	".repeat(nesting_level).joiner, Data.stringof, " ", name, " ", data);
+		output.writeln("	".repeat(nesting_level).joiner, Data.stringof, " ", name, " ", data);
 
 		return true;
 	}
@@ -76,7 +86,25 @@ void main()
 	// fooModel.i.writeln;
 
 	writeln("===");
+	writeln("size of data: ", foo.sizeof);
+	writeln("size of model: ", fooModel.sizeof);
 
-	Visitor visitor;
-	fooModel.visit!(Order.Forward, "foo")(foo, visitor);
+	{
+		auto visitor = Visitor("log.log");
+		fooModel.visit!(Order.Forward, "foo")(foo, visitor);
+	}
+
+	import std.file : readText;
+	import std.algorithm : splitter;
+	auto f = readText("log.log");
+
+	const etalon = 
+"foo
+	int i 99
+	float f -3
+	double d 11
+";
+	import std.algorithm : equal;
+	import std.string : lineSplitter;
+	assert(f.lineSplitter.equal(etalon.lineSplitter));
 }
