@@ -15,6 +15,8 @@ private enum dataHasScalarModel(T) = (
 	is(T == ulong)
 );
 
+enum Order { Forward, Reverse, Runtime, }
+
 template Model(alias A)
 {
 	static if (dataHasAggregateModel!(UnqualTypeOf!A))
@@ -33,6 +35,11 @@ template AggregateModel(alias A)
 		this()(auto ref const(Data) data)
 		{
 		}
+
+		bool visit(Order order, Visitor)(ref const(Data) data, ref Visitor visitor)
+		{
+			return visitor.visit!order(data, this);
+		}
 	}
 }
 
@@ -43,6 +50,11 @@ struct ScalarModel(alias A)
 
 	this()(auto ref const(Data) data)
 	{
+	}
+
+	bool visit(Visitor)(ref const(Data) data, ref Visitor visitor)
+	{
+		return visitor.visit(data, this);
 	}
 }
 
