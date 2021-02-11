@@ -24,32 +24,40 @@ struct Foo
 
 struct Visitor
 {
+	import std.range : repeat;
 	import std.traits : isInstanceOf;
 
-	auto visit(Order order, Data, Model)(auto ref Data data, ref Model model)
+	size_t nesting_level;
+
+	auto visit(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
 		return visit!Data(data, model);
 	}
 
-	auto visit(Data, Model)(auto ref Data data, ref Model model)
+	auto visit(Data, Model)(auto ref const(Data) data, ref Model model)
 		if (isInstanceOf!(AggregateModel, Model))
 	{
+		import std.stdio;
+		import std.algorithm : joiner;
+		writeln("	".repeat(nesting_level).joiner, "data");
+
 		import lixua.traits2 : AggregateMembers;
 		static foreach(member; AggregateMembers!Data)
-		{
+		{{
+			nesting_level++;
+			scope(exit) nesting_level--;
 			mixin("model."~member).visit(mixin("data."~member), this);
-		}
+		}}
 
 		return true;
 	}
 
-	auto visit(Data, Model)(auto ref Data data, ref Model model)
+	auto visit(Data, Model)(auto ref const(Data) data, ref Model model)
 		if (isInstanceOf!(ScalarModel, Model))
 	{
+		import std.algorithm : joiner;
 		import std.stdio;
-		writeln(Data.stringof);
-		writeln(data);
-		writeln;
+		writeln("	".repeat(nesting_level).joiner, Data.stringof, " ", data);
 
 		return true;
 	}
