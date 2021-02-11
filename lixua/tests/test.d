@@ -34,10 +34,11 @@ struct Visitor
 	auto visit(Data, Model)(auto ref Data data, ref Model model)
 		if (isInstanceOf!(AggregateModel, Model))
 	{
-		import std.stdio;
-		writeln(Data.stringof);
-		writeln(data);
-		writeln;
+		import lixua.traits2 : AggregateMembers;
+		static foreach(member; AggregateMembers!Data)
+		{
+			mixin("model."~member).visit(mixin("data."~member), this);
+		}
 
 		return true;
 	}
