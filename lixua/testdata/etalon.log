@@ -1,0 +1,13 @@
+Foo foo
+	int i 99
+	float f -3
+	double d 11
+	PodStructure ps
+		byte _byte -128
+		short _short -32768
+		int _int -2147483648
+		long _long -9223372036854775808
+		ubyte _ubyte 255
+		ushort _ushort 65535
+		uint _uint 4294967295
+		ulong _ulong 18446744073709551615

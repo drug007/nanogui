@@ -93,25 +93,13 @@ void main()
 		fooModel.visit!(Order.Forward)(foo, visitor);
 	}
 
-	import std.file : readText;
 	import std.algorithm : splitter;
-	auto f = readText("log.log");
+	import std.file : readText;
+	import std.path : buildPath;
 
-	const etalon = 
-"Foo foo
-	int i 99
-	float f -3
-	double d 11
-	PodStructure ps
-		byte _byte -128
-		short _short -32768
-		int _int -2147483648
-		long _long -9223372036854775808
-		ubyte _ubyte 255
-		ushort _ushort 65535
-		uint _uint 4294967295
-		ulong _ulong 18446744073709551615
-";
+	const f = readText("log.log");
+	const etalon = readText(buildPath("testdata", "etalon.log"));
+
 	import std.algorithm : equal;
 	import std.string : lineSplitter;
 	assert(f.lineSplitter.equal(etalon.lineSplitter));
