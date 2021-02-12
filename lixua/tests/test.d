@@ -25,6 +25,7 @@ struct Foo
 
 struct Visitor
 {
+	import std.algorithm : joiner;
 	import std.range : repeat;
 	import std.stdio : File;
 	import std.traits : isInstanceOf;
@@ -43,8 +44,6 @@ struct Visitor
 	auto visit(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 		if (isInstanceOf!(AggregateModel, Model))
 	{
-		import std.stdio;
-		import std.algorithm : joiner;
 		output.writeln("	".repeat(nesting_level).joiner, Data.stringof, " ", model.Name);
 
 		import lixua.traits2 : AggregateMembers;
@@ -61,8 +60,6 @@ struct Visitor
 	auto visit(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 		if (isInstanceOf!(ScalarModel, Model))
 	{
-		import std.algorithm : joiner;
-		import std.stdio;
 		output.writeln("	".repeat(nesting_level).joiner, Data.stringof, " ", model.Name, " ", data);
 
 		return true;
@@ -71,7 +68,6 @@ struct Visitor
 
 void main()
 {
-
 	auto foo = Foo(99, -3, 11, "str", PodStructure(
 		byte.min, 
 		short.min, 
