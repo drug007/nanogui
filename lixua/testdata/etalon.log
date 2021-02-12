@@ -1,26 +1,32 @@
-Foo foo
+Foo foo Forward
 	int i 99
 	float f -3
 	double d 11
-	PodStructure ps
-		byte _byte -128
-		short _short -32768
-		int _int -2147483648
-		long _long -9223372036854775808
-		ubyte _ubyte 255
-		ushort _ushort 65535
-		uint _uint 4294967295
-		ulong _ulong 18446744073709551615
-Foo foo
-	PodStructure ps
-		ulong _ulong 18446744073709551615
-		uint _uint 4294967295
-		ushort _ushort 65535
-		ubyte _ubyte 255
-		long _long -9223372036854775808
-		int _int -2147483648
-		short _short -32768
-		byte _byte -128
+	Bar b Forward
+		int i -1
+		float f -2
+		PodStructure ps Forward
+			byte _byte -128
+			short _short -32768
+			int _int -2147483648
+			long _long -9223372036854775808
+			ubyte _ubyte 255
+			ushort _ushort 65535
+			uint _uint 4294967295
+			ulong _ulong 18446744073709551615
+Foo foo Reverse
+	Bar b Reverse
+		PodStructure ps Reverse
+			ulong _ulong 18446744073709551615
+			uint _uint 4294967295
+			ushort _ushort 65535
+			ubyte _ubyte 255
+			long _long -9223372036854775808
+			int _int -2147483648
+			short _short -32768
+			byte _byte -128
+		float f -2
+		int i -1
 	double d 11
 	float f -3
 	int i 99

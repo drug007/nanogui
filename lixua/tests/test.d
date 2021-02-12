@@ -1,5 +1,7 @@
 module tests.test;
 
+import dyaml;
+
 import lixua.model2;
 
 struct PodStructure
@@ -20,8 +22,23 @@ struct Foo
 	float f = 3;
 	double d = 16;
 	private string str;
+	Bar b;
+}
+
+struct Bar
+{
+	int i;
+	float f;
 	PodStructure ps;
 }
+
+string desc = "
+foo:
+    order: reverse
+    ps:
+        bar:
+            order: runtime
+";
 
 struct Visitor
 {
@@ -32,6 +49,7 @@ struct Visitor
 
 	size_t nesting_level;
 	File output;
+	Order currentOrder;
 
 	@disable
 	this();
@@ -44,7 +62,8 @@ struct Visitor
 	auto visit(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 		if (isInstanceOf!(AggregateModel, Model))
 	{
-		output.writeln("	".repeat(nesting_level).joiner, Data.stringof, " ", model.Name);
+		currentOrder = order;
+		output.writeln("	".repeat(nesting_level).joiner, Data.stringof, " ", model.Name, " ", currentOrder);
 
 		import lixua.traits2 : AggregateMembers;
 		static if (order == Order.Forward)
@@ -83,7 +102,7 @@ struct Visitor
 
 void main()
 {
-	auto foo = Foo(99, -3, 11, "str", PodStructure(
+	auto bar = Bar(-1, -2, PodStructure(
 		byte.min, 
 		short.min, 
 		int.min, 
@@ -93,6 +112,7 @@ void main()
 		uint.max,
 		ulong.max,
 	));
+	auto foo = Foo(99, -3, 11, "str", bar);
 	auto fooModel = Model!foo(foo);
 
 	import std.stdio : writeln;
