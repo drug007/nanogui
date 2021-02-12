@@ -20,6 +20,7 @@ struct Foo
 	float f = 3;
 	double d = 16;
 	private string str;
+	PodStructure ps;
 }
 
 struct Visitor
@@ -71,16 +72,19 @@ struct Visitor
 void main()
 {
 
-	auto foo = Foo(99, -3, 11);
+	auto foo = Foo(99, -3, 11, "str", PodStructure(
+		byte.min, 
+		short.min, 
+		int.min, 
+		long.min, 
+		ubyte.max, 
+		ushort.max,
+		uint.max,
+		ulong.max,
+	));
 	auto fooModel = Model!foo(foo);
-	import std.stdio;
-	writeln(foo);
-	writeln(fooModel);
-	foo.i.writeln;
-	writeln(1);
-	// fooModel.i.writeln;
 
-	writeln("===");
+	import std.stdio : writeln;
 	writeln("size of data: ", foo.sizeof);
 	writeln("size of model: ", fooModel.sizeof);
 
@@ -98,6 +102,15 @@ void main()
 	int i 99
 	float f -3
 	double d 11
+	PodStructure ps
+		byte _byte -128
+		short _short -32768
+		int _int -2147483648
+		long _long -9223372036854775808
+		ubyte _ubyte 255
+		ushort _ushort 65535
+		uint _uint 4294967295
+		ulong _ulong 18446744073709551615
 ";
 	import std.algorithm : equal;
 	import std.string : lineSplitter;
