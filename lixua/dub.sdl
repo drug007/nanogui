@@ -7,6 +7,7 @@ targetType "library"
 dependency "taggedalgebraic" version="0.11.9"
 dependency "automem" version="~>0.6.1"
 dependency "nogc" version="~>0.5.0"
+dependency "dyaml" version="==0.8.3"
 
 configuration "library" {
 }
@@ -27,6 +28,15 @@ configuration "test" {
 	targetName "test"
 
 	mainSourceFile "tests/test.d"
+
+	dflags "-dip25" "-dip1000" "-dip1008"
+}
+
+configuration "test_description" {
+	targetType "executable"
+	targetName "test_description"
+
+	mainSourceFile "tests/test_description.d"
 
 	dflags "-dip25" "-dip1000" "-dip1008"
 }
