@@ -38,7 +38,7 @@ struct Visitor
 
 	this(string filename)
 	{
-		output = File(filename, "w");
+		output = File(filename, "a");
 	}
 
 	auto visit(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
@@ -84,8 +84,13 @@ void main()
 	writeln("size of data: ", foo.sizeof);
 	writeln("size of model: ", fooModel.sizeof);
 
+	static immutable logName = "log.log";
 	{
-		auto visitor = Visitor("log.log");
+		import std.stdio : File;
+		File(logName, "w");
+	}
+	{
+		auto visitor = Visitor(logName);
 		fooModel.visit!(Order.Forward)(foo, visitor);
 	}
 
@@ -93,7 +98,7 @@ void main()
 	import std.file : readText;
 	import std.path : buildPath;
 
-	const f = readText("log.log");
+	const f = readText(logName);
 	const etalon = readText(buildPath("testdata", "etalon.log"));
 
 	import std.algorithm : equal;
