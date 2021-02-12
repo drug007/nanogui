@@ -47,12 +47,27 @@ struct Visitor
 		output.writeln("	".repeat(nesting_level).joiner, Data.stringof, " ", model.Name);
 
 		import lixua.traits2 : AggregateMembers;
-		static foreach(member; AggregateMembers!Data)
-		{{
-			nesting_level++;
-			scope(exit) nesting_level--;
-			mixin("model."~member).visit!order(mixin("data."~member), this);
-		}}
+		static if (order == Order.Forward)
+		{
+			static foreach(member; AggregateMembers!Data)
+			{{
+				nesting_level++;
+				scope(exit) nesting_level--;
+				mixin("model."~member).visit!order(mixin("data."~member), this);
+			}}
+		}
+		else static if (order == Order.Reverse)
+		{
+			import std.meta : Reverse;
+			static foreach(member; Reverse!(AggregateMembers!Data))
+			{{
+				nesting_level++;
+				scope(exit) nesting_level--;
+				mixin("model."~member).visit!order(mixin("data."~member), this);
+			}}
+		}
+		else
+			static assert(0, "Unsupported");
 
 		return true;
 	}
@@ -92,6 +107,10 @@ void main()
 	{
 		auto visitor = Visitor(logName);
 		fooModel.visit!(Order.Forward)(foo, visitor);
+	}
+	{
+		auto visitor = Visitor("log.log");
+		fooModel.visit!(Order.Reverse)(foo, visitor);
 	}
 
 	import std.algorithm : splitter;
