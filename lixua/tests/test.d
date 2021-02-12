@@ -39,35 +39,35 @@ struct Visitor
 		output = File(filename, "w");
 	}
 
-	auto visit(Order order, string name, Data, Model)(auto ref const(Data) data, ref Model model)
+	auto visit(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
-		return visit!(name, Data)(data, model);
+		return visit!Data(data, model);
 	}
 
-	auto visit(string name, Data, Model)(auto ref const(Data) data, ref Model model)
+	auto visit(Data, Model)(auto ref const(Data) data, ref Model model)
 		if (isInstanceOf!(AggregateModel, Model))
 	{
 		import std.stdio;
 		import std.algorithm : joiner;
-		output.writeln("	".repeat(nesting_level).joiner, name);
+		output.writeln("	".repeat(nesting_level).joiner, Data.stringof, " ", model.Name);
 
 		import lixua.traits2 : AggregateMembers;
 		static foreach(member; AggregateMembers!Data)
 		{{
 			nesting_level++;
 			scope(exit) nesting_level--;
-			mixin("model."~member).visit!member(mixin("data."~member), this);
+			mixin("model."~member).visit(mixin("data."~member), this);
 		}}
 
 		return true;
 	}
 
-	auto visit(string name, Data, Model)(auto ref const(Data) data, ref Model model)
+	auto visit(Data, Model)(auto ref const(Data) data, ref Model model)
 		if (isInstanceOf!(ScalarModel, Model))
 	{
 		import std.algorithm : joiner;
 		import std.stdio;
-		output.writeln("	".repeat(nesting_level).joiner, Data.stringof, " ", name, " ", data);
+		output.writeln("	".repeat(nesting_level).joiner, Data.stringof, " ", model.Name, " ", data);
 
 		return true;
 	}
@@ -77,7 +77,7 @@ void main()
 {
 
 	auto foo = Foo(99, -3, 11);
-	auto fooModel = makeModel(foo);
+	auto fooModel = Model!foo(foo);
 	import std.stdio;
 	writeln(foo);
 	writeln(fooModel);
@@ -91,7 +91,7 @@ void main()
 
 	{
 		auto visitor = Visitor("log.log");
-		fooModel.visit!(Order.Forward, "foo")(foo, visitor);
+		fooModel.visit!(Order.Forward)(foo, visitor);
 	}
 
 	import std.file : readText;
@@ -99,7 +99,7 @@ void main()
 	auto f = readText("log.log");
 
 	const etalon = 
-"foo
+"Foo foo
 	int i 99
 	float f -3
 	double d 11

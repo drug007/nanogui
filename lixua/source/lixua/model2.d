@@ -37,6 +37,7 @@ template AggregateModel(alias A)
 	struct AggregateModel
 	{
 		alias Data = UnqualTypeOf!A;
+		static immutable string Name = A.stringof;
 
 		import lixua.traits2 : AggregateMembers;
 		static foreach(member; AggregateMembers!Data)
@@ -46,9 +47,9 @@ template AggregateModel(alias A)
 		{
 		}
 
-		bool visit(Order order, string name, Visitor)(ref const(Data) data, ref Visitor visitor)
+		bool visit(Order order, Visitor)(ref const(Data) data, ref Visitor visitor)
 		{
-			return visitor.visit!(order, name)(data, this);
+			return visitor.visit!order(data, this);
 		}
 	}
 }
@@ -57,18 +58,14 @@ struct ScalarModel(alias A)
 	if (dataHasScalarModel!(UnqualTypeOf!A))
 {
 	alias Data = UnqualTypeOf!A;
+	static immutable string Name = A.stringof;
 
 	this()(auto ref const(Data) data)
 	{
 	}
 
-	bool visit(string name, Visitor)(ref const(Data) data, ref Visitor visitor)
+	bool visit(Visitor)(ref const(Data) data, ref Visitor visitor)
 	{
-		return visitor.visit!name(data, this);
+		return visitor.visit(data, this);
 	}
-}
-
-auto makeModel(T)(auto ref const(T) data)
-{
-	return Model!T(data);
 }
