@@ -64,8 +64,8 @@ struct ScalarModel(alias A)
 	{
 	}
 
-	bool visit(Visitor)(ref const(Data) data, ref Visitor visitor)
+	bool visit(Order order, Visitor)(ref const(Data) data, ref Visitor visitor)
 	{
-		return visitor.visit(data, this);
+		return visitor.visit!order(data, this);
 	}
 }

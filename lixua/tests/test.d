@@ -40,11 +40,6 @@ struct Visitor
 	}
 
 	auto visit(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
-	{
-		return visit!Data(data, model);
-	}
-
-	auto visit(Data, Model)(auto ref const(Data) data, ref Model model)
 		if (isInstanceOf!(AggregateModel, Model))
 	{
 		import std.stdio;
@@ -56,13 +51,13 @@ struct Visitor
 		{{
 			nesting_level++;
 			scope(exit) nesting_level--;
-			mixin("model."~member).visit(mixin("data."~member), this);
+			mixin("model."~member).visit!order(mixin("data."~member), this);
 		}}
 
 		return true;
 	}
 
-	auto visit(Data, Model)(auto ref const(Data) data, ref Model model)
+	auto visit(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 		if (isInstanceOf!(ScalarModel, Model))
 	{
 		import std.algorithm : joiner;
