@@ -4,40 +4,47 @@ import dyaml;
 
 import lixua.model2;
 
-struct PodStructure
+struct Pos
 {
-	byte _byte;
-	short _short;
-	int _int;
-	long _long;
-	ubyte _ubyte;
-	ushort _ushort;
-	uint _uint;
-	ulong _ulong;
+	double x, y;
 }
 
-struct Foo
+struct Color
 {
-	int i = -100;
-	float f = 3;
-	double d = 16;
-	private string str;
-	Bar bar;
+	ubyte r, g, b, a;
 }
 
-struct Bar
+struct Circle
 {
-	int i;
-	float f;
-	PodStructure ps;
+	Pos position;
+	double radius;
+	Color colour;
+}
+
+struct Square
+{
+	Pos lefttop, rightbottom;
+	Color colour;
+}
+
+struct Shape
+{
+	Circle origin;
+	Square destination;
 }
 
 string desc = "
-foo:
+shape:
     order: Reverse
-    bar:
-        ps:
-            order: Runtime
+    origin:
+        position:
+        radius:
+        colour:
+            order: Forward
+    destination:
+        lefttop:
+        rightbottom:
+        colour:
 ";
 
 auto getOrder(const(Node) node, Order default_) @safe
@@ -104,8 +111,15 @@ struct Visitor
 			{
 				static foreach(member; AggregateMembers!Data)
 				{{
+					auto oldCurrentRoot = currentRoot;
+					auto oldCurrentOrder = currentOrder;
 					nesting_level++;
-					scope(exit) nesting_level--;
+					scope(exit)
+					{
+						currentOrder = oldCurrentOrder;
+						currentRoot = oldCurrentRoot;
+						nesting_level--;
+					}
 					mixin("model."~member).visit!order(mixin("data."~member), this);
 				}}
 				return true;
@@ -115,8 +129,15 @@ struct Visitor
 				import std.meta : Reverse;
 				static foreach(member; Reverse!(AggregateMembers!Data))
 				{{
+					auto oldCurrentRoot = currentRoot;
+					auto oldCurrentOrder = currentOrder;
 					nesting_level++;
-					scope(exit) nesting_level--;
+					scope(exit)
+					{
+						currentOrder = oldCurrentOrder;
+						currentRoot = oldCurrentRoot;
+						nesting_level--;
+					}
 					mixin("model."~member).visit!order(mixin("data."~member), this);
 				}}
 				return true;
@@ -135,22 +156,14 @@ struct Visitor
 
 void main()
 {
-	auto bar = Bar(-1, -2, PodStructure(
-		byte.min, 
-		short.min, 
-		int.min, 
-		long.min, 
-		ubyte.max, 
-		ushort.max,
-		uint.max,
-		ulong.max,
-	));
-	auto foo = Foo(99, -3, 11, "str", bar);
-	auto fooModel = Model!foo(foo);
+	auto c = Circle();
+	auto s = Square();
+	auto shape = Shape(c, s);
+	auto shapeModel = Model!shape(shape);
 
 	import std.stdio : writeln;
-	writeln("size of data: ", foo.sizeof);
-	writeln("size of model: ", fooModel.sizeof);
+	writeln("size of data: ", shape.sizeof);
+	writeln("size of model: ", shapeModel.sizeof);
 
 	static immutable logName = "log.log";
 	{
@@ -159,15 +172,15 @@ void main()
 	}
 	{
 		auto visitor = Visitor(logName);
-		fooModel.visit!(Order.Forward)(foo, visitor);
+		shapeModel.visit!(Order.Forward)(shape, visitor);
 	}
 	{
 		auto visitor = Visitor("log.log");
-		fooModel.visit!(Order.Reverse)(foo, visitor);
+		shapeModel.visit!(Order.Reverse)(shape, visitor);
 	}
 	{
 		auto visitor = Visitor("log.log");
-		fooModel.visit!(Order.Runtime)(foo, visitor);
+		shapeModel.visit!(Order.Runtime)(shape, visitor);
 	}
 
 	import std.algorithm : splitter;
