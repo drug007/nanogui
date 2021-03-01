@@ -1,8 +1,8 @@
-module aux.model;
+module auxil.model;
 
 import std.traits : isInstanceOf;
 import taggedalgebraic : TaggedAlgebraic, taget = get;
-import aux.traits;
+import auxil.traits;
 
 version(unittest) import unit_threaded : Name;
 
@@ -664,7 +664,7 @@ template AggregateModel(alias A) // if (dataHasAggregateModel!(TypeOf!A) && !is(
 
 			mixin State;
 
-			import aux.traits : DrawableMembers;
+			import auxil.traits : DrawableMembers;
 			static foreach(member; DrawableMembers!Data)
 				mixin("Model!(Data.%1$s) %1$s;".format(member));
 
@@ -714,7 +714,7 @@ template AggregateModel(alias A) // if (dataHasAggregateModel!(TypeOf!A) && !is(
 
 struct RenderedAsAggregateModel(alias A)// if (dataHasAggregateModel!(TypeOf!A) && hasRenderedAs!A)
 {
-	import aux.traits : getRenderedAs;
+	import auxil.traits : getRenderedAs;
 
 	alias Data = TypeOf!A;
 	static assert(isProcessible!Data);
@@ -743,7 +743,7 @@ struct RenderedAsAggregateModel(alias A)// if (dataHasAggregateModel!(TypeOf!A) 
 
 struct RenderedAsMemberAggregateModel(alias A)// if (dataHasAggregateModel!Data && hasRenderedAsMember!Data)
 {
-	import aux.traits : getRenderedAs;
+	import auxil.traits : getRenderedAs;
 
 	alias Data = TypeOf!A;
 	static assert(isProcessible!Data);

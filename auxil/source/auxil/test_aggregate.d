@@ -1,4 +1,4 @@
-module aux.test_aggregate;
+module auxil.test_aggregate;
 
 version (unittest):
 

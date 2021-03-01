@@ -1,8 +1,8 @@
-module aux.test;
+module auxil.test;
 
 version(unittest) import unit_threaded : Name;
 
-import aux.model;
+import auxil.model;
 
 @safe private
 struct PrettyPrintingVisitor

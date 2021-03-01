@@ -1,4 +1,4 @@
-module aux.sizeindex;
+module auxil.sizeindex;
 
 import std.range : isRandomAccessRange;
 

@@ -1,4 +1,4 @@
-module aux.traits;
+module auxil.traits;
 
 version(unittest) import unit_threaded : Name;
 
@@ -27,7 +27,7 @@ template isTimemarked(T)
 
 template hasRenderHeader(alias A)
 {
-	import aux.model : FixedAppender;
+	import auxil.model : FixedAppender;
 
 	FixedAppender!32 app;
 

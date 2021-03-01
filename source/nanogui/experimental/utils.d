@@ -3,9 +3,9 @@ module nanogui.experimental.utils;
 import nanogui.common : NanoContext;
 import nanogui.common : Vector2f, Vector2i;
 
-public import aux.sizeindex;
-public import aux.model;
-public import aux.traits;
+public import auxil.sizeindex;
+public import auxil.model;
+public import auxil.traits;
 
 private string enumToString(E)(E e) @nogc @safe nothrow
 	if (is(E == enum))

@@ -1,4 +1,4 @@
-module aux.test_traversing;
+module auxil.test_traversing;
 
 version (unittest):
 
