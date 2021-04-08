@@ -31,7 +31,8 @@ class SdlBackend : Screen
 			setlocale(LC_NUMERIC, "C");
 		}
 
-		import gfm.sdl2;
+		import gfm.sdl2, gfm.opengl;
+		import bindbc.sdl;
 
 		this.width = w;
 		this.height = h;
@@ -41,8 +42,22 @@ class SdlBackend : Screen
 		_log = new FileLogger(stdout);
 
 		// load dynamic libraries
-		_sdl2 = new SDL2(_log, SharedLibVersion(2, 0, 0));
-		_gl = new OpenGL(_log);
+		SDLSupport ret = loadSDL();
+		if(ret != sdlSupport) {
+			if(ret == SDLSupport.noLibrary) {
+				/*
+				The system failed to load the library. Usually this means that either the library or one of its dependencies could not be found.
+				*/
+			}
+			else if(SDLSupport.badLibrary) {
+				/*
+				This indicates that the system was able to find and successfully load the library, but one or more symbols the binding expected to find was missing. This usually indicates that the loaded library is of a lower API version than the binding was configured to load, e.g., an SDL 2.0.2 library loaded by an SDL 2.0.10 configuration.
+
+				For many C libraries, including SDL, this is perfectly fine and the application can continue as long as none of the missing functions are called.
+				*/
+			}
+		}
+		_sdl2 = new SDL2(_log);
 		globalLogLevel = LogLevel.error;
 
 		// You have to initialize each SDL subsystem you want by hand
@@ -62,8 +77,25 @@ class SdlBackend : Screen
 
 		window.setTitle(title);
 
-		// reload OpenGL now that a context exists
-		_gl.reload();
+		GLSupport retVal = loadOpenGL();
+		if(retVal >= GLSupport.gl33)
+		{
+			// configure renderer for OpenGL 3.3
+			import std.stdio;
+			writefln("Available version of opengl: %s", retVal);
+		}
+		else
+		{
+			import std.stdio;
+			if (retVal == GLSupport.noLibrary)
+				writeln("opengl is not available");
+			else
+				writefln("Unsupported version of opengl %s", retVal);
+			import std.exception;
+			enforce(0);
+		}
+
+		_gl = new OpenGL(_log);
 
 		// redirect OpenGL output to our Logger
 		_gl.redirectDebugOutput();
