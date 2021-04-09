@@ -18,6 +18,7 @@ import nanogui.theme;
 import nanogui.layout;
 import nanogui.common : Cursor, Vector2i, Vector2f, MouseButton, KeyAction;
 import nanogui.screen : Screen;
+import nanogui.window : Window;
 public import nanogui.common;
 
 /**
