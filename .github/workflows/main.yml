@@ -1,0 +1,44 @@
+name: Testsuite
+
+on: [push, pull_request]
+
+jobs:
+  main:
+    name: Run
+    strategy:
+      # Default, disable if you want to debug
+      fail-fast: false
+      matrix:
+        # Latest stable version, update at will
+        os: [ ubuntu-18.04, windows-2019 ]
+        dc: [ dmd-latest, dmd-master ]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+
+    - name: '[Linux] Install dependencies'
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update && sudo apt-get -y install libglu1-mesa-dev freeglut3-dev mesa-common-dev
+
+    # Compiler to test with
+    - name: Prepare compiler
+      uses: mihails-strasuns/setup-dlang@v1
+      with:
+        compiler: ${{ matrix.dc }}
+
+    # Checkout the repository
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: '[POSIX] Build'
+      if: runner.os != 'Windows'
+      run: |
+        cd examples/sdl
+        dub build --compiler=${{ env.DC }}
+
+    - name: '[Windows] Build'
+      if: runner.os == 'Windows'
+      run: |
+        cd examples/sdl
+        dub build --compiler=${{ env.DC }}
