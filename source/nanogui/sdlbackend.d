@@ -58,10 +58,10 @@ class SdlBackend : Screen
 		window = new SDL2Window(_sdl2,
 								SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 								width, height,
-								SDL_WINDOW_OPENGL);
+								SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
 		window.setTitle(title);
-		
+
 		// reload OpenGL now that a context exists
 		_gl.reload();
 
@@ -139,6 +139,12 @@ class SdlBackend : Screen
 							case SDL_WINDOWEVENT_SIZE_CHANGED:
 							{
 								// window size has been resized
+								with(event.window)
+								{
+									width = data1;
+									height = data2;
+									resizeEvent(size);
+								}
 								break;
 							}
 
