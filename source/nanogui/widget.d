@@ -256,7 +256,10 @@ public:
 		Widget widget = this;
 		while (widget.parent())
 			widget = widget.parent();
-		(cast(Screen) widget).updateFocus(this);
+		if (auto screen = cast(Screen) widget)
+			screen.updateFocus(this);
+		else
+			throw new Exception("Invariant violation");
 	}
 
 	string tooltip() const { return mTooltip; }
@@ -291,6 +294,16 @@ public:
 
 	/// Check if the widget contains a certain position
 	final bool contains(Vector2i p) const {
+		import std.algorithm : all;
+		// the widget contains a position if it more than
+		// the widget position and less than widget position
+		// + widget size
+		auto d = (p-mPos);
+		return d[].all!"a>=0" && (d-mSize)[].all!"a<=0";
+	}
+
+	/// ditto
+	final bool contains(Vector2f p) const {
 		import std.algorithm : all;
 		// the widget contains a position if it more than
 		// the widget position and less than widget position

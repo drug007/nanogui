@@ -1,0 +1,23 @@
+name "auxil"
+description "A minimal D application."
+authors "drug007"
+copyright "Copyright © 2020, drug007"
+license "BSL"
+targetType "library"
+dependency "taggedalgebraic" version="~>0.11.9"
+dependency "automem" version="~>0.6.1"
+dependency "nogc" version="~>0.5.0"
+
+configuration "library" {
+}
+
+configuration "unittest" {
+	targetType "executable"
+	targetName "ut"
+
+	mainSourceFile "tests/main.d"
+
+	dflags "-dip25" "-dip1000" "-dip1008"
+
+	dependency "unit-threaded" version="~>0.10.7"
+}

@@ -290,28 +290,71 @@ class MyGui : SdlBackend
 		}
 
 		{
-			int width      = 340;
-			int half_width = width / 2;
-			int height     = 350;
+			const width  = 340;
+			const height = 350;
 
-			auto window = new Window(screen, "Huge list demo", true);
-			window.setId = "window";
+			auto window = new Window(screen, "Virtual TreeView demo", true);
 			window.position(Vector2i(10, 400));
 			window.size(Vector2i(width, height));
-			auto layout = new GroupLayout();
+			window.setId = "window";
+			auto layout = new BoxLayout(Orientation.Vertical);
 			window.layout(layout);
-			layout.margin = 30;
+			layout.margin = 5;
+			layout.setAlignment = Alignment.Fill;
 
-			string[] data;
-			data.reserve(400_000);
-			foreach(i; 0..400_000)
+			version(none)
+			{
+				auto panel = new Widget(window);
+				panel.setId = "panel";
+				auto layout2 = new BoxLayout(Orientation.Horizontal);
+				panel.layout(layout2);
+				layout2.margin = 5;
+				layout2.setAlignment = Alignment.Fill;
+			}
+
+			Item[] data;
+			enum total = 1_000_000;
+			data.reserve(total);
+			foreach(i; 0..total)
 			{
 				import std.conv : text;
-				data ~= text("item", i);
+				import std.random : uniform;
+				const x = uniform(0, 6);
+				switch(x)
+				{
+					case 0:
+						float f = cast(float) i;
+						data ~= Item(f);
+					break;
+					case 1:
+						int n = cast(int) i;
+						data ~= Item(n);
+					break;
+					case 2:
+						string str = text("item #", i);
+						data ~= Item(str);
+					break;
+					case 3:
+						double d = cast(double) i;
+						data ~= Item(d);
+					break;
+					case 4:
+						Test t;
+						data ~= Item(t);
+					break;
+					default:
+					case 5:
+						Test2 t2;
+						data ~= Item(t2);
+					break;
+				}
 			}
 
 			import nanogui.experimental.list;
-			auto list = new List(window, data);
+			auto list = new List!(typeof(data))(window, data);
+			version(none) auto list = new List!(typeof(data))(panel, data);
+			list.collapsed = false;
+			list.setId = "virtual list";
 		}
 
 		{
@@ -419,21 +462,56 @@ class MyGui : SdlBackend
 		{
 			auto window = new Window(screen, "TreeView demo", true);
 			window.position(Vector2i(600, 130));
-			window.size = Vector2i(140, 160);
+			window.size = Vector2i(240, 360);
 			window.layout(new BoxLayout(Orientation.Vertical));
 
 			import nanogui.experimental.treeview;
 			new TreeView!float(window, "TreeView_______", 10f, null);
-			new TreeView!float(window, "TreeView_2_____", 11f, null);
-			new TreeView!float(window, "TreeView_3_____", 12f, null);
-			new TreeView!float(window, "TreeView_4_____", 13f, null);
-			new TreeView!float(window, "TreeView_5_____", 14f, null);
+			new TreeView!(float[])(window, "TreeView_2_____", [11f, 22f, 33, 44], null);
+			new TreeView!Test(window, "TreeView_3_____", Test(), null);
+			new TreeView!Test2(window, "TreeView_4_____", Test2(), null);
+
+			auto items = [
+				Item(0.3f),
+				Item(3),
+				Item("some string"),
+				Item(double.nan),
+				Item(Test(99, 100, "another text")),
+				Item(Test2(9.9, 11, Test(-1, -20, "nested Test"))),
+			];
+			new TreeView!(Item[])(window, "TaggedAlgebraic[]", items, null);
 		}
 
 		// now we should do layout manually yet
 		screen.performLayout(ctx);
 	}
 }
+
+struct Test
+{
+	float f = 7.7;
+	int i = 8;
+	string s = "some text";
+}
+
+struct Test2
+{
+	double d = 8.8;
+	long l = 999;
+	Test t;
+}
+
+import taggedalgebraic : TaggedAlgebraic;
+union Payload
+{
+	float f;
+	int i;
+	string str;
+	double d;
+	Test t;
+	Test2 t2;
+}
+alias Item = TaggedAlgebraic!Payload;
 
 void main () {
 	auto gui = new MyGui(1000, 800, "Nanogui using SDL2 backend");

@@ -19,3 +19,4 @@ nanogui-test-*
 /dub.selections.json
 /.vscode/
 /examples/arsd/example-sdl
+/sizeindex

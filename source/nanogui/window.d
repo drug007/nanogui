@@ -233,11 +233,13 @@ public:
 		}
 		return false;
 	}
+
 	/// Handle mouse events recursively and bring the current window to the top
 	override bool mouseButtonEvent(Vector2i p, MouseButton button, bool down, int modifiers)
 	{
 		if (super.mouseButtonEvent(p, button, down, modifiers))
 			return true;
+
 		if (button == MouseButton.Left)
 		{
 			mDrag = down && (p.y - mPos.y) < mTheme.mWindowHeaderHeight;

@@ -9,6 +9,7 @@ struct NanoContext
 {
 	import std.typecons : Rebindable;
 	import nanogui.theme : Theme;
+	import nanogui.layout : Orientation;
 
 	NVGContext nvg;
 	alias nvg this;
@@ -20,14 +21,20 @@ struct NanoContext
 		nvg = nvgCreateContext(flag);
 		algn.left = true;
 		algn.top = true;
+		orientation = Orientation.Vertical;
+		int axis1 = cast(int) orientation;
+		int axis2 = (cast(int) orientation + 1)%2;
+		size[axis1] = 16;
+		size[axis2] = 120;
 	}
 
 	NVGTextAlign algn;
-	Vector2i position;
-	Vector2i mouse;
+	Vector2f position;
+	Vector2f mouse;
 	Rebindable!(const Theme) theme;
+	Orientation orientation;
 	// current width or height (other dimension is passed to drawing function explicitely)
-	float current_size;
+	Vector2f size;
 	// nesting level of current item
 	int tree_view_nesting_level;
 }

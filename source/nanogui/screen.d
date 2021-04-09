@@ -395,9 +395,11 @@ class Screen : Widget
 	/// Return the ratio between pixel and device coordinates (e.g. >= 2 on Mac Retina displays)
 	float pixelRatio() const { return mPixelRatio; }
 
-	bool needToDraw() const pure @safe nothrow { return mNeedToDraw; }
-	bool needToPerfomLayout() const pure @safe nothrow { return mNeedToPerfomLayout; }
-	void needToPerfomLayout(bool value) pure @safe nothrow { mNeedToPerfomLayout = value; }
+	package bool needToDraw() const pure @safe nothrow { return mNeedToDraw; }
+	// TODO add package qualifier at least but better to remove it completely
+	void needToDraw(bool value) pure @safe nothrow { if (value) mNeedToDraw = value; }
+	package bool needToPerfomLayout() const pure @safe nothrow { return mNeedToPerfomLayout; }
+	package void needToPerfomLayout(bool value) pure @safe nothrow { if (value) mNeedToPerfomLayout = value; }
 	package bool blinkingCursorIsVisibleNow() const pure @safe nothrow { return mBlinkingCursorVisible; }
 
     package void resetBlinkingCursor() @safe
