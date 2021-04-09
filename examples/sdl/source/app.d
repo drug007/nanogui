@@ -1,7 +1,7 @@
 module examples.sdl;
 
 import std.datetime : Clock;
-import arsd.nanovega;
+import nanogui.nanovega;
 import nanogui.sdlbackend : SdlBackend;
 import nanogui.widget : Widget;
 import nanogui.glcanvas : GLCanvas;

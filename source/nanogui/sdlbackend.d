@@ -15,7 +15,7 @@ import gfm.opengl: OpenGL;
 import gfm.sdl2: SDL2, SDL2Window, SDL_Event, SDL_Cursor, SDL_SetCursor, 
 	SDL_FreeCursor, SDL_Delay;
 
-import arsd.nanovega : nvgCreateContext, kill, NVGContextFlag;
+import nanogui.nanovega : nvgCreateContext, kill, NVGContextFlag;
 import nanogui.screen : Screen;
 import nanogui.theme : Theme;
 import nanogui.common : NanoContext, Vector2i, MouseButton, MouseAction, Cursor;

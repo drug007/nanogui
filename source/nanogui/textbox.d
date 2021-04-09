@@ -20,7 +20,7 @@ import std.algorithm : swap;
 import std.math : abs;
 import std.traits : isIntegral, isFloatingPoint, isSigned;
 
-import arsd.nanovega;
+import nanogui.nanovega;
 import nanogui.widget : Widget;
 import nanogui.theme : Theme;
 import nanogui.common : Vector2i, MouseAction, MouseButton, Cursor, 

@@ -4,6 +4,7 @@
 		"arsd-official": "5.3.8",
 		"automem": "0.6.4",
 		"auxil": {"path":"../../auxil"},
+		"bindbc-freetype": "0.8.0",
 		"bindbc-loader": "0.3.2",
 		"bindbc-opengl": "0.15.0",
 		"bindbc-sdl": "0.19.2",
