@@ -282,6 +282,7 @@ class SdlBackend : Screen
 			{
 				import std.datetime : dur;
 
+				static auto pauseTimeMs = 0;
 				currTime = Clock.currTime.stdTime;
 				if (currTime - mBlinkingCursorTimestamp > dur!"msecs"(500).total!"hnsecs")
 				{
@@ -292,13 +293,19 @@ class SdlBackend : Screen
 
 				if (needToDraw)
 				{
+					pauseTimeMs = 0;
 					size = Vector2i(width, height);
 					super.draw(ctx);
 
 					window.swapBuffers();
 				}
 				else
-					SDL_Delay(1);
+				{
+					pauseTimeMs = pauseTimeMs * 2 + 1; // exponential pause
+					if (pauseTimeMs > 100)
+						pauseTimeMs = 100; // max 100ms of pause
+					SDL_Delay(pauseTimeMs);
+				}
 			}
 		}
 	}
