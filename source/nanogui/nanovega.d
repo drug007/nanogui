@@ -12369,6 +12369,7 @@ struct GLNVGcontext {
 	int ntextures;
 	int ctextures;
 	GLuint vertBuf;
+	version(nanovg_gl3) GLuint vertArr;
 	int fragSize;
 	int flags;
 	// FBOs for masks
@@ -13126,6 +13127,9 @@ bool glnvg__renderCreate (void* uptr) nothrow @trusted @nogc {
 	glnvg__getUniforms(&gl.shaderCopyFBO);
 
 	// Create dynamic vertex array
+	version(nanovg_gl3)
+	glGenVertexArrays(1, &gl.vertArr);
+
 	glGenBuffers(1, &gl.vertBuf);
 
 	gl.fragSize = GLNVGfragUniforms.sizeof+align_-GLNVGfragUniforms.sizeof%align_;
@@ -13858,6 +13862,8 @@ void glnvg__renderFlush (void* uptr) nothrow @trusted @nogc {
 		glnvg__checkError(gl, "OpenGL setup");
 
 		// Upload vertex data
+		version(nanovg_gl3)
+		glBindVertexArray(gl.vertArr);
 		glBindBuffer(GL_ARRAY_BUFFER, gl.vertBuf);
 		// ensure that there's space for at least 4 vertices in case we need to draw a quad (e. g. framebuffer copy)
 		glBufferData(GL_ARRAY_BUFFER, (gl.nverts < 4 ? 4 : gl.nverts) * NVGVertex.sizeof, gl.verts, GL_STREAM_DRAW);
@@ -13978,6 +13984,7 @@ void glnvg__renderFlush (void* uptr) nothrow @trusted @nogc {
 
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
+		glBindVertexArray(0);
 		glDisable(GL_CULL_FACE);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glUseProgram(0);
@@ -14258,6 +14265,7 @@ void glnvg__renderDelete (void* uptr) nothrow @trusted @nogc {
 	glnvg__deleteShader(&gl.shaderFillFBO);
 	glnvg__deleteShader(&gl.shaderCopyFBO);
 
+	version(nanovg_gl3) if (gl.vertArr != 0) glDeleteBuffers(1, &gl.vertArr);
 	if (gl.vertBuf != 0) glDeleteBuffers(1, &gl.vertBuf);
 
 	foreach (ref GLNVGtexture tex; gl.textures[0..gl.ntextures]) {
