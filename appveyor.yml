@@ -66,5 +66,4 @@ build_script:
   - cd c:\projects\nanogui
   - git submodule update --init --recursive
   - cd examples
-  - cd arsd && dub build --compiler=%DC% && cd ..
   - cd sdl  && dub build --compiler=%DC%

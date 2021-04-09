@@ -20,4 +20,3 @@ matrix:
 
 script:
   - pushd examples/sdl  && dub build --compiler=${DC} && popd
-  - pushd examples/arsd && dub build --compiler=${DC} && popd
