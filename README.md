@@ -1,5 +1,9 @@
 # What is it? [![.github/workflows/main.yml](https://github.com/drug007/nanogui/actions/workflows/main.yml/badge.svg)](https://github.com/drug007/nanogui/actions/workflows/main.yml)
 
+### Disclaimer
+
+Release 1.0.0 is a regular release and is not a major one. The only reason to make this release was transition to [dsemver](https://github.com/symmetryinvestments/dsemver). It means that versions like 0.x.x are not possible so this release was numbered 1.0.0. The release contains experimental widgets List and TreeView but they are under development, also arsd backed has been dropped.
+
 D port of [nanogui](https://github.com/wjakob/nanogui)
 
 The port is incomplete - not all widgets are ported, but all ported widgets are fully usable.
@@ -25,12 +29,11 @@ git clone https://github.com/drug007/nanogui.git
 
 # Examples
 
-Directory `examples` contains two packages, providing examples for `arsd` and `sdl` backends. To run example `cd` to corresponding directory and run `dub` command. For example:
+Directory `examples` contains a package, providing example for `sdl` backends. To run example `cd example/sdl` and run `dub` command. For example:
 ```
 cd examples/sdl
 dub
 ```
-SDL2 based example is more advanced (due to lack of time).
 
 # Screenshot
 
