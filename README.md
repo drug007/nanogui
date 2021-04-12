@@ -1,4 +1,7 @@
-# What is it? [![.github/workflows/main.yml](https://github.com/drug007/nanogui/actions/workflows/main.yml/badge.svg)](https://github.com/drug007/nanogui/actions/workflows/main.yml)
+# What is it? 
+
+[![.github/workflows/main.yml](https://github.com/drug007/nanogui/actions/workflows/main.yml/badge.svg)](https://github.com/drug007/nanogui/actions/workflows/main.yml)
+[![Build](https://github.com/drug007/nanogui/actions/workflows/main.yml/badge.svg)](https://github.com/drug007/nanogui/actions/workflows/main.yml)
 
 ### Disclaimer
 
@@ -37,5 +40,7 @@ dub
 
 # Screenshot
 
-Screenshot is a bit old and do not show some widgets for example GLCanvas
-![Screenshot](https://github.com/drug007/nanogui/blob/develop/resources/readme/nanogui_001.gif)
+Screenshot #1 is a bit old and do not show some widgets for example GLCanvas
+![Screenshot #1](https://github.com/drug007/nanogui/blob/develop/resources/readme/nanogui_001.gif)
+Screenshot #2 is a recent one and demonstrates GLCanvas, advanced grid layout, experimental widgets List and TreeView
+![Screenshot #2](https://github.com/drug007/nanogui/blob/add_gif/resources/readme/nanogui_002.gif)
