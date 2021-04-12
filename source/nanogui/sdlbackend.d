@@ -73,7 +73,7 @@ class SdlBackend : Screen
 		window = new SDL2Window(_sdl2,
 								SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 								width, height,
-								SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+								SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN );
 
 		window.setTitle(title);
 
@@ -141,9 +141,9 @@ class SdlBackend : Screen
 
 		window.hide;
 		SDL_FlushEvents(SDL_WINDOWEVENT, SDL_SYSWMEVENT);
-		window.show;
 
 		onVisibleForTheFirstTime();
+		window.show;
 
 		SDL_Event event;
 
