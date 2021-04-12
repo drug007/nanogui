@@ -1,0 +1,17 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/auxil
+auxil.so
+auxil.dylib
+auxil.dll
+auxil.a
+auxil.lib
+auxil-test-*
+*.exe
+*.o
+*.obj
+*.lst
+*.selections.json
+/ut
