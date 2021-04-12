@@ -1,15 +1,15 @@
 {
 	"fileVersion": 1,
 	"versions": {
-		"arsd-official": "5.3.8",
+		"arsd-official": "9.3.2",
 		"automem": "0.6.4",
 		"auxil": {"path":"../../auxil"},
 		"bindbc-loader": "0.3.2",
 		"bindbc-opengl": "0.15.0",
 		"bindbc-sdl": "0.19.2",
 		"gfm": "8.0.6",
-		"gfm7": "1.1.0",
-		"intel-intrinsics": "1.3.8",
+		"gfm7": "1.1.1",
+		"intel-intrinsics": "1.3.10",
 		"localimport": "1.3.0",
 		"nanogui": {"path":"../.."},
 		"nogc": "0.5.0",
