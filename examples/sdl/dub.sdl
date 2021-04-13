@@ -8,5 +8,5 @@ targetType  "executable"
 targetName  "example-sdl"
 
 dependency "nanogui" path="../.."
-dependency "resusage" version="~>0.2.8"
+dependency "resusage" version="~>0.3.2"
 dependency "taggedalgebraic" version="0.11.9"
