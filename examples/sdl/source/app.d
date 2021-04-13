@@ -524,7 +524,7 @@ void main () {
 			prevStdTime = currStdTime;
 			import std.format : format;
 			import std.parallelism : totalCPUs;
-			gui.lblCpuUsage.caption = format("%2.2f%%", gui.cpuWatcher.current*totalCPUs);
+			gui.lblCpuUsage.caption = format("%2.2f%%", gui.cpuWatcher.currentTotal);
 		}
 	};
 	gui.run();
