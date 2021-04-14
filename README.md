@@ -43,4 +43,5 @@ dub
 Screenshot #1 is a bit old and do not show some widgets for example GLCanvas
 ![Screenshot #1](https://github.com/drug007/nanogui/blob/develop/resources/readme/nanogui_001.gif)
 Screenshot #2 is a recent one and demonstrates GLCanvas, advanced grid layout, experimental widgets List and TreeView
-![Screenshot #2](https://github.com/drug007/nanogui/blob/add_gif/resources/readme/nanogui_002.gif)
+<img src="resources/readme/nanogui_002.webm?raw=true" alt="nanogui_002.webm">
+
