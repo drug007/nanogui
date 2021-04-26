@@ -68,6 +68,12 @@ public:
 	/// Callback that called on mouse clicking
 	void delegate(MouseButton, ref const(TreePath)) onMousePressed;
 
+	void applyByTreePath(T)(ref const(TreePath) tree_path, void delegate(ref const(T) value) dg)
+	{
+		import nanogui.experimental.utils : applyByTreePath;
+		applyByTreePath(_data, _model, tree_path.value[], dg);
+	}
+
 	/// Return the current scroll amount as a value between 0 and 1. 0 means scrolled to the top and 1 to the bottom.
 	float scroll() const { return mScroll; }
 	/// Set the scroll amount to a value between 0 and 1. 0 means scrolled to the top and 1 to the bottom.
