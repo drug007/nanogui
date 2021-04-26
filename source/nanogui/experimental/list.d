@@ -65,6 +65,15 @@ public:
 		visit(_model, _data, rm, 1);
 	}
 
+	/// Callback that called on mouse clicking
+	void delegate(MouseButton, ref const(TreePath)) onMousePressed;
+
+	void applyByTreePath(T)(ref const(TreePath) tree_path, void delegate(ref const(T) value) dg)
+	{
+		import nanogui.experimental.utils : applyByTreePath;
+		applyByTreePath(_data, _model, tree_path.value[], dg);
+	}
+
 	/// Return the current scroll amount as a value between 0 and 1. 0 means scrolled to the top and 1 to the bottom.
 	float scroll() const { return mScroll; }
 	/// Set the scroll amount to a value between 0 and 1. 0 means scrolled to the top and 1 to the bottom.
@@ -253,8 +262,6 @@ public:
 							const value = collapsed(tree_path.value[]);
 							if (!value.isNull)
 								collapsed(tree_path.value[], !value.get);
-							// if (mCallback)
-							// 	mCallback(mChecked);
 						}
 						mPushed = false;
 					}
@@ -262,11 +269,16 @@ public:
 				}
 				if (button == MouseButton.Left && down && !mFocused)
 					requestFocus();
-				return true;
-			}
+				version(none) return true;          // <--- replaced by this
+			}                                       //                    |
+			                                        //                    |
+			if (onMousePressed && down)             //                    |
+				onMousePressed(button, tree_path);  //                    |
+			                                        //                    |
+			return button == MouseButton.Left;      //  <------------------
 		}
-
-		return true;
+		else
+			return true;
 	}
 
 	/// The preferred size of this TreeView.
