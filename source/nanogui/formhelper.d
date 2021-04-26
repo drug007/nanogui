@@ -65,39 +65,42 @@ public:
 		return label;
 	}
 
-	auto addVariable(Type)(string label, void delegate(Type) setter,
-		const Type delegate() getter, bool editable = true)
+	template addVariable(Type)
 	{
-		Label labelW = new Label(mWindow, label, mLabelFontName, mLabelFontSize);
-		auto widget = new FormWidget!Type(mWindow);
-		void delegate() refresh;
-		(widget, getter){ refresh = {
-				Type value = getter(), current = widget.value;
-				if (value != current) widget.value = value;
-			};
-		}(widget, getter);
+		auto addVariable(string label, void delegate(Type) setter,
+			const Type delegate() getter, bool editable = true)
+		{
+			Label labelW = new Label(mWindow, label, mLabelFontName, mLabelFontSize);
+			auto widget = new FormWidget!Type(mWindow);
+			void delegate() refresh;
+			(widget, getter){ refresh = {
+					Type value = getter(), current = widget.value;
+					if (value != current) widget.value = value;
+				};
+			}(widget, getter);
 
-		refresh();
+			refresh();
 
-		widget.callback = setter;
-		widget.editable = editable;
-		widget.fontSize = mWidgetFontSize;
-		Vector2i fs = widget.fixedSize();
-		widget.fixedSize =Vector2i(fs.x != 0 ? fs.x : mFixedSize.x,
-			fs.y != 0 ? fs.y : mFixedSize.y);
-		mRefreshCallbacks.insertBack(refresh);
-		if (mLayout.rowCount() > 0)
-			mLayout.appendRow(mVariableSpacing);
-		mLayout.appendRow(0);
-		mLayout.setAnchor(labelW, AdvancedGridLayout.Anchor(1, mLayout.rowCount()-1));
-		mLayout.setAnchor(widget, AdvancedGridLayout.Anchor(3, mLayout.rowCount()-1));
-		return cast(FormWidget!Type) widget;
-	}
+			widget.callback = setter;
+			widget.editable = editable;
+			widget.fontSize = mWidgetFontSize;
+			Vector2i fs = widget.fixedSize();
+			widget.fixedSize =Vector2i(fs.x != 0 ? fs.x : mFixedSize.x,
+				fs.y != 0 ? fs.y : mFixedSize.y);
+			mRefreshCallbacks.insertBack(refresh);
+			if (mLayout.rowCount() > 0)
+				mLayout.appendRow(mVariableSpacing);
+			mLayout.appendRow(0);
+			mLayout.setAnchor(labelW, AdvancedGridLayout.Anchor(1, mLayout.rowCount()-1));
+			mLayout.setAnchor(widget, AdvancedGridLayout.Anchor(3, mLayout.rowCount()-1));
+			return cast(FormWidget!Type) widget;
+		}
 
-	auto addVariable(Type)(string label, ref Type value, bool editable = true)
-	{
-		return addVariable!Type(label, (v) { value = v; },
-			() { return value; }, editable);
+		auto addVariable(string label, ref Type value, bool editable = true)
+		{
+			return addVariable!Type(label, (v) { value = v; },
+				() { return value; }, editable);
+		}
 	}
 
 	/// Add a button with a custom callback
@@ -235,30 +238,42 @@ public:
  */
 import std.traits : isBoolean, isFloatingPoint, isSomeString, isIntegral;
 
-class FormWidget(T) : CheckBox if(isBoolean!T)
+template FormWidget(T)
 {
-	this(Widget p) { super(p, "", null); fixedWidth = 20; }
+	static if(isBoolean!T)
+	{
+		class FormWidget : CheckBox 
+		{
+			this(Widget p) { super(p, "", null); fixedWidth = 20; }
 
-	alias value = checked;
-	alias editable = enabled;
-}
+			alias value = checked;
+			alias editable = enabled;
+		}
+	}
+	else static if (isIntegral!T)
+	{
+		class FormWidget : IntBox!T
+		{
+			this(Widget p) { super(p); alignment = TextBox.Alignment.Right; }
+		}
+	}
+	else static if (isFloatingPoint!T)
+	{
+		class FormWidget : FloatBox!T
+		{
+			this(Widget p) { super(p); alignment = TextBox.Alignment.Right; }
+		}
+	}
+	else static if (isSomeString!T)
+	{
+		class FormWidget : TextBox
+		{
+			this(Widget p) { super(p); alignment = TextBox.Alignment.Left; }
 
-class FormWidget(T) : IntBox!T if (isIntegral!T)
-{
-	this(Widget p) { super(p); alignment = TextBox.Alignment.Right; }
-}
-
-class FormWidget(T) : FloatBox!T if (isFloatingPoint!T)
-{
-	this(Widget p) { super(p); alignment = TextBox.Alignment.Right; }
-}
-
-class FormWidget(T) : TextBox if (isSomeString!T)
-{
-	this(Widget p) { super(p); alignment = TextBox.Alignment.Left; }
-
-	void callback(void delegate(string) cb) {
-		super.callback = (string str) { cb(str); return true; };
+			void callback(void delegate(string) cb) {
+				super.callback = (string str) { cb(str); return true; };
+			}
+		}
 	}
 }
 
