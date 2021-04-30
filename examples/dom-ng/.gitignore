@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/dom-ng
+dom-ng.so
+dom-ng.dylib
+dom-ng.dll
+dom-ng.a
+dom-ng.lib
+dom-ng-test-*
+*.exe
+*.o
+*.obj
+*.lst

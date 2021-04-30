@@ -1,0 +1,7 @@
+name "dom-ng"
+description "A minimal D application."
+authors "drug007"
+copyright "Copyright © 2021, drug007"
+license "BSL"
+dependency "nanogui" path="../.."
+dependency "auxil" path="../../auxil"
