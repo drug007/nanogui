@@ -1002,12 +1002,13 @@ mixin template visitImpl()
 				scope(exit) dbgPrint!(hasSize, hasTreePath)("scope(exit) this.size: ", this.size);
 				switch(start_value)
 				{
-					static foreach(i; 0..len)
+					enum len2 = getLength!(Data, data);
+					static foreach(i; 0..len2)
 					{
 						// reverse fields order if Order.Bubbling
-						case (Sinking) ? i : len - i - 1:
+						case (Sinking) ? i : len2 - i - 1:
 						{
-							enum FieldNo = (Sinking) ? i : len - i - 1;
+							enum FieldNo = (Sinking) ? i : len2 - i - 1;
 							enum member = DrawableMembers!Data[FieldNo];
 							static if (hasTreePath) visitor.tree_path.back = cast(int) FieldNo;
 							static if (hasSize) scope(exit) this.size += mixin("this." ~ member).size;
@@ -1022,9 +1023,9 @@ mixin template visitImpl()
 						goto case;
 					}
 					// the dummy case needed because every `goto case` should be followed by a case clause
-					case len:
+					case len2:
 						// flow cannot get here directly
-						if (start_value == len)
+						if (start_value == len2)
 							assert(0);
 					break;
 					default:
