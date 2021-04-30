@@ -153,7 +153,9 @@ template isProcessible(alias A)
 	else
 		alias T = Unqual!(typeof(A));
 
-	static if (is(T == struct) || is(T == union))
+	static if (isRandomAccessRange!T)
+		enum isProcessible = true;
+	else static if (is(T == struct) || is(T == union))
 	{
 		static foreach(member; DrawableMembers!T)
 			static if (!is(typeof(isProcessible) == bool) &&
@@ -167,7 +169,6 @@ template isProcessible(alias A)
 	}
 	else static if (
 	       isStaticArray!T
-	    || isRandomAccessRange!T
 	    || isAssociativeArray!T
 	    || isSomeString!T
 	    || isFloatingPoint!T
