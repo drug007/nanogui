@@ -1486,6 +1486,7 @@ void visit(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visito
 
 void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) data, ref Visitor visitor)
 {
+	static assert(is(Model.Data == Data), "Data and Model is not corresponding");
 	enum order = Order.Sinking;
 	static if (Visitor.treePathEnabled)
 	{
