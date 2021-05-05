@@ -411,13 +411,14 @@ struct TaggedAlgebraicModel(alias A)// if (dataHasTaggedAlgebraicModel!(TypeOf!A
 
 template AggregateModel(alias A) // if (dataHasAggregateModel!(TypeOf!A) && !is(TypeOf!A : Duration) && !hasRenderedAs!A)
 {
-	alias Data = TypeOf!A;
+	alias D = TypeOf!A;
 	static assert(isProcessible!Data);
 
 	static if (DrawableMembers!Data.length == 1)
 	{
 		struct SingleMemberAggregateModel(T)
 		{
+			alias Data = D;
 			enum member = DrawableMembers!T[0];
 			alias Member = TypeOf!(mixin("T." ~ member));
 			Model!Member single_member_model;
@@ -450,6 +451,7 @@ template AggregateModel(alias A) // if (dataHasAggregateModel!(TypeOf!A) && !is(
 	{
 		struct AggregateModel
 		{
+			alias Data = D;
 			enum Collapsable = true;
 
 			import std.format : format;
