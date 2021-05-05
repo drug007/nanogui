@@ -1517,12 +1517,20 @@ void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, re
 
 struct TreePath
 {
+	import std.algorithm : equal;
 	import std.experimental.allocator.mallocator : Mallocator;
 	import automem.vector : Vector;
 
 @safe:
 
 	Vector!(int, Mallocator)  value;
+
+	this(int[] v) @trusted
+	{
+		value.length = v.length;
+		import std.algorithm;
+		copy(v, value[]);
+	}
 
 	ref int back() return @nogc
 	{
@@ -1545,6 +1553,16 @@ struct TreePath
 		value.put(i);
 	}
 
+	auto opEquals(typeof(this) other) @trusted
+	{
+		return value[].equal(other.value[]);
+	}
+
+	auto opEquals(int[] other) @trusted
+	{
+		return value[].equal(other);
+	}
+
 	import std.range : isOutputRange;
 	import std.format : FormatSpec;
 
@@ -1563,6 +1581,12 @@ struct TreePath
 		}
 		w.put('}');
 	}
+}
+
+version(unittest) @Name("TreePath")
+unittest
+{
+	assert(TreePath([1]).value == [1]);
 }
 
 version(unittest) @Name("null_visitor")
