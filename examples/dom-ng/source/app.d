@@ -152,6 +152,29 @@ struct D
 	C[3] c;
 }
 
+struct Main
+{
+	NodeA a;
+	NodeA2 a2;
+}
+
+struct NodeA
+{
+	NodeB b;
+}
+
+struct NodeA2
+{
+	double d;
+	NodeB b;
+}
+
+struct NodeB
+{
+	int i;
+	float f;
+}
+
 void main()
 {
 	Item[] data = [
@@ -189,14 +212,108 @@ void main()
 	// since each fiber has run to completion, each should have state TERM
 	assert( composed.state == Fiber.State.TERM );
 
+	import std.algorithm;
 	import auxil.model;
 
 	D d;
-	auto model = makeModel(d);
-	
-	MyVisitor visitor;
-	writeln("start");
-	model.visitForward(d, visitor);
+	Main m;
+
+	// The tree of one node containing leaves only
+	{
+		auto model = makeModel(m.a.b);
+		
+		MyVisitor visitor;
+		model.visitForward(m.a.b, visitor);
+		writeln("\n---");
+		writeln(visitor.log);
+		assert(visitor.log.equal([
+			[],  // B
+			[0], // B.i
+			[1], // B.f
+		]));
+	}
+	// The tree of one node containing single node that contains leaves only
+	{
+		auto model = makeModel(m.a);
+		
+		MyVisitor visitor;
+		model.visitForward(m.a, visitor);
+		writeln("\n---");
+		writeln(visitor.log);
+		// as A contains only single member 
+		// N.B. in previous edition this member B was substituted
+		// instead of A (like A didn't exist)
+		assert(visitor.log.equal([
+			[],     // a
+			[0],    // b
+			[0, 0], // b.i
+			[0, 1], // b.f
+		]));
+	}
+	// The tree of one node containing several node(s)/list(s)
+	{
+		auto model = makeModel(m.a2);
+		
+		MyVisitor visitor;
+		model.visitForward(m.a2, visitor);
+		writeln("\n---");
+		writeln(visitor.log);
+		assert(visitor.log.equal([
+			[],     // a2
+			[0],    // a2.d
+			[1],    // a2.b
+			[1, 0], // a2.b.i
+			[1, 1], // a2.b.f
+		]));
+	}
+	// traversal in back direction
+	{
+		auto model = makeModel(m.a2);
+		
+		MyVisitor visitor;
+		model.visitBackward(m.a2, visitor);
+		writeln("\n---");
+		writeln(visitor.log);
+		assert(visitor.log.equal([
+			[],     // a2
+			[1],    // a2.b
+			[1, 1], // a2.b.f
+			[1, 0], // a2.b.i
+			[0],    // a2.d
+		]));
+	}
+	// traversal to the specific tree path in forward direction
+	{
+		auto model = makeModel(m.a2);
+		
+		MyVisitor visitor;
+		visitor.target.value = [1, 0];
+		model.visitForward(m.a2, visitor);
+		writeln("\n---");
+		writeln(visitor.log);
+		assert(visitor.log.equal([
+			[],     // a2
+			[0],    // a2.d
+			[1],    // a2.b
+			[1, 0], // a2.b.i
+		]));
+	}
+	// traversal to the specific tree path in backward direction
+	{
+		auto model = makeModel(m.a2);
+		
+		MyVisitor visitor;
+		visitor.target.value = [1, 0];
+		model.visitBackward(m.a2, visitor);
+		writeln("\n---");
+		writeln(visitor.log);
+		assert(visitor.log.equal([
+			[],     // a2
+			[1],    // a2.b
+			[1, 1], // a2.b.f
+			[1, 0], // a2.b.i
+		]));
+	}
 }
 
 struct Positioner
@@ -241,7 +358,16 @@ struct MyVisitor
 	TreePath tree_path;
 	Positioner p;
 
-	bool complete() @safe @nogc { return false; }
+	TreePath[] log;
+
+	TreePath target;
+	private bool _complete;
+
+	bool complete() @trusted @nogc
+	{
+		return _complete;
+	}
+
 	void enterTree(alias order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
 		p.put("Enter Tree: ", Data.stringof);
@@ -250,6 +376,11 @@ struct MyVisitor
 
 	auto enterNode(alias order, Data, Model)(ref const(Data) data, ref Model model)
 	{
+		{
+			_complete = !target.value.empty && tree_path.value[] == target.value[];
+		}
+
+		log ~= tree_path;
 		p.put("Enter Node: ", Data.stringof, " ", tree_path);
 		p.indent;
 		p.nextLine;
@@ -266,6 +397,11 @@ struct MyVisitor
 
 	void processLeaf(alias order, Data, Model)(ref const(Data) data, ref Model model)
 	{
+		{
+			_complete = !target.value.empty && tree_path.value[] == target.value[];
+		}
+
+		log ~= tree_path;
 		p.put("Process Leaf: ", Data.stringof, " ", data, " ", tree_path);
 		p.nextLine;
 	}
