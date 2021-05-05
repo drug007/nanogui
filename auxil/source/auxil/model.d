@@ -1124,6 +1124,12 @@ mixin template visitImpl2()
 			// visitor.enterNode!(order, Data)(data, this);
 		auto collapsed = visitor.enterNode!(order, Data)(data, this);
 
+		if (visitor.complete)
+		{
+			dbgPrint!(hasSize, hasTreePath)("visitor.complete is true");
+			return true;
+		}
+
 		scope(exit)
 		{
 			// static if (hasTreePath) with(visitor)
