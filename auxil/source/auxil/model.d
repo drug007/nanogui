@@ -1063,7 +1063,7 @@ mixin template visitImpl2()
 		static if (Data.sizeof > 24 && !__traits(isRef, data))
 			pragma(msg, "Warning: ", Data, " is a value type and has size larger than 24 bytes");
 
-		// static assert(Data.sizeof <= 24 || __traits(isRef, data));
+		static assert(Data.sizeof <= 24 || __traits(isRef, data));
 		import std.algorithm : among;
 
 		enum Sinking     = order == Order.Sinking;
