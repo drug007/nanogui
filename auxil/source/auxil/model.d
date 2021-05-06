@@ -1505,6 +1505,7 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 
 void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor)
 {
+	static assert(is(Model.Data == Data), "Data and Model is not corresponding");
 	enum order = Order.Bubbling;
 	static if (Visitor.treePathEnabled)
 	{
