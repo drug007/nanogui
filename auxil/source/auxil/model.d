@@ -1068,9 +1068,7 @@ mixin template visitImpl2()
 
 		enum Sinking     = order == Order.Sinking;
 		enum Bubbling    = !Sinking;
-		enum hasTreePathNG = visitor.treePathNGEnabled;
-		enum hasTreePath = Visitor.treePathEnabled;
-		enum hasSize     = false;
+		enum hasTreePath = Visitor.treePathNGEnabled;
 
 		static if (hasTreePath)
 		{
@@ -1088,73 +1086,26 @@ mixin template visitImpl2()
 				break;
 				case State.finishing:
 				{
-					dbgPrint!(hasSize, hasTreePath)("state is State.finishing");
 					return true;
 				}
 			}
 		}
-		if (visitor.complete)
-		{
-			dbgPrint!(hasSize, hasTreePath)("visitor.complete is true");
-			return true;
-		}
 
-		// static if (hasTreePath) with(visitor)
-		// {
-		// 	if (visitor.state.among(visitor.State.first, visitor.State.rest))
-		// 	{
-		// 		// static if (Sinking)
-		// 		// {
-		// 		// 	visitor.position += visitor.deferred_change;
-		// 		// 	visitor.deferred_change = this.header_size;
-		// 		// }
-		// 		visitor.enterNode!(order, Data)(data, this);
-		// 		// static if (Sinking)
-		// 		// {
-		// 		// 	if (position+deferred_change > destination)
-		// 		// 	{
-		// 		// 		dbgPrint!(hasSize, hasTreePath)("state becomes State.finishing [", visitor.tree_path, "] at ", __FILE__, ":", __LINE__);
-		// 		// 		state = State.finishing;
-		// 		// 		path = tree_path;
-		// 		// 	}
-		// 		// }
-		// 	}
-		// }
-		// else
-			// visitor.enterNode!(order, Data)(data, this);
+		if (visitor.complete)
+			return true;
+
 		auto collapsed = visitor.enterNode!(order, Data)(data, this);
 
 		if (visitor.complete)
 		{
-			dbgPrint!(hasSize, hasTreePath)("visitor.complete is true");
 			return true;
 		}
 
 		scope(exit)
 		{
-			// static if (hasTreePath) with(visitor)
-			// {
-			// 	if (state.among(State.first, State.rest))
-			// 	{
-			// 		// static if (Bubbling)
-			// 		// {
-			// 		// 	position += deferred_change;
-			// 		// 	deferred_change = -this.header_size;
-			// 		// 	if (position <= destination)
-			// 		// 	{
-			// 		// 		dbgPrint!(hasSize, hasTreePath)("state becomes State.finishing at ", __FILE__, ":", __LINE__);
-			// 		// 		state = State.finishing;
-			// 		// 		path = tree_path;
-			// 		// 	}
-			// 		// }
-			// 		visitor.leaveNode!order(data, this);
-			// 	}
-			// }
-			// else
-				visitor.leaveNode!order(data, this);
+			visitor.leaveNode!order(data, this);
 		}
 
-		dbgPrint!(hasSize, hasTreePath)(" ", Data.stringof);
 		if (!collapsed)
 		{
 			// visitor.indent;
@@ -1166,13 +1117,12 @@ mixin template visitImpl2()
 				// then the childs of the collapsable aren't processed
 				if (visitor.path.value.length && visitor.tree_path.value[] == visitor.path.value[])
 				{
-					dbgPrint!(hasSize, hasTreePath)("special edge case at ", __FILE__, ":", __LINE__);
 					return false;
 				}
 			}
 
-			static if (hasTreePath || hasTreePathNG) visitor.tree_path.put(0);
-			static if (hasTreePath || hasTreePathNG) scope(exit) visitor.tree_path.popBack;
+			static if (hasTreePath) visitor.tree_path.put(0);
+			static if (hasTreePath) scope(exit) visitor.tree_path.popBack;
 			const len = getLength!(Data, data);
 			static if (is(typeof(model.length)))
 				assert(len == model.length);
@@ -1193,9 +1143,6 @@ mixin template visitImpl2()
 					if (idx && visitor.path.value.length >= idx)
 					{
 						start_value = visitor.path.value[idx-1];
-						// // position should change only if we've got the initial path
-						// // and don't get the end
-						// if (visitor.state == visitor.State.seeking) visitor.deferred_change = 0;
 					}
 				}
 			}
@@ -1205,18 +1152,17 @@ mixin template visitImpl2()
 			{
 				foreach(i; TwoFacedRange!order(start_value, data.length))
 				{
-					static if (hasTreePath || hasTreePathNG) visitor.tree_path.back = i;
+					static if (hasTreePath) visitor.tree_path.back = i;
 					auto idx = getIndex!(Data)(this, i);
 					if (model[i].visit!order(data[idx], visitor))
 					{
-						dbgPrint!(hasSize, hasTreePath)("premature quitting at ", __FILE__, ":", __LINE__);
+						// premature quitting
 						return true;
 					}
 				}
 			}
 			else static if (dataHasAggregateModel!Data)
 			{
-				scope(exit) dbgPrint!(hasSize, hasTreePath)("scope(exit) this.size: ", this.size);
 				switch(start_value)
 				{
 					enum len2 = getLength!(Data, data);
@@ -1227,12 +1173,9 @@ mixin template visitImpl2()
 						{
 							enum FieldNo = (Sinking) ? i : len2 - i - 1;
 							enum member = DrawableMembers!Data[FieldNo];
-							static if (hasTreePath || hasTreePathNG) visitor.tree_path.back = cast(int) FieldNo;
-							dbgPrint!(hasSize, hasTreePath)("this.size: ", this.size);
-							scope(exit) dbgPrint!(hasSize, hasTreePath)("member.size: ", mixin("this." ~ member).size);
+							static if (hasTreePath) visitor.tree_path.back = cast(int) FieldNo;
 							if (mixin("this." ~ member).visit!order(mixin("data." ~ member), visitor))
 							{
-								dbgPrint!(hasSize, hasTreePath)("premature quitting at ", __FILE__, ":", __LINE__);
 								return true;
 							}
 						}
@@ -1248,10 +1191,6 @@ mixin template visitImpl2()
 						assert(0);
 				}
 			}
-		}
-		else
-		{
-			dbgPrint!(hasSize, hasTreePath)("is collapsed");
 		}
 
 		return false;

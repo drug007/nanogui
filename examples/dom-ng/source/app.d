@@ -285,13 +285,13 @@ void main()
 		auto model = makeModel(m.a2);
 		
 		MyVisitor!() visitor;
-		visitor.target.value = [1, 0];
+		visitor.path.value = [1, 0];
 		model.visitForward(m.a2, visitor);
 		writeln("\n---");
 		writeln(visitor.log);
 		assert(visitor.log.equal([
 			[],     // a2
-			[0],    // a2.d
+			        // a2.d skipped
 			[1],    // a2.b
 			[1, 0], // a2.b.i
 		]));
@@ -301,14 +301,14 @@ void main()
 		auto model = makeModel(m.a2);
 		
 		MyVisitor!() visitor;
-		visitor.target.value = [1, 0];
+		visitor.path.value = [1, 0];
 		model.visitBackward(m.a2, visitor);
 		writeln("\n---");
 		writeln(visitor.log);
 		assert(visitor.log.equal([
 			[],     // a2
 			[1],    // a2.b
-			[1, 1], // a2.b.f
+			        // a2.b.f skipped
 			[1, 0], // a2.b.i
 		]));
 	}
@@ -317,7 +317,7 @@ void main()
 		auto model = makeModel(m.a2);
 		
 		MyVisitor!(true) visitor;
-		visitor.target.value = [1, 0];
+		visitor.path.value = [1, 0];
 		
 		scope fiberVisitor = new Fiber( ()
 		{
@@ -339,7 +339,7 @@ void main()
 		assert(visitor.log.equal([
 			[],     // a2
 			[1],    // a2.b
-			[1, 1], // a2.b.f
+			        // a2.b.f skipped
 			[1, 0], // a2.b.i
 		]));
 	}
@@ -384,12 +384,14 @@ struct MyVisitor(bool fibered = false)
 	enum treePathEnabled = false;
 	enum sizeEnabled = false;
 
+	enum State { seeking, first, rest, finishing, }
+	State state;
 	TreePath tree_path;
 	Positioner p;
 
 	TreePath[] log;
 
-	TreePath target;
+	TreePath path;
 	private bool _complete;
 
 	bool complete() @trusted @nogc
@@ -411,7 +413,7 @@ struct MyVisitor(bool fibered = false)
 		p.nextLine;
 		static if (fibered) Fiber.yield();
 		{
-			_complete = !target.value.empty && tree_path.value[] == target.value[];
+			_complete = !path.value.empty && tree_path.value[] == path.value[];
 		}
 
 		return false;
@@ -433,7 +435,7 @@ struct MyVisitor(bool fibered = false)
 		p.nextLine;
 		static if (fibered) Fiber.yield();
 		{
-			_complete = !target.value.empty && tree_path.value[] == target.value[];
+			_complete = !path.value.empty && tree_path.value[] == path.value[];
 		}
 	}
 }
