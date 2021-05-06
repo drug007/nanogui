@@ -190,8 +190,9 @@ void main()
 	writeln(*index[100].payload);
 
 	auto idx = index[];
-	
-	void fiberFunc()
+
+	// create instances of each type
+	scope Fiber composed = new Fiber(()
 	{
 		while(!idx.empty)
 		{
@@ -199,10 +200,7 @@ void main()
 			idx.popFront;
 			Fiber.yield();
 		}
-	}
-
-	// create instances of each type
-	scope Fiber composed = new Fiber( &fiberFunc );
+	});
 
 	composed.call();
 	composed.call();
@@ -222,7 +220,7 @@ void main()
 	{
 		auto model = makeModel(m.a.b);
 		
-		MyVisitor visitor;
+		MyVisitor!() visitor;
 		model.visitForward(m.a.b, visitor);
 		writeln("\n---");
 		writeln(visitor.log);
@@ -236,7 +234,7 @@ void main()
 	{
 		auto model = makeModel(m.a);
 		
-		MyVisitor visitor;
+		MyVisitor!() visitor;
 		model.visitForward(m.a, visitor);
 		writeln("\n---");
 		writeln(visitor.log);
@@ -254,7 +252,7 @@ void main()
 	{
 		auto model = makeModel(m.a2);
 		
-		MyVisitor visitor;
+		MyVisitor!() visitor;
 		model.visitForward(m.a2, visitor);
 		writeln("\n---");
 		writeln(visitor.log);
@@ -270,7 +268,7 @@ void main()
 	{
 		auto model = makeModel(m.a2);
 		
-		MyVisitor visitor;
+		MyVisitor!() visitor;
 		model.visitBackward(m.a2, visitor);
 		writeln("\n---");
 		writeln(visitor.log);
@@ -286,7 +284,7 @@ void main()
 	{
 		auto model = makeModel(m.a2);
 		
-		MyVisitor visitor;
+		MyVisitor!() visitor;
 		visitor.target.value = [1, 0];
 		model.visitForward(m.a2, visitor);
 		writeln("\n---");
@@ -302,7 +300,7 @@ void main()
 	{
 		auto model = makeModel(m.a2);
 		
-		MyVisitor visitor;
+		MyVisitor!() visitor;
 		visitor.target.value = [1, 0];
 		model.visitBackward(m.a2, visitor);
 		writeln("\n---");
@@ -347,7 +345,7 @@ struct Styler
 
 }
 
-struct MyVisitor
+struct MyVisitor(bool fibered = false)
 {
 	import auxil.model : TreePath;
 
@@ -376,14 +374,14 @@ struct MyVisitor
 
 	auto enterNode(alias order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		{
-			_complete = !target.value.empty && tree_path.value[] == target.value[];
-		}
-
 		log ~= tree_path;
 		p.put("Enter Node: ", Data.stringof, " ", tree_path);
 		p.indent;
 		p.nextLine;
+		static if (fibered) Fiber.yield();
+		{
+			_complete = !target.value.empty && tree_path.value[] == target.value[];
+		}
 
 		return false;
 	}
@@ -393,17 +391,18 @@ struct MyVisitor
 		p.put("Leave Node: ", Data.stringof);
 		p.unindent;
 		p.nextLine;
+		static if (fibered) Fiber.yield();
 	}
 
 	void processLeaf(alias order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		{
-			_complete = !target.value.empty && tree_path.value[] == target.value[];
-		}
 
 		log ~= tree_path;
 		p.put("Process Leaf: ", Data.stringof, " ", data, " ", tree_path);
 		p.nextLine;
+		static if (fibered) Fiber.yield();
+		{
+			_complete = !target.value.empty && tree_path.value[] == target.value[];
+		}
 	}
-
 }
