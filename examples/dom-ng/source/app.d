@@ -312,6 +312,37 @@ void main()
 			[1, 0], // a2.b.i
 		]));
 	}
+	// a fiber traverses to the specific tree path in backward direction
+	{
+		auto model = makeModel(m.a2);
+		
+		MyVisitor!(true) visitor;
+		visitor.target.value = [1, 0];
+		
+		scope fiberVisitor = new Fiber( ()
+		{
+			model.visitBackward(m.a2, visitor);
+		});
+
+		TreePath[] fiberLog;
+		while(fiberVisitor.state != Fiber.State.TERM)
+		{
+			fiberVisitor.call();
+			if (!visitor.complete)
+				fiberLog ~= visitor.tree_path;
+		}
+
+		assert(visitor.log.equal(fiberLog));
+
+		writeln("\n---");
+		writeln(visitor.log);
+		assert(visitor.log.equal([
+			[],     // a2
+			[1],    // a2.b
+			[1, 1], // a2.b.f
+			[1, 0], // a2.b.i
+		]));
+	}
 }
 
 struct Positioner
