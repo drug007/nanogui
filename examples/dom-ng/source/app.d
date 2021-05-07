@@ -357,6 +357,26 @@ void main()
 				[1, 0], // a2.b.i
 			]));
 		}
+		{
+			fiberLog = null;
+			fiberState = null;
+			visitor.log = null;
+			visitor.path.value = [1, 0];
+			visitor.tree_path.value.clear;
+			visitor._complete = false;
+			fiberVisitor.reset;
+			auto r = visitor.makeRange(()
+			{
+				model.visitForward(m.a2, visitor);
+			});
+			r.each!((ref a)=>writeln(a.state));
+			// once again
+			r = visitor.makeRange(()
+			{
+				model.visitForward(m.a2, visitor);
+			});
+			r.each!((ref a)=>writeln(a.state));
+		}
 	}
 }
 
@@ -448,4 +468,39 @@ struct MyVisitor(bool fibered = false)
 			_complete = !path.value.empty && tree_path.value[] == path.value[];
 		}
 	}
+}
+
+auto makeRange(V, D)(ref V visitor, D dg)
+{
+	return Range!V(visitor, dg);
+}
+
+struct Range(P)
+{
+	import core.lifetime : emplace;
+
+	private P* _parent;
+	
+	void[__traits(classInstanceSize, Fiber)] _buffer;
+	private this(D)(ref P parent, D dg)
+	{
+		_parent = &parent;
+		auto fiber = emplace!Fiber(_buffer, dg);
+		assert(fiber.state == Fiber.State.HOLD);
+	}
+
+	bool empty()
+	{
+		auto fiber = (() @trusted => cast(Fiber)(_buffer.ptr))();
+		return fiber.state == Fiber.State.TERM;
+	}
+
+	void popFront()
+	{
+		assert(!empty);
+		auto fiber = (() @trusted => cast(Fiber)(_buffer.ptr))();
+		fiber.call;
+	}
+
+	ref front() return { return *_parent; }
 }
