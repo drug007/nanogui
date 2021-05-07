@@ -312,36 +312,51 @@ void main()
 			[1, 0], // a2.b.i
 		]));
 	}
-	// a fiber traverses to the specific tree path in backward direction
+	// a fiber traverses to the specific tree path in forward direction
 	{
 		auto model = makeModel(m.a2);
 		
 		MyVisitor!(true) visitor;
-		visitor.path.value = [1, 0];
 		
-		scope fiberVisitor = new Fiber( ()
+		scope fiberVisitor = new Fiber(()
 		{
-			model.visitBackward(m.a2, visitor);
+			model.visitForward(m.a2, visitor);
 		});
 
 		TreePath[] fiberLog;
-		while(fiberVisitor.state != Fiber.State.TERM)
+		visitor.State[] fiberState;
+		foreach(_; 0..3)
 		{
-			fiberVisitor.call();
-			if (!visitor.complete)
-				fiberLog ~= visitor.tree_path;
+			fiberLog = null;
+			fiberState = null;
+			visitor.log = null;
+			visitor.path.value = [1, 0];
+			visitor.tree_path.value.clear;
+			visitor._complete = false;
+			fiberVisitor.reset;
+			while(fiberVisitor.state != Fiber.State.TERM)
+			{
+				fiberVisitor.call();
+				if (!visitor.complete)
+				{
+					fiberLog ~= visitor.tree_path;
+					fiberState ~= visitor.state;
+				}
+			}
+
+			import std.range : zip;
+			zip(fiberLog, fiberState).each!writeln;
+			assert(visitor.log.equal(fiberLog));
+
+			writeln("\n---");
+			writeln(visitor.log);
+			assert(visitor.log.equal([
+				[],     // a2
+				[1],    // a2.b
+						// a2.b.f skipped
+				[1, 0], // a2.b.i
+			]));
 		}
-
-		assert(visitor.log.equal(fiberLog));
-
-		writeln("\n---");
-		writeln(visitor.log);
-		assert(visitor.log.equal([
-			[],     // a2
-			[1],    // a2.b
-			        // a2.b.f skipped
-			[1, 0], // a2.b.i
-		]));
 	}
 }
 
@@ -369,11 +384,6 @@ struct Positioner
 		if (indentation.length)
 			indentation = indentation[0..$-2];
 	}
-}
-
-struct Styler
-{
-
 }
 
 struct MyVisitor(bool fibered = false)
