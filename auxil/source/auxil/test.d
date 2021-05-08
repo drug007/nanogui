@@ -197,6 +197,7 @@ Caption: float[]
 	));
 }
 
+version(none)
 version(unittest) @Name("aggregate_with_only_member")
 @nogc unittest
 {
@@ -321,6 +322,7 @@ version(unittest)
 	}
 }
 
+version(none)
 version(unittest) @Name("aggregate_proxy")
 unittest
 {

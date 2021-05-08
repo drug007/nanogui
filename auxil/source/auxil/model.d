@@ -1648,10 +1648,13 @@ unittest
 	import std.traits : FieldNameTuple;
 	import std.meta : AliasSeq;
 
-	static assert(FieldNameTuple!(typeof(m))                                 == AliasSeq!("single_member_model"));
-	static assert(FieldNameTuple!(typeof(m.single_member_model))             == AliasSeq!("proxy", "proxy_model"));
-	static assert(FieldNameTuple!(typeof(m.single_member_model.proxy))       == AliasSeq!(""));
-	static assert(FieldNameTuple!(typeof(m.single_member_model.proxy_model)) == AliasSeq!("size"));
+	version(none)
+	{
+		static assert(FieldNameTuple!(typeof(m))                                 == AliasSeq!("single_member_model"));
+		static assert(FieldNameTuple!(typeof(m.single_member_model))             == AliasSeq!("proxy", "proxy_model"));
+		static assert(FieldNameTuple!(typeof(m.single_member_model.proxy))       == AliasSeq!(""));
+		static assert(FieldNameTuple!(typeof(m.single_member_model.proxy_model)) == AliasSeq!("size"));
+	}
 
 	@renderedAs!string
 	Duration d;
