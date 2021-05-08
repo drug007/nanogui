@@ -1427,7 +1427,8 @@ void visit(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visito
 
 void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) data, ref Visitor visitor)
 {
-	static assert(is(Model.Data == Data), "Data and Model is not corresponding");
+	import std.traits : Unqual;
+	static assert(is(Unqual!(Model.Data) == Unqual!Data), "Data and Model is not corresponding: " ~ Data.stringof ~ " and " ~ Model.Data.stringof);
 	enum order = Order.Sinking;
 	static if (Visitor.treePathEnabled)
 	{
@@ -1440,7 +1441,8 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 
 void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor)
 {
-	static assert(is(Model.Data == Data), "Data and Model is not corresponding");
+	import std.traits : Unqual;
+	static assert(is(Unqual!(Model.Data) == Unqual!Data), "Data and Model is not corresponding: " ~ Data.stringof ~ " and " ~ Model.Data.stringof);
 	enum order = Order.Bubbling;
 	static if (Visitor.treePathEnabled)
 	{
