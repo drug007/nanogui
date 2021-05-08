@@ -245,7 +245,7 @@ unittest
 			import core.stdc.stdio : snprintf;
 
 			char[128] buffer;
-			const l = snprintf(&buffer[0], buffer.length, "Custom header %f, %ld", f, l);
+			const l = snprintf(&buffer[0], buffer.length, "Custom header %f, %lld", f, l);
 			writer.put(buffer[0..l]);
 		}
 	}
