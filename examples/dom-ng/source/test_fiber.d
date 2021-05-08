@@ -17,8 +17,6 @@ struct MyVisitor
 	enum treePathEnabled = false;
 	enum sizeEnabled = false;
 
-	enum State { seeking, first, rest, finishing, }
-	State state;
 	TreePath tree_path;
 
 	TreePath[] log;
@@ -75,11 +73,9 @@ void testFiber1()
 	});
 
 	TreePath[] fiberLog;
-	visitor.State[] fiberState;
 	foreach(_; 0..3)
 	{
 		fiberLog = null;
-		fiberState = null;
 		visitor.log = null;
 		visitor.path.value = [1, 0];
 		visitor.tree_path.value.clear;
@@ -91,12 +87,10 @@ void testFiber1()
 			if (!visitor.complete)
 			{
 				fiberLog ~= visitor.tree_path;
-				fiberState ~= visitor.state;
 			}
 		}
 
-		import std.range : zip;
-		zip(fiberLog, fiberState).each!writeln;
+		fiberLog.each!writeln;
 		assert(visitor.log.equal(fiberLog));
 
 		writeln("\n---");
@@ -110,7 +104,6 @@ void testFiber1()
 	}
 	{
 		fiberLog = null;
-		fiberState = null;
 		visitor.log = null;
 		visitor.path.value = [1, 0];
 		visitor.tree_path.value.clear;
@@ -120,16 +113,14 @@ void testFiber1()
 		{
 			model.visitForward(m.a2, visitor);
 		});
-		r.each!((ref a)=>writeln(a.state));
-		// r.
-		// auto fiber = (() @trusted => cast(Fiber)(r._buffer.ptr))();
-		// fiber.reset;
-		// writeln(fiber.state);
-		// writeln("---");
+		r.each!((ref a)=>writeln(a));
+		writeln("---");
+		visitor = MyVisitor();
+		visitor.path.value = [1, 0];
 		r = visitor.makeRange(()
 		{
 			model.visitForward(m.a2, visitor);
 		});
-		r.each!((ref a)=>writeln(a.state));
+		r.each!((ref a)=>writeln(a));
 	}
 }

@@ -1068,28 +1068,8 @@ mixin template visitImpl2()
 
 		enum Sinking     = order == Order.Sinking;
 		enum Bubbling    = !Sinking;
-		enum hasTreePath = Visitor.treePathNGEnabled;
-
-		static if (hasTreePath)
-		{
-			with(visitor) final switch(state)
-			{
-				case State.seeking:
-					if (tree_path.value == path.value)
-						state = State.first;
-				break;
-				case State.first:
-					state = State.rest;
-				break;
-				case State.rest:
-					// do nothing
-				break;
-				case State.finishing:
-				{
-					return true;
-				}
-			}
-		}
+		enum hasTreePathNG = Visitor.treePathNGEnabled;
+		enum hasTreePath = Visitor.treePathEnabled;
 
 		if (visitor.complete)
 			return true;
@@ -1111,7 +1091,7 @@ mixin template visitImpl2()
 			// visitor.indent;
 			// scope(exit) visitor.unindent;
 
-			static if (Bubbling && hasTreePath)
+			static if (Bubbling && (hasTreePath || hasTreePathNG))
 			{
 				// Edge case if the start path starts from this collapsable exactly
 				// then the childs of the collapsable aren't processed
@@ -1121,8 +1101,8 @@ mixin template visitImpl2()
 				}
 			}
 
-			static if (hasTreePath) visitor.tree_path.put(0);
-			static if (hasTreePath) scope(exit) visitor.tree_path.popBack;
+			static if (hasTreePath || hasTreePathNG) visitor.tree_path.put(0);
+			static if (hasTreePath || hasTreePathNG) scope(exit) visitor.tree_path.popBack;
 			const len = getLength!(Data, data);
 			static if (is(typeof(model.length)))
 				assert(len == model.length);
@@ -1146,13 +1126,29 @@ mixin template visitImpl2()
 					}
 				}
 			}
+			static if (hasTreePathNG)
+			{
+				// probably some flag should be here defining
+				// should we skip elements (because we have random access range)
+				// or visit them consiquently
+				// for example when we seek the specific element we skip elements before
+				// the specific elements but then we iterate over the rest consequently
+				if (true)
+				{
+					auto idx = visitor.tree_path.value.length;
+					if (idx && visitor.path.value.length >= idx)
+					{
+						start_value = visitor.path.value[idx-1];
+					}
+				}
+			}
 			static if (dataHasStaticArrayModel!Data || 
 			           dataHasRandomAccessRangeModel!Data ||
 			           dataHasAssociativeArrayModel!Data)
 			{
 				foreach(i; TwoFacedRange!order(start_value, data.length))
 				{
-					static if (hasTreePath) visitor.tree_path.back = i;
+					static if (hasTreePath || hasTreePathNG) visitor.tree_path.back = i;
 					auto idx = getIndex!(Data)(this, i);
 					if (model[i].visit!order(data[idx], visitor))
 					{
@@ -1173,7 +1169,7 @@ mixin template visitImpl2()
 						{
 							enum FieldNo = (Sinking) ? i : len2 - i - 1;
 							enum member = DrawableMembers!Data[FieldNo];
-							static if (hasTreePath) visitor.tree_path.back = cast(int) FieldNo;
+							static if (hasTreePath || hasTreePathNG) visitor.tree_path.back = cast(int) FieldNo;
 							if (mixin("this." ~ member).visit!order(mixin("data." ~ member), visitor))
 							{
 								return true;
