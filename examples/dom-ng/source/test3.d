@@ -1,4 +1,4 @@
-module test;
+module test3;
 
 import std.algorithm : map;
 import std.stdio;
