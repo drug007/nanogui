@@ -61,7 +61,7 @@ struct MyVisitor
 }
 
 // a fiber traverses to the specific tree path in forward direction
-void testFiber1()
+void testRunningFiberInLoop()
 {
 	auto model = makeModel(m.a2);
 	
@@ -102,6 +102,23 @@ void testFiber1()
 			[1, 0], // a2.b.i
 		]));
 	}
+}
+
+
+
+// a fiber traverses to the specific tree path in forward direction
+void testFiberRange()
+{
+	auto model = makeModel(m.a2);
+	
+	MyVisitor visitor;
+	
+	scope fiberVisitor = new Fiber(()
+	{
+		model.visitForward(m.a2, visitor);
+	});
+
+	TreePath[] fiberLog;
 	{
 		fiberLog = null;
 		visitor.log = null;
