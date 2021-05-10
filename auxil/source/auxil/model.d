@@ -1579,6 +1579,11 @@ struct DefaultVisitorImpl(
 		TreePath tree_path, path;
 		SizeType position, deferred_change, destination;
 	}
+	else static if (treePathNGEnabled == TreePathEnabled.yes)
+	{
+		TreePath tree_path, path;
+		SizeType position, destination;
+	}
 
 	void indent() {}
 	void unindent() {}
