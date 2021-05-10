@@ -35,6 +35,9 @@ struct MyVisitor
 	{
 	}
 
+	void indent() {}
+	void unindent() {}
+
 	auto enterNode(alias order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		log ~= tree_path;
@@ -82,6 +85,9 @@ struct SizeSetter
 	{
 	}
 
+	void indent() {}
+	void unindent() {}
+
 	auto enterNode(alias order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		model.size = headerSize;
@@ -118,6 +124,9 @@ struct SizeGetter
 	void enterTree(alias order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
 	}
+
+	void indent() {}
+	void unindent() {}
 
 	auto enterNode(alias order, Data, Model)(ref const(Data) data, ref Model model)
 	{

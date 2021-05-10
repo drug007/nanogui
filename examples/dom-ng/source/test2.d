@@ -62,6 +62,9 @@ struct MyVisitor
 		p.nextLine;
 	}
 
+	void indent() {}
+	void unindent() {}
+
 	auto enterNode(alias order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		log ~= tree_path;

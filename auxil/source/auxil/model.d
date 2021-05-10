@@ -1088,8 +1088,9 @@ mixin template visitImpl2()
 
 		if (!this.collapsed)
 		{
-			// visitor.indent;
-			// scope(exit) visitor.unindent;
+			// TODO should be renamed like preChildren, postChildren
+			visitor.indent;
+			scope(exit) visitor.unindent;
 
 			static if (Bubbling && (hasTreePath || hasTreePathNG))
 			{
