@@ -1557,7 +1557,8 @@ struct DefaultVisitorImpl(
 )
 {
 	alias sizeEnabled     = _size_;
-	alias treePathEnabled = _tree_path_;
+	alias treePathNGEnabled = _tree_path_;
+	enum treePathEnabled = false;
 
 	alias SizeType = double;
 	static if (sizeEnabled == SizeEnabled.yes)
