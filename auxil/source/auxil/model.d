@@ -1074,7 +1074,7 @@ mixin template visitImpl2()
 		if (visitor.complete)
 			return true;
 
-		auto collapsed = visitor.enterNode!(order, Data)(data, this);
+		visitor.enterNode!(order, Data)(data, this);
 
 		if (visitor.complete)
 		{
@@ -1086,7 +1086,7 @@ mixin template visitImpl2()
 			visitor.leaveNode!order(data, this);
 		}
 
-		if (!collapsed)
+		if (!this.collapsed)
 		{
 			// visitor.indent;
 			// scope(exit) visitor.unindent;

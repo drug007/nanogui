@@ -142,6 +142,8 @@ struct SizeGetter
 void testRunningFiberInLoop()
 {
 	auto model = makeModel(m.a2);
+	model.collapsed = false;
+	model.b.collapsed = false;
 	
 	MyVisitor visitor;
 	
@@ -186,6 +188,8 @@ void testRunningFiberInLoop()
 void testFiberRange()
 {
 	auto model = makeModel(m.a2);
+	model.collapsed = false;
+	model.b.collapsed = false;
 	
 	MyVisitor visitor;
 
@@ -223,6 +227,8 @@ void testFiberRange()
 void testFiberCalculateSize()
 {
 	auto model = makeModel(m.a2);
+	model.collapsed = false;
+	model.b.collapsed = false;
 	
 	SizeSetter sizeSetter;
 

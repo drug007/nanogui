@@ -98,6 +98,7 @@ struct MyVisitor
 void testTree1()
 {
 	auto model = makeModel(m.a.b);
+	model.collapsed = false;
 	
 	MyVisitor visitor;
 	model.visitForward(m.a.b, visitor);
@@ -114,6 +115,8 @@ void testTree1()
 void testTree2()
 {
 	auto model = makeModel(m.a);
+	model.collapsed = false;
+	model.b.collapsed = false;
 	
 	MyVisitor visitor;
 	model.visitForward(m.a, visitor);
@@ -134,6 +137,8 @@ void testTree2()
 void testTree3()
 {
 	auto model = makeModel(m.a2);
+	model.collapsed = false;
+	model.b.collapsed = false;
 	
 	MyVisitor visitor;
 	model.visitForward(m.a2, visitor);
@@ -152,6 +157,8 @@ void testTree3()
 void testTree4()
 {
 	auto model = makeModel(m.a2);
+	model.collapsed = false;
+	model.b.collapsed = false;
 	
 	MyVisitor visitor;
 	model.visitBackward(m.a2, visitor);
@@ -170,6 +177,8 @@ void testTree4()
 void testTree5()
 {
 	auto model = makeModel(m.a2);
+	model.collapsed = false;
+	model.b.collapsed = false;
 	
 	MyVisitor visitor;
 	visitor.path.value = [1, 0];
@@ -188,6 +197,8 @@ void testTree5()
 void testTree6()
 {
 	auto model = makeModel(m.a2);
+	model.collapsed = false;
+	model.b.collapsed = false;
 	
 	MyVisitor visitor;
 	visitor.path.value = [1, 0];
