@@ -23,6 +23,8 @@ struct MyVisitor
 
 	TreePath path;
 	private bool _complete;
+	enum headerSize = 30.0;
+	enum childSize  = 15.0;
 
 	bool complete() @trusted @nogc
 	{
@@ -36,6 +38,7 @@ struct MyVisitor
 	auto enterNode(alias order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		log ~= tree_path;
+		model.size = headerSize;
 		Fiber.yield();
 		{
 			_complete = !path.value.empty && tree_path.value[] == path.value[];
@@ -52,10 +55,86 @@ struct MyVisitor
 	{
 
 		log ~= tree_path;
+		model.size = childSize;
 		Fiber.yield();
 		{
 			_complete = !path.value.empty && tree_path.value[] == path.value[];
 		}
+	}
+}
+
+// set size of the tree nodes
+struct SizeSetter
+{
+	enum treePathNGEnabled = false;
+	enum treePathEnabled = false;
+	enum sizeEnabled = false;
+
+	enum headerSize = 30.0;
+	enum childSize  = 15.0;
+
+	bool complete() @trusted @nogc
+	{
+		return false;
+	}
+
+	void enterTree(alias order, Data, Model)(auto ref const(Data) data, ref Model model)
+	{
+	}
+
+	auto enterNode(alias order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		model.size = headerSize;
+		Fiber.yield();
+
+		return false;
+	}
+
+	void leaveNode(alias order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+	}
+
+	void processLeaf(alias order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		model.size = childSize;
+		Fiber.yield();
+	}
+}
+
+// get size of the tree nodes
+struct SizeGetter
+{
+	enum treePathNGEnabled = false;
+	enum treePathEnabled = false;
+	enum sizeEnabled = false;
+
+	double[] sizeLog;
+
+	bool complete() @trusted @nogc
+	{
+		return false;
+	}
+
+	void enterTree(alias order, Data, Model)(auto ref const(Data) data, ref Model model)
+	{
+	}
+
+	auto enterNode(alias order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		sizeLog ~= model.size;
+		Fiber.yield();
+
+		return false;
+	}
+
+	void leaveNode(alias order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+	}
+
+	void processLeaf(alias order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		sizeLog ~= model.size;
+		Fiber.yield();
 	}
 }
 
@@ -138,4 +217,35 @@ void testFiberRange()
 		});
 		assert(r.equal(etalon));
 	}
+}
+
+// a fiber calculates size of the tree elements
+void testFiberCalculateSize()
+{
+	auto model = makeModel(m.a2);
+	
+	SizeSetter sizeSetter;
+
+	auto r = sizeSetter.makeRange(()
+	{
+		model.visitForward(m.a2, sizeSetter);
+	});
+
+	// consume the range
+	foreach(_; r) {}
+
+	SizeGetter sizeGetter;
+
+	auto r2 = sizeGetter.makeRange(()
+	{
+		model.visitForward(m.a2, sizeGetter);
+	});
+
+	assert(r2.equal([
+		SizeGetter([30]),
+		SizeGetter([30, 15]),
+		SizeGetter([30, 15, 30]),
+		SizeGetter([30, 15, 30, 15]),
+		SizeGetter([30, 15, 30, 15, 15]),
+	]));
 }
