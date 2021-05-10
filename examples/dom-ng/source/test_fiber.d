@@ -46,7 +46,6 @@ struct MyVisitor
 
 	void leaveNode(alias order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		Fiber.yield();
 	}
 
 	void processLeaf(alias order, Data, Model)(ref const(Data) data, ref Model model)
@@ -112,11 +111,9 @@ void testFiberRange()
 	MyVisitor visitor;
 
 	auto etalon = [
-		MyVisitor(TreePath([]),     [TreePath([])],                                  TreePath([1, 0]), false, 30), 
-		MyVisitor(TreePath([1]),    [TreePath([]), TreePath([1])],                   TreePath([1, 0]), false, 60), 
-		MyVisitor(TreePath([1, 0]), [TreePath([]), TreePath([1]), TreePath([1, 0])], TreePath([1, 0]), false, 75), 
-		MyVisitor(TreePath([1]),    [TreePath([]), TreePath([1]), TreePath([1, 0])], TreePath([1, 0]), true,  75), 
-		MyVisitor(TreePath([]),     [TreePath([]), TreePath([1]), TreePath([1, 0])], TreePath([1, 0]), true,  75)
+		MyVisitor(TreePath([]),     [TreePath([])],                                  TreePath([1, 0]), false),
+		MyVisitor(TreePath([1]),    [TreePath([]), TreePath([1])],                   TreePath([1, 0]), false),
+		MyVisitor(TreePath([1, 0]), [TreePath([]), TreePath([1]), TreePath([1, 0])], TreePath([1, 0]), false),
 	];
 
 	TreePath[] fiberLog;
