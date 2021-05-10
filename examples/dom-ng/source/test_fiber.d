@@ -108,13 +108,13 @@ struct SizeSetter
 }
 
 // get size of the tree nodes
-struct SizeGetter
+struct Positioner
 {
 	enum treePathNGEnabled = false;
 	enum treePathEnabled = false;
 	enum sizeEnabled = false;
 
-	double[] sizeLog;
+	double position;
 
 	bool complete() @trusted @nogc
 	{
@@ -123,6 +123,7 @@ struct SizeGetter
 
 	void enterTree(alias order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
+		position = 0;
 	}
 
 	void indent() {}
@@ -130,8 +131,8 @@ struct SizeGetter
 
 	auto enterNode(alias order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		sizeLog ~= model.size;
 		Fiber.yield();
+		position += model.size;
 
 		return false;
 	}
@@ -142,8 +143,8 @@ struct SizeGetter
 
 	void processLeaf(alias order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		sizeLog ~= model.size;
 		Fiber.yield();
+		position += model.size;
 	}
 }
 
@@ -249,18 +250,17 @@ void testFiberCalculateSize()
 	// consume the range
 	foreach(_; r) {}
 
-	SizeGetter sizeGetter;
+	Positioner positioner;
 
-	auto r2 = sizeGetter.makeRange(()
+	auto r2 = positioner.makeRange(()
 	{
-		model.visitForward(m.a2, sizeGetter);
+		model.visitForward(m.a2, positioner);
 	});
-
 	assert(r2.equal([
-		SizeGetter([30]),
-		SizeGetter([30, 15]),
-		SizeGetter([30, 15, 30]),
-		SizeGetter([30, 15, 30, 15]),
-		SizeGetter([30, 15, 30, 15, 15]),
+		Positioner( 0),
+		Positioner(30),
+		Positioner(45),
+		Positioner(75),
+		Positioner(90),
 	]));
 }
