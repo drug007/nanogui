@@ -111,6 +111,14 @@ void testFiberRange()
 	
 	MyVisitor visitor;
 
+	auto etalon = [
+		MyVisitor(TreePath([]),     [TreePath([])],                                  TreePath([1, 0]), false, 30), 
+		MyVisitor(TreePath([1]),    [TreePath([]), TreePath([1])],                   TreePath([1, 0]), false, 60), 
+		MyVisitor(TreePath([1, 0]), [TreePath([]), TreePath([1]), TreePath([1, 0])], TreePath([1, 0]), false, 75), 
+		MyVisitor(TreePath([1]),    [TreePath([]), TreePath([1]), TreePath([1, 0])], TreePath([1, 0]), true,  75), 
+		MyVisitor(TreePath([]),     [TreePath([]), TreePath([1]), TreePath([1, 0])], TreePath([1, 0]), true,  75)
+	];
+
 	TreePath[] fiberLog;
 	{
 		fiberLog = null;
@@ -122,14 +130,15 @@ void testFiberRange()
 		{
 			model.visitForward(m.a2, visitor);
 		});
-		r.each!((ref a)=>writeln(a));
-		writeln("---");
+		assert(r.equal(etalon));
+
+		// once again
 		visitor = MyVisitor();
 		visitor.path.value = [1, 0];
 		r = visitor.makeRange(()
 		{
 			model.visitForward(m.a2, visitor);
 		});
-		r.each!((ref a)=>writeln(a));
+		assert(r.equal(etalon));
 	}
 }
