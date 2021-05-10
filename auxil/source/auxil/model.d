@@ -1510,14 +1510,18 @@ struct TreePath
 		import std;
 		import std.conv : text;
 
-		w.put('{');
+		copy("TreePath([", w);
 		if (value.length)
 		{
-			foreach(e; value[0..$-1])
-				copy(text(e, "."), w);
-			copy(text(value[$-1]), w);
+			copy(text(value[0]), w);
+			if (value.length > 1)
+			{
+				foreach(e; value[1..$])
+					copy(text(", ", e), w);
+			}
 		}
-		w.put('}');
+		w.put(']');
+		w.put(')');
 	}
 }
 
