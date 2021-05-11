@@ -979,8 +979,6 @@ mixin template visitImpl1()
 				}
 			}
 
-			static if (hasTreePath) visitor.tree_path.put(0);
-			static if (hasTreePath) scope(exit) visitor.tree_path.popBack;
 			const len = getLength!(Data, data);
 			static if (is(typeof(model.length)))
 				assert(len == model.length);
@@ -995,6 +993,8 @@ mixin template visitImpl1()
 			}
 			static if (hasTreePath)
 			{
+				visitor.tree_path.put(0);
+				scope(exit) visitor.tree_path.popBack;
 				if (visitor.state.among(visitor.State.seeking, visitor.State.first))
 				{
 					auto idx = visitor.tree_path.value.length;
