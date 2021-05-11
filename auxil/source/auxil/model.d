@@ -1132,14 +1132,14 @@ mixin template visitImpl2()
 					}
 				}
 			}
-			static if (hasTreePathNG)
+			static if (hasTreePathNG && __traits(compiles, { auto sa = visitor.randomAccess; }))
 			{
 				// probably some flag should be here defining
 				// should we skip elements (because we have random access range)
 				// or visit them consiquently
 				// for example when we seek the specific element we skip elements before
 				// the specific elements but then we iterate over the rest consequently
-				if (true)
+				if (visitor.randomAccess)
 				{
 					auto idx = visitor.tree_path.value.length;
 					if (idx && visitor.path.value.length >= idx)

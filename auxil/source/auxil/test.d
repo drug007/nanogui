@@ -716,42 +716,137 @@ unittest
 
 struct RelativeMeasurer
 {
+	import std.algorithm : among;
+
 	DefaultVisitorImpl!(SizeEnabled.no, TreePathEnabled.yes) default_visitor;
 	alias default_visitor this;
 
+	enum State { seeking, first, rest, finishing, }
+	State state;
+	private bool _complete;
 	typeof(default_visitor.position) deferred_change;
 	TreePosition[] output;
+
+	bool complete() { return _complete; }
+	bool randomAccess() { return !!state.among(State.seeking, State.first); }
 
 	void enterTree(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		output = null;
 		position = deferred_change = 0;
+		state = State.seeking;
+		_complete = false;
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		static if (order == Order.Sinking)
+		final switch(state)
 		{
-			position += deferred_change;
-			deferred_change = model.header_size;
-			output ~= TreePosition(tree_path.value, position);
+			case State.seeking:
+				if (tree_path.value == path.value)
+					state = State.first;
+			break;
+			case State.first:
+				state = State.rest;
+			break;
+			case State.rest:
+				// do nothing
+			break;
+			case State.finishing:
+				_complete = true;
+				return;
+		}
+		if (state.among(State.first, State.rest))
+		{
+			static if (order == Order.Sinking)
+			{
+				position += deferred_change;
+				deferred_change = model.header_size;
+			}
+
+			///////////////////////////////////////////////////////////////////
+			// enterNode
+			{
+				static if (order == Order.Sinking)
+				{
+					if (state.among(State.first, State.rest)) output ~= TreePosition(tree_path.value, position);
+				}
+			}
+			///////////////////////////////////////////////////////////////////
+
+			static if (order == Order.Sinking)
+			{
+				if (position+deferred_change > destination)
+				{
+					state = State.finishing;
+					path = tree_path;
+				}
+			}
 		}
 	}
 
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
+		if (state.among(State.first, State.rest))
+		{
+			static if (order == Order.Bubbling)
+			{
+				position += deferred_change;
+				deferred_change = -model.header_size;
+				if (position <= destination)
+				{
+					state = State.finishing;
+					path = tree_path;
+				}
+			}
+		}
+
+		///////////////////////////////////////////////////////////////////////
+		// leaveNode
 		static if (order == Order.Bubbling)
 		{
-			position += deferred_change;
-			deferred_change = model.header_size;
-			output ~= TreePosition(tree_path.value, position);
+			if (state.among(State.first, State.rest)) output ~= TreePosition(tree_path.value, position);
 		}
+		///////////////////////////////////////////////////////////////////////
 	}
 
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
+		final switch(state)
+		{
+			case State.seeking:
+				if (tree_path.value == path.value)
+					state = State.first;
+			break;
+			case State.first:
+				state = State.rest;
+			break;
+			case State.rest:
+				// do nothing
+			break;
+			case State.finishing:
+				_complete = true;
+				return;
+		}
+
 		position += deferred_change;
 		deferred_change = model.size;
+		static if (order == Order.Sinking)
+		{
+			if (position+deferred_change > destination)
+			{
+				state = State.finishing;
+				path = tree_path;
+			}
+		}
+		static if (order == Order.Bubbling)
+		{
+			if (position <= destination)
+			{
+				state = State.finishing;
+				path = tree_path;
+			}
+		}
 
 		output ~= TreePosition(tree_path.value, position);
 	}
