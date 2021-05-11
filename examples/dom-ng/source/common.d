@@ -31,14 +31,21 @@ struct Range(P)
 
 	~this()
 	{
-		destroy(_fiber);
-		free(cast(void*)_fiber);
+		if (_fiber)
+		{
+			destroy(_fiber);
+			free(cast(void*)_fiber);
+			_fiber = null;
+		}
 	}
 
 	debug invariant
 	{
 		assert(_fiber.state != Fiber.State.EXEC);
 	}
+
+	@disable
+	this(ref return scope typeof(this) other);
 
 	bool empty()
 	{

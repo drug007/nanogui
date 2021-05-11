@@ -220,7 +220,13 @@ void testFiberRange()
 		{
 			model.visitForward(m.a2, visitor);
 		});
-		assert(r.equal(etalon));
+
+		import std.range : front, popFront;
+		auto e = etalon[];
+		for(;!r.empty; r.popFront, e.popFront)
+		{
+			assert(e.front == r.front);
+		}
 
 		// once again
 		visitor = MyVisitor();
@@ -229,7 +235,12 @@ void testFiberRange()
 		{
 			model.visitForward(m.a2, visitor);
 		});
-		assert(r.equal(etalon));
+		
+		e = etalon[];
+		for(;!r.empty; r.popFront, e.popFront)
+		{
+			assert(e.front == r.front);
+		}
 	}
 }
 
@@ -248,7 +259,7 @@ void testFiberCalculateSize()
 	});
 
 	// consume the range
-	foreach(_; r) {}
+	for(; !r.empty; r.popFront) {}
 
 	Positioner positioner;
 
@@ -256,11 +267,14 @@ void testFiberCalculateSize()
 	{
 		model.visitForward(m.a2, positioner);
 	});
-	assert(r2.equal([
+	auto etalon = [
 		Positioner( 0),
 		Positioner(30),
 		Positioner(45),
 		Positioner(75),
 		Positioner(90),
-	]));
+	];
+	import std.range : front, popFront;
+	for(;!r2.empty;r2.popFront, etalon.popFront)
+		assert(r2.front == etalon.front);
 }
