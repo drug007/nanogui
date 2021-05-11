@@ -736,10 +736,20 @@ struct RelativeMeasurer
 		position = deferred_change = 0;
 		state = State.seeking;
 		_complete = false;
+{
+	import std;
+	writeln("\t\t\t\tdestination: ", destination);
+}
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
+debug
+{
+	import std.stdio;
+	writeln(Data.stringof);
+	writeln("\t", position, " ", state, " ", order, " ", deferred_change);
+}
 		final switch(state)
 		{
 			case State.seeking:
@@ -849,6 +859,12 @@ struct RelativeMeasurer
 		}
 
 		output ~= TreePosition(tree_path.value, position);
+debug
+{
+	import std.stdio;
+	writeln(Data.stringof);
+	writeln("\t", position, " ", state, " ", order, " ", deferred_change, " ", destination);
+}
 	}
 }
 
