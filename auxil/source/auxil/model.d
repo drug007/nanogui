@@ -832,7 +832,7 @@ auto makeModel(T)(auto ref const(T) data)
 	return Model!T(data);
 }
 
-alias visitImpl = visitImpl2;
+alias visitImpl = visitImpl1;
 
 mixin template visitImpl1()
 {
@@ -861,6 +861,60 @@ mixin template visitImpl1()
 		enum hasTreePath = Visitor.treePathEnabled;
 		enum hasSize     = Visitor.sizeEnabled;
 
+		auto stepForward()
+		{
+			static if (hasTreePath && Sinking)
+			{
+				visitor.position += visitor.deferred_change;
+				visitor.deferred_change = this.header_size;
+			}
+		}
+
+		auto stepBackward()
+		{
+			static if (hasTreePath && Bubbling)
+			{
+				visitor.position += visitor.deferred_change;
+				visitor.deferred_change = -this.header_size;
+			}
+		}
+
+		auto checkIfCompleted()
+		{
+			static if (hasTreePath && Sinking) with(visitor)
+			{
+				if (position+deferred_change > destination)
+				{
+					dbgPrint!(hasSize, hasTreePath)("state becomes State.finishing [", visitor.tree_path, "] at ", __FILE__, ":", __LINE__);
+					state = State.finishing;
+					path = tree_path;
+				}
+			}
+		}
+
+		auto checkIfCompleted2()
+		{
+			static if (hasTreePath && Bubbling) with(visitor)
+			{
+				if (position <= destination)
+				{
+					dbgPrint!(hasSize, hasTreePath)("state becomes State.finishing at ", __FILE__, ":", __LINE__);
+					state = State.finishing;
+					path = tree_path;
+				}
+			}
+		}
+
+		bool isVisitorProcessing()
+		{
+			import std.algorithm : among;
+
+			static if (hasTreePath)
+				return !!visitor.state.among(visitor.State.first, visitor.State.rest);
+			else
+				return true;
+		}
+
 		static if (hasTreePath)
 		{
 			with(visitor) final switch(state)
@@ -882,6 +936,7 @@ mixin template visitImpl1()
 				}
 			}
 		}
+
 		if (visitor.complete)
 		{
 			dbgPrint!(hasSize, hasTreePath)("visitor.complete is true");
@@ -890,52 +945,21 @@ mixin template visitImpl1()
 
 		static if (hasSize) size = header_size = visitor.size + Spacing;
 
-		static if (hasTreePath) with(visitor)
+		if (isVisitorProcessing)
 		{
-			if (visitor.state.among(visitor.State.first, visitor.State.rest))
-			{
-				static if (Sinking)
-				{
-					visitor.position += visitor.deferred_change;
-					visitor.deferred_change = this.header_size;
-				}
-				visitor.enterNode!(order, Data)(data, this);
-				static if (Sinking)
-				{
-					if (position+deferred_change > destination)
-					{
-						dbgPrint!(hasSize, hasTreePath)("state becomes State.finishing [", visitor.tree_path, "] at ", __FILE__, ":", __LINE__);
-						state = State.finishing;
-						path = tree_path;
-					}
-				}
-			}
-		}
-		else
+			stepForward;
 			visitor.enterNode!(order, Data)(data, this);
+			checkIfCompleted;
+		}
 
 		scope(exit)
 		{
-			static if (hasTreePath) with(visitor)
+			if (isVisitorProcessing)
 			{
-				if (state.among(State.first, State.rest))
-				{
-					static if (Bubbling)
-					{
-						position += deferred_change;
-						deferred_change = -this.header_size;
-						if (position <= destination)
-						{
-							dbgPrint!(hasSize, hasTreePath)("state becomes State.finishing at ", __FILE__, ":", __LINE__);
-							state = State.finishing;
-							path = tree_path;
-						}
-					}
-					visitor.leaveNode!order(data, this);
-				}
-			}
-			else
+				stepBackward;
+				checkIfCompleted2;
 				visitor.leaveNode!order(data, this);
+			}
 		}
 
 		dbgPrint!(hasSize, hasTreePath)(" ", Data.stringof);
