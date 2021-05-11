@@ -1070,6 +1070,9 @@ mixin template visitImpl2()
 		enum Bubbling    = !Sinking;
 		enum hasTreePathNG = Visitor.treePathNGEnabled;
 		enum hasTreePath = Visitor.treePathEnabled;
+		// this mechanism should be replaced by using dedicated stack-like data structure
+		// to store size of nodes during tree traversing
+		enum hasSize     = Visitor.sizeEnabled;
 
 		if (visitor.complete)
 			return true;
@@ -1080,6 +1083,8 @@ mixin template visitImpl2()
 		{
 			return true;
 		}
+
+		static if (hasSize) size = header_size = visitor.size + Spacing;
 
 		scope(exit)
 		{
@@ -1150,6 +1155,7 @@ mixin template visitImpl2()
 				foreach(i; TwoFacedRange!order(start_value, data.length))
 				{
 					static if (hasTreePath || hasTreePathNG) visitor.tree_path.back = i;
+					static if (hasSize) scope(exit) this.size += model[i].size;
 					auto idx = getIndex!(Data)(this, i);
 					if (model[i].visit!order(data[idx], visitor))
 					{
@@ -1171,6 +1177,7 @@ mixin template visitImpl2()
 							enum FieldNo = (Sinking) ? i : len2 - i - 1;
 							enum member = DrawableMembers!Data[FieldNo];
 							static if (hasTreePath || hasTreePathNG) visitor.tree_path.back = cast(int) FieldNo;
+							static if (hasSize) scope(exit) this.size += mixin("this." ~ member).size;
 							if (mixin("this." ~ member).visit!order(mixin("data." ~ member), visitor))
 							{
 								return true;

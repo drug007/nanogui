@@ -71,10 +71,9 @@ struct SizeSetter
 {
 	enum treePathNGEnabled = false;
 	enum treePathEnabled = false;
-	enum sizeEnabled = false;
+	enum sizeEnabled = true;
 
-	enum headerSize = 30.0;
-	enum childSize  = 15.0;
+	enum size = 15;
 
 	bool complete() @trusted @nogc
 	{
@@ -90,7 +89,6 @@ struct SizeSetter
 
 	auto enterNode(alias order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		model.size = headerSize;
 		Fiber.yield();
 
 		return false;
@@ -102,7 +100,6 @@ struct SizeSetter
 
 	void processLeaf(alias order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		model.size = childSize;
 		Fiber.yield();
 	}
 }
@@ -114,7 +111,20 @@ struct Positioner
 	enum treePathEnabled = false;
 	enum sizeEnabled = false;
 
-	double position;
+	double size, position;
+
+	@disable this();
+
+	this(double size)
+	{
+		this.size = size;
+	}
+
+	this(double size, double position)
+	{
+		this.size = size;
+		this.position = position;
+	}
 
 	bool complete() @trusted @nogc
 	{
@@ -132,7 +142,7 @@ struct Positioner
 	auto enterNode(alias order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		Fiber.yield();
-		position += model.size;
+		position += model.header_size;
 
 		return false;
 	}
@@ -261,18 +271,18 @@ void testFiberCalculateSize()
 	// consume the range
 	for(; !r.empty; r.popFront) {}
 
-	Positioner positioner;
+	auto positioner = Positioner(15);
 
 	auto r2 = positioner.makeRange(()
 	{
 		model.visitForward(m.a2, positioner);
 	});
 	auto etalon = [
-		Positioner( 0),
-		Positioner(30),
-		Positioner(45),
-		Positioner(75),
-		Positioner(90),
+		Positioner(15,  0),
+		Positioner(15, 16),
+		Positioner(15, 32),
+		Positioner(15, 48),
+		Positioner(15, 64),
 	];
 	import std.range : front, popFront;
 	for(;!r2.empty;r2.popFront, etalon.popFront)
