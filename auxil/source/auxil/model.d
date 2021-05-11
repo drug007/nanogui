@@ -948,8 +948,8 @@ mixin template visitImpl1()
 		if (isVisitorProcessing)
 		{
 			stepForward;
-			visitor.enterNode!(order, Data)(data, this);
 			checkIfCompleted;
+			visitor.enterNode!(order, Data)(data, this);
 		}
 
 		scope(exit)
