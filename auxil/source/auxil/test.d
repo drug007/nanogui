@@ -719,27 +719,40 @@ struct RelativeMeasurer
 	DefaultVisitorImpl!(SizeEnabled.no, TreePathEnabled.yes) default_visitor;
 	alias default_visitor this;
 
+	typeof(default_visitor.position) deferred_change;
 	TreePosition[] output;
 
 	void enterTree(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		output = null;
+		position = deferred_change = 0;
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		static if (order == Order.Sinking)
+		{
+			position += deferred_change;
+			deferred_change = model.header_size;
 			output ~= TreePosition(tree_path.value, position);
+		}
 	}
 
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		static if (order == Order.Bubbling)
+		{
+			position += deferred_change;
+			deferred_change = model.header_size;
 			output ~= TreePosition(tree_path.value, position);
+		}
 	}
 
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
+		position += deferred_change;
+		deferred_change = model.size;
+
 		output ~= TreePosition(tree_path.value, position);
 	}
 }
