@@ -412,41 +412,41 @@ template AggregateModel(alias A) // if (dataHasAggregateModel!(TypeOf!A) && !is(
 	alias D = TypeOf!A;
 	static assert(isProcessible!D);
 
-	// static if (DrawableMembers!D.length == 1)
-	// {
-	// 	struct SingleMemberAggregateModel(T)
-	// 	{
-	// 		alias Data = D;
-	// 		enum member = DrawableMembers!T[0];
-	// 		alias Member = TypeOf!(mixin("T." ~ member));
-	// 		Model!Member single_member_model;
-	// 		alias single_member_model this;
+	static if (DrawableMembers!D.length == 1)
+	{
+		struct SingleMemberAggregateModel(T)
+		{
+			alias Data = D;
+			enum member = DrawableMembers!T[0];
+			alias Member = TypeOf!(mixin("T." ~ member));
+			Model!Member single_member_model;
+			alias single_member_model this;
 
-	// 		enum Collapsable = single_member_model.Collapsable;
+			enum Collapsable = single_member_model.Collapsable;
 
-	// 		this()(auto ref const(T) data)
-	// 		{
-	// 			import std.format : format;
+			this()(auto ref const(T) data)
+			{
+				import std.format : format;
 
-	// 			static if (isNullable!(typeof(mixin("data." ~ member))) ||
-	// 					isTimemarked!(typeof(mixin("data." ~ member))))
-	// 			{
-	// 				if (!mixin("data." ~ member).isNull)
-	// 					mixin("single_member_model = Model!Member(data.%1$s);".format(member));
-	// 			}
-	// 			else
-	// 				mixin("single_member_model = Model!Member(data.%1$s);".format(member));
-	// 		}
+				static if (isNullable!(typeof(mixin("data." ~ member))) ||
+						isTimemarked!(typeof(mixin("data." ~ member))))
+				{
+					if (!mixin("data." ~ member).isNull)
+						mixin("single_member_model = Model!Member(data.%1$s);".format(member));
+				}
+				else
+					mixin("single_member_model = Model!Member(data.%1$s);".format(member));
+			}
 
-	// 		bool visit(Order order, Visitor)(auto ref const(T) data, ref Visitor visitor)
-	// 		{
-	// 			return single_member_model.visit!order(mixin("data." ~ member), visitor);
-	// 		}
-	// 	}
-	// 	alias AggregateModel = SingleMemberAggregateModel!D;
-	// }
-	// else
-	// {
+			bool visit(Order order, Visitor)(auto ref const(T) data, ref Visitor visitor)
+			{
+				return single_member_model.visit!order(mixin("data." ~ member), visitor);
+			}
+		}
+		alias AggregateModel = SingleMemberAggregateModel!D;
+	}
+	else
+	{
 		struct AggregateModel
 		{
 			alias Data = D;
@@ -477,7 +477,7 @@ template AggregateModel(alias A) // if (dataHasAggregateModel!(TypeOf!A) && !is(
 
 			mixin visitImpl;
 		}
-	// }
+	}
 }
 
 struct RenderedAsAggregateModel(alias A)// if (dataHasAggregateModel!(TypeOf!A) && hasRenderedAs!A)
