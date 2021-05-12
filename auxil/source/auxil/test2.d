@@ -65,29 +65,38 @@ void testAutomata()
     assert(a.total_shift == sum(seq));
     assert(log == [0, 10, 31, 43, 56, 80, 95, 111, 128]);
 
+    log = null;
     a = Automata(0);
     a.shift = 40;
-    test(a, seq);
+    test(a, seq, log);
     assert(a.shift == 40);
     assert(a.total_shift == 31);
     assert(a.total_shift == sum(seq[0..2]));
+    assert(log == [0, 10, 31]);
 
     // next total_shift is equal to start of an element
+    log = null;
     a = Automata(0);
     a.shift = 43;
-    test(a, seq);
+    test(a, seq, log);
     assert(a.total_shift == 43);
     assert(a.shift == 43);
+    assert(log == [0, 10, 31, 43]);
 
+    log = null;
     a = Automata(0);
     a.shift = 58;
-    test(a, seq);
+    test(a, seq, log);
     assert(a.total_shift == 56);
     assert(a.shift == 58);
+    assert(log == [0, 10, 31, 43, 56]);
 
+    log = null;
     a = Automata(0);
-    test(a, seq.retro);
+    test(a, seq.retro, log);
     assert(a.total_shift == 128);
+    const total_sum = sum(seq);
+    assert(log.map!(a=>total_sum-a).equal([0, 10, 31, 43, 56, 80, 95, 111, 128].retro));
 
     a = Automata(0);
     a.shift = 83;
