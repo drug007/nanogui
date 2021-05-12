@@ -802,12 +802,14 @@ struct ScalarModel(alias A)
 		{
 			position += deferred_change;
 			deferred_change = (Sinking) ? this.size : -this.size;
+			curr_shift += deferred_change;
 
 			if (state.among(State.first, State.rest))
 			{
 				static if (Sinking) visitor.processLeaf!order(data, this);
 				if ((Sinking  && position+deferred_change > destination) ||
 					(Bubbling && position                 < destination))
+				// if (curr_shift >= total_shift)
 				{
 					state = State.finishing;
 					path = tree_path;
@@ -860,6 +862,7 @@ mixin template visitImpl1()
 		{
 			static if (hasTreePath && Sinking)
 			{
+				visitor.curr_shift += this.header_size;
 				visitor.position += visitor.deferred_change;
 				visitor.deferred_change = this.header_size;
 			}
@@ -869,6 +872,7 @@ mixin template visitImpl1()
 		{
 			static if (hasTreePath && Bubbling)
 			{
+				visitor.curr_shift += -this.header_size;
 				visitor.position += visitor.deferred_change;
 				visitor.deferred_change = -this.header_size;
 			}
@@ -878,7 +882,7 @@ mixin template visitImpl1()
 		{
 			static if (hasTreePath && Sinking) with(visitor)
 			{
-				if (position+deferred_change > destination)
+				if (curr_shift >= total_shift)
 				{
 					state = State.finishing;
 					path = tree_path;
@@ -1432,7 +1436,10 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 	{
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
 		visitor.deferred_change = 0;
+		visitor.total_shift = visitor.destination - visitor.position;
+		visitor.curr_shift = 0;
 	}
+
 	visitor.enterTree!order(data, model);
 	model.visit!order(data, visitor);
 }
@@ -1446,6 +1453,8 @@ void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, re
 	{
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
 		visitor.deferred_change = 0;
+		visitor.total_shift = visitor.destination - visitor.position;
+		visitor.curr_shift = 0;
 	}
 	visitor.enterTree!order(data, model);
 	model.visit!order(data, visitor);
@@ -1573,7 +1582,7 @@ struct DefaultVisitorImpl(
 		enum State { seeking, first, rest, finishing, }
 		State state;
 		TreePath tree_path, path;
-		SizeType position, deferred_change, destination;
+		SizeType position, deferred_change, destination, total_shift, curr_shift;
 	}
 
 	void indent() {}
