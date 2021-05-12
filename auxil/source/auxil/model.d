@@ -880,19 +880,7 @@ mixin template visitImpl1()
 
 		auto checkIfCompleted()
 		{
-			static if (hasTreePath && Sinking) with(visitor)
-			{
-				if (curr_shift >= total_shift)
-				{
-					state = State.finishing;
-					path = tree_path;
-				}
-			}
-		}
-
-		auto checkIfCompleted2()
-		{
-			static if (hasTreePath && Bubbling) with(visitor)
+			static if (hasTreePath) with(visitor)
 			{
 				if (curr_shift >= total_shift)
 				{
@@ -952,7 +940,7 @@ mixin template visitImpl1()
 			if (isVisitorProcessing)
 			{
 				stepBackward;
-				checkIfCompleted2;
+				checkIfCompleted;
 				visitor.leaveNode!order(data, this);
 			}
 		}
