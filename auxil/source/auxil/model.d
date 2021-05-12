@@ -802,7 +802,7 @@ struct ScalarModel(alias A)
 		{
 			position += deferred_change;
 			deferred_change = (Sinking) ? this.size : -this.size;
-			curr_shift += deferred_change;
+			curr_shift += this.size;
 
 			if (state.among(State.first, State.rest))
 			{
@@ -872,7 +872,7 @@ mixin template visitImpl1()
 		{
 			static if (hasTreePath && Bubbling)
 			{
-				visitor.curr_shift += -this.header_size;
+				visitor.curr_shift += this.header_size;
 				visitor.position += visitor.deferred_change;
 				visitor.deferred_change = -this.header_size;
 			}
@@ -894,7 +894,7 @@ mixin template visitImpl1()
 		{
 			static if (hasTreePath && Bubbling) with(visitor)
 			{
-				if (position <= destination)
+				if (curr_shift >= total_shift)
 				{
 					state = State.finishing;
 					path = tree_path;
@@ -1437,6 +1437,8 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
 		visitor.deferred_change = 0;
 		visitor.total_shift = visitor.destination - visitor.position;
+		if (visitor.total_shift < 0)
+			visitor.total_shift = -visitor.total_shift;
 		visitor.curr_shift = 0;
 	}
 
@@ -1454,6 +1456,8 @@ void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, re
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
 		visitor.deferred_change = 0;
 		visitor.total_shift = visitor.destination - visitor.position;
+		if (visitor.total_shift < 0)
+			visitor.total_shift = -visitor.total_shift;
 		visitor.curr_shift = 0;
 	}
 	visitor.enterTree!order(data, model);
