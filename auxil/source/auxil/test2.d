@@ -26,8 +26,9 @@ struct Automata
     // can be any value
     float destinationShift;
     Location loc;
+    float init_value;
 
-    this(float v) { loc = Location(v); }
+    this(float v) { loc = Location(v); init_value = v; }
     
     private bool _complete;
     bool complete() { return _complete; }
@@ -43,6 +44,14 @@ struct Automata
             loc.next(v);
         }
     }
+
+    auto position(bool forward)()
+    {
+        static if (forward)
+            return init_value + fixedValue;
+        else
+            return init_value - fixedValue;
+    }
 }
 
 auto test(R)(ref Automata a, R data)
@@ -51,9 +60,13 @@ auto test(R)(ref Automata a, R data)
     test(a, data, log);
 }
 
-auto test(R)(ref Automata a, R data, ref float[] log)
+auto test(bool forward, R)(ref Automata a, R r, ref float[] log)
 {
     log ~= a.loc.loc;
+    static if (forward)
+        auto data = r;
+    else
+        auto data = r.retro;
     foreach(e; data)
     {
         a.next(e);
@@ -65,80 +78,81 @@ auto test(R)(ref Automata a, R data, ref float[] log)
 
 void testAutomata()
 {
-    float[] log;
+    float[] posLog;
     auto a = Automata(0);
-    test(a, seq, log);
+    test!true(a, seq, posLog);
     assert(a.fixedValue == 128);
     assert(a.fixedValue == sum(seq));
-    assert(log == [0, 10, 31, 43, 56, 80, 95, 111, 128]);
+    assert(posLog == [0, 10, 31, 43, 56, 80, 95, 111, 128]);
 
-    log = null;
+    posLog = null;
     a = Automata(0);
     a.destinationShift = 40;
-    test(a, seq, log);
+    test!true(a, seq, posLog);
     assert(a.destinationShift == 40);
     assert(a.fixedValue == 31);
     assert(a.fixedValue == sum(seq[0..2]));
-    assert(log == [0, 10, 31]);
+    assert(posLog == [0, 10, 31]);
 
     // next fixedValue is equal to start of an element
-    log = null;
+    posLog = null;
     a = Automata(0);
     a.destinationShift = 43;
-    test(a, seq, log);
+    test!true(a, seq, posLog);
     assert(a.fixedValue == 43);
     assert(a.destinationShift == 43);
-    assert(log == [0, 10, 31, 43]);
+    assert(posLog == [0, 10, 31, 43]);
 
-    log = null;
+    posLog = null;
     a = Automata(0);
     a.destinationShift = 58;
-    test(a, seq, log);
+    test!true(a, seq, posLog);
     assert(a.fixedValue == 56);
     assert(a.destinationShift == 58);
-    assert(log == [0, 10, 31, 43, 56]);
+    assert(posLog == [0, 10, 31, 43, 56]);
 
-    log = null;
+    posLog = null;
     a = Automata(0);
-    test(a, seq.retro, log);
+    a.init_value = 128;
+    test!false(a, seq, posLog);
     assert(a.fixedValue == 128);
     const total_sum = sum(seq);
-    assert(log.equal([0, 17, 33, 48, 72, 85, 97, 118, 128]));
-    assert(log.map!(a=>total_sum-a).equal([0, 10, 31, 43, 56, 80, 95, 111, 128].retro));
+    assert(posLog.equal([0, 17, 33, 48, 72, 85, 97, 118, 128]));
+    assert(posLog.map!(a=>total_sum-a).equal([0, 10, 31, 43, 56, 80, 95, 111, 128].retro));
 
-    log = null;
+    posLog = null;
     a = Automata(0);
     a.destinationShift = 83;
-    test(a, seq.retro, log);
+    test!false(a, seq, posLog);
     assert(a.fixedValue == 72);
     assert(a.destinationShift == 83);
-    assert(log.equal([0, 17, 33, 48, 72]));
+    assert(posLog.equal([0, 17, 33, 48, 72]));
     
-    log = null;
+    posLog = null;
     a = Automata(0);
     a.destinationShift = 85;
-    test(a, seq.retro, log);
+    test!false(a, seq, posLog);
     assert(a.fixedValue == 85);
     assert(a.destinationShift == 85);
-    assert(log.equal([0, 17, 33, 48, 72, 85]));
+    assert(posLog.equal([0, 17, 33, 48, 72, 85]));
 
     // 80 70  49  37  24   0
     //   [10, 21, 12, 13, 24]
     auto subseq = seq[0..5];
 
-    log = null;
+    posLog = null;
     a = Automata(0);
     a.destinationShift = 85;
-    test(a, seq[0..5].retro, log);
+    test!false(a, seq[0..5], posLog);
     assert(a.fixedValue == 80);
     assert(a.destinationShift == 85);
-    assert(log.equal([0, 24, 37, 49, 70, 80]));
+    assert(posLog.equal([0, 24, 37, 49, 70, 80]));
 
-    log = null;
+    posLog = null;
     a = Automata(0);
     a.destinationShift = 38;
-    test(a, seq[0..5].retro, log);
+    test!false(a, seq[0..5], posLog);
     assert(a.fixedValue == 37);
     assert(a.destinationShift == 38);
-    assert(log.equal([0, 24, 37]));
+    assert(posLog.equal([0, 24, 37]));
 }
