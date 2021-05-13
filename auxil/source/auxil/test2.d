@@ -106,31 +106,39 @@ void testAutomata()
     assert(log.equal([0, 17, 33, 48, 72, 85, 97, 118, 128]));
     assert(log.map!(a=>total_sum-a).equal([0, 10, 31, 43, 56, 80, 95, 111, 128].retro));
 
+    log = null;
     a = Automata(0);
     a.destinationShift = 83;
-    test(a, seq.retro);
+    test(a, seq.retro, log);
     assert(a.fixedValue == 72);
     assert(a.destinationShift == 83);
+    assert(log.equal([0, 17, 33, 48, 72]));
     
+    log = null;
     a = Automata(0);
     a.destinationShift = 85;
-    test(a, seq.retro);
+    test(a, seq.retro, log);
     assert(a.fixedValue == 85);
     assert(a.destinationShift == 85);
+    assert(log.equal([0, 17, 33, 48, 72, 85]));
 
     // 80 70  49  37  24   0
     //   [10, 21, 12, 13, 24]
     auto subseq = seq[0..5];
 
+    log = null;
     a = Automata(0);
     a.destinationShift = 85;
-    test(a, seq[0..5].retro);
+    test(a, seq[0..5].retro, log);
     assert(a.fixedValue == 80);
     assert(a.destinationShift == 85);
+    assert(log.equal([0, 24, 37, 49, 70, 80]));
 
+    log = null;
     a = Automata(0);
     a.destinationShift = 38;
-    test(a, seq[0..5].retro);
+    test(a, seq[0..5].retro, log);
     assert(a.fixedValue == 37);
     assert(a.destinationShift == 38);
+    assert(log.equal([0, 24, 37]));
 }
