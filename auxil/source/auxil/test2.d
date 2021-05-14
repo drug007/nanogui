@@ -89,12 +89,15 @@ auto test(bool forward, R)(ref Automata a, R r, ref LogRecord[] log)
 void testAutomata()
 {
     LogRecord[] posLog;
+
+    // scroll from the start to the end in forward direction
     auto a = Automata(0);
     test!true(a, seq, posLog);
     assert(a.fixedValue == 128);
     assert(a.fixedValue == sum(seq));
     assert(posLog.map!"a.pos".equal([0, 10, 31, 43, 56, 80, 95, 111]));
 
+    // scroll from the start for destinationShift in forward direction
     posLog = null;
     a = Automata(0);
     a.destinationShift = 40;
@@ -104,7 +107,8 @@ void testAutomata()
     assert(a.fixedValue == sum(seq[0..2]));
     assert(posLog.map!"a.pos".equal([0, 10, 31]));
 
-    // next fixedValue is equal to start of an element
+    // scroll from the start for destinationShift in forward direction
+    // destinationShift is equal to the start position of the element
     posLog = null;
     a = Automata(0);
     a.destinationShift = 43;
@@ -113,41 +117,36 @@ void testAutomata()
     assert(a.destinationShift == 43);
     assert(posLog.map!"a.pos".equal([0, 10, 31, 43]));
 
+    // scroll from the end to the start in backward direction
     posLog = null;
-    a = Automata(0);
-    a.destinationShift = 58;
-    test!true(a, seq, posLog);
-    assert(a.fixedValue == 56);
-    assert(a.destinationShift == 58);
-    assert(posLog.map!"a.pos".equal([0, 10, 31, 43, 56]));
-
-    posLog = null;
-    a = Automata(128);
+    a = Automata(sum(seq));
     test!false(a, seq, posLog);
     assert(a.fixedValue == 128);
     const total_sum = sum(seq);
 
     assert(posLog.map!"a.pos".equal([111, 95, 80, 56, 43, 31, 10, 0]));
-    assert(posLog.map!"a.pos".equal([0, 10, 31, 43, 56, 80, 95, 111].retro));
 
+    // scroll from the end to the start for destinationShift in backward direction
     posLog = null;
-    a = Automata(128);
+    a = Automata(sum(seq));
     a.destinationShift = 83;
     test!false(a, seq, posLog);
     assert(a.fixedValue == 72);
     assert(a.destinationShift == 83);
     assert(posLog.map!"a.pos".equal([111, 95, 80, 56, 43]));
     
+    // scroll from the end to the start for destinationShift in backward direction
+    // destinationShift is equal to the start position of the element
     posLog = null;
-    a = Automata(128);
+    a = Automata(sum(seq));
     a.destinationShift = 85;
     test!false(a, seq, posLog);
     assert(a.fixedValue == 85);
     assert(a.destinationShift == 85);
     assert(posLog.map!"a.pos".equal([111, 95, 80, 56, 43, 31]));
 
-    // 80 70  49  37  24   0
-    //   [10, 21, 12, 13, 24]
+    // working with subsequence
+    // scroll from the end to the start for destinationShift in backward direction
     auto subseq = seq[0..5];
 
     posLog = null;
