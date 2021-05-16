@@ -6,17 +6,6 @@ import std;
 //           0  10  31  43  56  80  95  111 128
 auto seq = [10, 21, 12, 13, 24, 15, 16, 17];
 
-struct Location
-{
-	float loc;
-	void next(float v)
-	{
-		loc += v;
-	}
-	@disable this();
-	this(float v) { loc = v; }
-}
-
 struct Automata
 {
 	// sum of all previous elements
@@ -25,10 +14,10 @@ struct Automata
 	// the value we should iterate over given sequence and
 	// can be any value
 	private float _destinationShift;
-	Location loc;
+	float loc;
 	float init_value;
 
-	this(float v) { loc = Location(0); init_value = v; }
+	this(float v) { loc = 0; init_value = v; }
 
 	void scroll(float value)
 	{
@@ -45,22 +34,17 @@ struct Automata
 		}
 		else
 		{
-			doNext(v);
+			fixedValue += v;
+			loc += v;
 		}
-	}
-
-	package void doNext(int v)
-	{
-		fixedValue += v;
-		loc.next(v);
 	}
 
 	auto position(bool forward)(float e)
 	{
 		static if (forward)
-			return init_value + loc.loc;
+			return init_value + loc;
 		else
-			return init_value - loc.loc - e;
+			return init_value - loc - e;
 	}
 }
 
