@@ -165,3 +165,17 @@ void testBasics()
 	assert(a.destinationShift == 38);
 	assert(posLog.map!"a.pos".equal([56, 43, 31]));
 }
+
+void testSequentialScrollingForward()
+{
+	LogRecord[] posLog;
+	auto a = Automata(0);
+
+	// scroll from the start for destinationShift in forward direction
+	a.destinationShift = 40;
+	test!true(a, seq, posLog);
+	assert(a.destinationShift == 40);
+	assert(a.fixedValue == 31);
+	assert(a.fixedValue == sum(seq[0..2]));
+	assert(posLog.map!"a.pos".equal([0, 10, 31]));
+}
