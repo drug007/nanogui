@@ -14,8 +14,10 @@ struct Automata
 	// the value we should iterate over given sequence and
 	// can be any value
 	private float _destinationShift;
-	float loc;
+	// the start position
 	float init_value;
+	// current position relative to init_value
+	float loc;
 
 	this(float v) { loc = 0; init_value = v; }
 
