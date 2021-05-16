@@ -15,9 +15,9 @@ struct Automata
 	// can be any value
 	private float _destination;
 	// the start position
-	float init_value;
+	float init_value = 0;
 	// current position relative to init_value
-	float loc;
+	float loc = 0;
 
 	this(float v) { loc = 0; init_value = v; }
 
@@ -64,12 +64,6 @@ struct LogRecord
 	float value;
 }
 
-auto test(R)(ref Automata a, R data)
-{
-	LogRecord[] log;
-	test(a, data, log);
-}
-
 auto test(bool forward, R)(ref Automata a, R r, ref LogRecord[] log)
 {
 	static if (forward)
@@ -90,7 +84,7 @@ void testBasics()
 	LogRecord[] posLog;
 
 	// scroll from the start to the end in forward direction
-	auto a = Automata(0);
+	auto a = Automata();
 	test!true(a, seq, posLog);
 	assert(a.fixedPosition == 128);
 	assert(a.fixedPosition == sum(seq));
@@ -99,7 +93,7 @@ void testBasics()
 
 	// scroll from the start for destinationShift in forward direction
 	posLog = null;
-	a = Automata(0);
+	a = Automata();
 	a.scroll(40);
 	test!true(a, seq, posLog);
 	assert(a.fixedPosition == 31);
@@ -110,7 +104,7 @@ void testBasics()
 	// scroll from the start for destinationShift in forward direction
 	// destinationShift is equal to the start position of the element
 	posLog = null;
-	a = Automata(0);
+	a = Automata();
 	a.scroll(43);
 	test!true(a, seq, posLog);
 	assert(a.fixedPosition == 43);
