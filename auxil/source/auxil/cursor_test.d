@@ -1,62 +1,12 @@
-module auxil.test2;
+module auxil.cursor_test;
 
 import std;
+
+import auxil.cursor;
 
 //     128 118  97  85  72  48  33  17    0
 //           0  10  31  43  56  80  95  111 128
 auto seq = [10, 21, 12, 13, 24, 15, 16, 17];
-
-struct Cursor
-{
-	// sum of all previous elements
-	// it can have only fixed set of values so it is called `fixed`
-	float fixedPosition = 0;
-	// the value we should iterate over given sequence and
-	// can be any value
-	private float _destination;
-	// the start position
-	float init_value = 0;
-	// current position relative to init_value
-	float loc = 0;
-
-	this(float v) { loc = 0; init_value = v; }
-
-	void scroll(float value)
-	{
-		_destination = value;
-	}
-
-	auto phase() const
-	{
-		if (_destination.isNaN)
-			return 0;
-
-		return _destination - fixedPosition;
-	}
-
-	private bool _complete;
-	bool complete() { return _complete; }
-	void next(int v)
-	{
-		if (fixedPosition + v > _destination)
-		{
-			_complete = true;
-		}
-		else
-		{
-			fixedPosition += v;
-			loc += v;
-		}
-	}
-
-	package auto calcPosition(bool forward)(float e)
-	{
-		static if (forward)
-			return init_value + loc;
-		else
-			return init_value - loc - e;
-	}
-}
 
 struct LogRecord
 {
