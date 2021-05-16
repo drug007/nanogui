@@ -29,7 +29,7 @@ struct Automata
 	float init_value;
 
 	this(float v) { loc = Location(0); init_value = v; }
-	
+
 	private bool _complete;
 	bool complete() { return _complete; }
 	void next(int v)
@@ -86,7 +86,7 @@ auto test(bool forward, R)(ref Automata a, R r, ref LogRecord[] log)
 	}
 }
 
-void testAutomata()
+void testBasics()
 {
 	LogRecord[] posLog;
 
@@ -134,7 +134,7 @@ void testAutomata()
 	assert(a.fixedValue == 72);
 	assert(a.destinationShift == 83);
 	assert(posLog.map!"a.pos".equal([111, 95, 80, 56, 43]));
-	
+
 	// scroll from the end to the start for destinationShift in backward direction
 	// destinationShift is equal to the start position of the element
 	posLog = null;
