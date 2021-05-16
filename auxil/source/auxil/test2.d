@@ -13,7 +13,7 @@ struct Automata
 	float fixedPosition = 0;
 	// the value we should iterate over given sequence and
 	// can be any value
-	private float _destinationShift;
+	private float _destination;
 	// the start position
 	float init_value;
 	// current position relative to init_value
@@ -23,24 +23,24 @@ struct Automata
 
 	void scroll(float value)
 	{
-		_destinationShift = value;
+		_destination = value;
 	}
 
 	auto phase() const
 	{
 		import std.math;
 
-		if (_destinationShift.isNaN)
+		if (_destination.isNaN)
 			return 0;
 
-		return _destinationShift - fixedPosition;
+		return _destination - fixedPosition;
 	}
 
 	private bool _complete;
 	bool complete() { return _complete; }
 	void next(int v)
 	{
-		if (fixedPosition + v > _destinationShift)
+		if (fixedPosition + v > _destination)
 		{
 			_complete = true;
 		}
@@ -51,7 +51,7 @@ struct Automata
 		}
 	}
 
-	auto position(bool forward)(float e)
+	package auto calcPosition(bool forward)(float e)
 	{
 		static if (forward)
 			return init_value + loc;
@@ -80,7 +80,7 @@ auto test(bool forward, R)(ref Automata a, R r, ref LogRecord[] log)
 		auto data = r.retro;
 	foreach(e; data)
 	{
-		log ~= LogRecord(a.position!forward(e), e);
+		log ~= LogRecord(a.calcPosition!forward(e), e);
 		a.next(e);
 		if (a.complete)
 			break;
