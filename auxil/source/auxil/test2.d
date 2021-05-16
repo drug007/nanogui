@@ -164,28 +164,3 @@ void testBasics()
 	assert(posLog.map!"a.pos".equal([56, 43, 31]));
 	assert(a.phase == 1);
 }
-
-void testSequentialScrollingForward()
-{
-	LogRecord[] posLog;
-	auto a = Automata(0);
-
-	// scroll from the start for 40 points in forward direction
-	a.scroll(40);
-	test!true(a, seq, posLog);
-	assert(a.fixedPosition == 31);
-	assert(a.fixedPosition == sum(seq[0..2]));
-	assert(posLog.map!"a.pos".equal([0, 10, 31]));
-	assert(a.phase == 9);
-
-	{
-		posLog = null;
-		const s = a.fixedPosition + a.phase + 3;
-		a = Automata(0);
-		a.scroll(s);
-		test!true(a, seq, posLog);
-		assert(a.fixedPosition == 43);
-		assert(posLog.map!"a.pos".equal([0, 10, 31, 43]));
-		assert(a.phase == 0);
-	}
-}
