@@ -26,6 +26,16 @@ struct Automata
 		_destinationShift = value;
 	}
 
+	auto phase() const
+	{
+		import std.math;
+
+		if (_destinationShift.isNaN)
+			return 0;
+
+		return _destinationShift - fixedPosition;
+	}
+
 	private bool _complete;
 	bool complete() { return _complete; }
 	void next(int v)
@@ -87,6 +97,7 @@ void testBasics()
 	assert(a.fixedPosition == 128);
 	assert(a.fixedPosition == sum(seq));
 	assert(posLog.map!"a.pos".equal([0, 10, 31, 43, 56, 80, 95, 111]));
+	assert(a.phase == 0);
 
 	// scroll from the start for destinationShift in forward direction
 	posLog = null;
@@ -96,6 +107,7 @@ void testBasics()
 	assert(a.fixedPosition == 31);
 	assert(a.fixedPosition == sum(seq[0..2]));
 	assert(posLog.map!"a.pos".equal([0, 10, 31]));
+	assert(a.phase == 9);
 
 	// scroll from the start for destinationShift in forward direction
 	// destinationShift is equal to the start position of the element
@@ -105,15 +117,15 @@ void testBasics()
 	test!true(a, seq, posLog);
 	assert(a.fixedPosition == 43);
 	assert(posLog.map!"a.pos".equal([0, 10, 31, 43]));
+	assert(a.phase == 0);
 
 	// scroll from the end to the start in backward direction
 	posLog = null;
 	a = Automata(sum(seq));
 	test!false(a, seq, posLog);
 	assert(a.fixedPosition == 128);
-	const total_sum = sum(seq);
-
 	assert(posLog.map!"a.pos".equal([111, 95, 80, 56, 43, 31, 10, 0]));
+	assert(a.phase == 0);
 
 	// scroll from the end to the start for destinationShift in backward direction
 	posLog = null;
@@ -122,6 +134,7 @@ void testBasics()
 	test!false(a, seq, posLog);
 	assert(a.fixedPosition == 72);
 	assert(posLog.map!"a.pos".equal([111, 95, 80, 56, 43]));
+	assert(a.phase == 11);
 
 	// scroll from the end to the start for destinationShift in backward direction
 	// destinationShift is equal to the start position of the element
@@ -131,6 +144,7 @@ void testBasics()
 	test!false(a, seq, posLog);
 	assert(a.fixedPosition == 85);
 	assert(posLog.map!"a.pos".equal([111, 95, 80, 56, 43, 31]));
+	assert(a.phase == 0);
 
 	// working with subsequence
 	// scroll from the end to the start for destinationShift in backward direction
@@ -142,6 +156,7 @@ void testBasics()
 	test!false(a, subseq, posLog);
 	assert(a.fixedPosition == 80);
 	assert(posLog.map!"a.pos".equal([56, 43, 31, 10, 0]));
+	assert(a.phase == 5);
 
 	posLog = null;
 	a = Automata(sum(subseq));
@@ -149,6 +164,7 @@ void testBasics()
 	test!false(a, subseq, posLog);
 	assert(a.fixedPosition == 37);
 	assert(posLog.map!"a.pos".equal([56, 43, 31]));
+	assert(a.phase == 1);
 }
 
 void testSequentialScrollingForward()
@@ -162,4 +178,5 @@ void testSequentialScrollingForward()
 	assert(a.fixedPosition == 31);
 	assert(a.fixedPosition == sum(seq[0..2]));
 	assert(posLog.map!"a.pos".equal([0, 10, 31]));
+	assert(a.phase == 9);
 }
