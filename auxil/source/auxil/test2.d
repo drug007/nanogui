@@ -6,7 +6,7 @@ import std;
 //           0  10  31  43  56  80  95  111 128
 auto seq = [10, 21, 12, 13, 24, 15, 16, 17];
 
-struct Automata
+struct Cursor
 {
 	// sum of all previous elements
 	// it can have only fixed set of values so it is called `fixed`
@@ -64,7 +64,7 @@ struct LogRecord
 	float value;
 }
 
-auto test(bool forward, R)(ref Automata a, R r, ref LogRecord[] log)
+auto test(bool forward, R)(ref Cursor a, R r, ref LogRecord[] log)
 {
 	static if (forward)
 		auto data = r;
@@ -84,7 +84,7 @@ void testBasics()
 	LogRecord[] posLog;
 
 	// scroll from the start to the end in forward direction
-	auto a = Automata();
+	auto a = Cursor();
 	test!true(a, seq, posLog);
 	assert(a.fixedPosition == 128);
 	assert(a.fixedPosition == sum(seq));
@@ -93,7 +93,7 @@ void testBasics()
 
 	// scroll from the start for destinationShift in forward direction
 	posLog = null;
-	a = Automata();
+	a = Cursor();
 	a.scroll(40);
 	test!true(a, seq, posLog);
 	assert(a.fixedPosition == 31);
@@ -104,7 +104,7 @@ void testBasics()
 	// scroll from the start for destinationShift in forward direction
 	// destinationShift is equal to the start position of the element
 	posLog = null;
-	a = Automata();
+	a = Cursor();
 	a.scroll(43);
 	test!true(a, seq, posLog);
 	assert(a.fixedPosition == 43);
@@ -113,7 +113,7 @@ void testBasics()
 
 	// scroll from the end to the start in backward direction
 	posLog = null;
-	a = Automata(sum(seq));
+	a = Cursor(sum(seq));
 	test!false(a, seq, posLog);
 	assert(a.fixedPosition == 128);
 	assert(posLog.map!"a.pos".equal([111, 95, 80, 56, 43, 31, 10, 0]));
@@ -121,7 +121,7 @@ void testBasics()
 
 	// scroll from the end to the start for destinationShift in backward direction
 	posLog = null;
-	a = Automata(sum(seq));
+	a = Cursor(sum(seq));
 	a.scroll(83);
 	test!false(a, seq, posLog);
 	assert(a.fixedPosition == 72);
@@ -131,7 +131,7 @@ void testBasics()
 	// scroll from the end to the start for destinationShift in backward direction
 	// destinationShift is equal to the start position of the element
 	posLog = null;
-	a = Automata(sum(seq));
+	a = Cursor(sum(seq));
 	a.scroll(85);
 	test!false(a, seq, posLog);
 	assert(a.fixedPosition == 85);
@@ -143,7 +143,7 @@ void testBasics()
 	auto subseq = seq[0..5];
 
 	posLog = null;
-	a = Automata(sum(subseq));
+	a = Cursor(sum(subseq));
 	a.scroll(85);
 	test!false(a, subseq, posLog);
 	assert(a.fixedPosition == 80);
@@ -151,7 +151,7 @@ void testBasics()
 	assert(a.phase == 5);
 
 	posLog = null;
-	a = Automata(sum(subseq));
+	a = Cursor(sum(subseq));
 	a.scroll(38);
 	test!false(a, subseq, posLog);
 	assert(a.fixedPosition == 37);
