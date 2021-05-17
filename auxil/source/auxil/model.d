@@ -800,7 +800,7 @@ struct ScalarModel(alias A)
 		static if (hasSize) this.size = visitor.size + this.Spacing;
 		static if (hasTreePath) with(visitor) 
 		{
-			position += deferred_change;
+			position = position + deferred_change;
 			deferred_change = (Sinking) ? this.size : -this.size;
 			curr_shift += this.size;
 
@@ -863,7 +863,7 @@ mixin template visitImpl1()
 			static if (hasTreePath && Sinking)
 			{
 				visitor.curr_shift += this.header_size;
-				visitor.position += visitor.deferred_change;
+				visitor.position = visitor.position + visitor.deferred_change;
 				visitor.deferred_change = this.header_size;
 			}
 		}
@@ -873,7 +873,7 @@ mixin template visitImpl1()
 			static if (hasTreePath && Bubbling)
 			{
 				visitor.curr_shift += this.header_size;
-				visitor.position += visitor.deferred_change;
+				visitor.position = visitor.position + visitor.deferred_change;
 				visitor.deferred_change = -this.header_size;
 			}
 		}
@@ -1574,7 +1574,12 @@ struct DefaultVisitorImpl(
 		enum State { seeking, first, rest, finishing, }
 		State state;
 		TreePath tree_path, path;
-		SizeType position, deferred_change, destination, total_shift, curr_shift;
+		SizeType _position, deferred_change, _destination, total_shift, curr_shift;
+
+		@property position(double v) { _position = v; }
+		@property position() { return _position; }
+		@property destination(double v) { _destination = v; }
+		@property destination() { return _destination; }
 	}
 
 	void indent() {}
