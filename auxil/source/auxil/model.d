@@ -1432,6 +1432,14 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 
 	visitor.enterTree!order(data, model);
 	model.visit!order(data, visitor);
+	// if the visitor traverse the whole tree
+	// its position points to the element behind
+	// the last one, so correct it
+	static if (Visitor.treePathEnabled)
+	{
+		if (!visitor.complete)
+			visitor.cursorY.fixUp;
+	}
 }
 
 void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor)
@@ -1575,6 +1583,9 @@ struct DefaultVisitorImpl(
 		State state;
 		TreePath tree_path, path;
 		SizeType _position, deferred_change, _destination, total_shift, curr_shift;
+
+		import auxil.cursor;
+		Cursor cursorY;
 
 		@property position(double v) { _position = v; }
 		@property position() { return _position; }

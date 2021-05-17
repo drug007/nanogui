@@ -12,17 +12,19 @@ struct Cursor
 	private float _destination;
 	// the start position
 	float init_value = 0;
+	float last_value;
 
 	this(float v) @safe @nogc
 	{
 		reset(v);
 	}
 
-	void reset(float v = init_value.init) @safe @nogc
+	void reset(float v = 0) @safe @nogc
 	{
 		fixedPosition = 0;
 		_destination  = _destination.init;
 		init_value    = v;
+		last_value    = 0;
 	}
 
 	void scroll(float value) @safe @nogc
@@ -38,6 +40,11 @@ struct Cursor
 		return _destination - fixedPosition;
 	}
 
+	auto fixUp() @safe @nogc
+	{
+		fixedPosition -= last_value;
+	}
+
 	private bool _complete;
 	bool complete() @safe @nogc { return _complete; }
 	void next(float v) @safe @nogc
@@ -48,7 +55,8 @@ struct Cursor
 		}
 		else
 		{
-			fixedPosition += v;
+			last_value = v;
+			fixedPosition += last_value;
 		}
 	}
 
