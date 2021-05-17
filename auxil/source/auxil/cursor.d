@@ -17,6 +17,14 @@ struct Cursor
 
 	this(float v) { loc = 0; init_value = v; }
 
+	void reset(float v = init_value.init) @safe @nogc
+	{
+		fixedPosition = fixedPosition.init;
+		_destination  = _destination.init;
+		init_value    = v;
+		loc           = loc.init;
+	}
+
 	void scroll(float value) @safe @nogc
 	{
 		_destination = value;
