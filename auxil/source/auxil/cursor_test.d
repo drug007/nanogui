@@ -31,7 +31,8 @@ auto test(bool forward, R)(ref Cursor a, R r, ref LogRecord[] log)
 	}
 }
 
-void testBasics()
+@Name("Basics")
+unittest
 {
 	LogRecord[] posLog;
 
