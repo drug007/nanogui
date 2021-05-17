@@ -19,5 +19,5 @@ configuration "unittest" {
 
 	dflags "-dip25" "-dip1000" "-dip1008"
 
-	dependency "unit-threaded" version="~>0.10.7"
+	dependency "unit-threaded" version="1.0.15"
 }
