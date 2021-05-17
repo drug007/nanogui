@@ -2,6 +2,8 @@ module auxil.cursor_test;
 
 import std;
 
+import unit_threaded;
+
 import auxil.cursor;
 
 //     128 118  97  85  72  48  33  17    0
