@@ -19,10 +19,10 @@ struct Cursor
 
 	void reset(float v = init_value.init) @safe @nogc
 	{
-		fixedPosition = fixedPosition.init;
+		fixedPosition = 0;
 		_destination  = _destination.init;
 		init_value    = v;
-		loc           = loc.init;
+		loc           = 0;
 	}
 
 	void scroll(float value) @safe @nogc
