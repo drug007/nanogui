@@ -34,7 +34,8 @@ struct Cursor
 
 	void scroll(float value) @safe @nogc
 	{
-		_destination = value;
+		assert(value >= 0);
+		_destination = fixedPosition + value;
 	}
 
 	auto phase() @safe @nogc const
