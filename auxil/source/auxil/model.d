@@ -1406,13 +1406,25 @@ unittest
 
 void visit(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor, double destination)
 {
-	visitor.destination = destination;
 	if (destination == visitor.position)
+	{
+		// it's possible that position is equal to the destination
+		// but old destination is different so
+		// update destination
+		visitor.destination = destination;
 		return;
-	else if (destination < visitor.position)
+	}
+
+	if (destination < visitor.destination)
+	{
+		visitor.destination = destination;
 		model.visitBackward(data, visitor);
+	}
 	else
+	{
+		visitor.destination = destination;
 		model.visitForward(data, visitor);
+	}
 }
 
 void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) data, ref Visitor visitor)
