@@ -24,7 +24,7 @@ auto test(Cursor.Order order, R)(ref Cursor a, R r, ref LogRecord[] log)
 		auto data = r.retro;
 	foreach(e; data)
 	{
-		log ~= LogRecord(a.calcPosition!(order == Cursor.Order.forward)(e), e);
+		log ~= LogRecord(a.calcPosition!order(e), e);
 		a.next(e);
 		if (a.complete)
 			break;

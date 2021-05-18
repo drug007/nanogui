@@ -86,9 +86,9 @@ struct Cursor
 		w.put(')');
 	}
 
-	package auto calcPosition(bool forward)(float e) @safe @nogc
+	package auto calcPosition(Order order)(float e) @safe @nogc
 	{
-		static if (forward)
+		static if (order == Cursor.Order.forward)
 			return init_value + fixedPosition;
 		else
 			return init_value - fixedPosition - e;
