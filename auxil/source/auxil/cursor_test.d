@@ -50,6 +50,27 @@ unittest
 	a.fixedPosition.should.be == 111;
 }
 
+@Name("start2endPosition50")
+unittest
+{
+	const order = Cursor.Order.forward;
+	LogRecord[] posLog;
+	auto seq = sequence.dup;
+
+	// scroll from the start to the end in forward direction from
+	// non zero position
+	auto init_pos = 50;
+	auto a = Cursor(init_pos);
+	test!order(a, seq, posLog);
+	a.fixedPosition.should.be == 128;
+	a.fixedPosition.should.be == sum(seq);
+	posLog.map!"a.pos".should.be == [0, 10, 31, 43, 56, 80, 95, 111].map!(a=>a+init_pos);
+	a.phase.should.be == 0;
+
+	a.fixUp!order;
+	a.fixedPosition.should.be == 111;
+}
+
 @Name("start2endFor40")
 unittest
 {
