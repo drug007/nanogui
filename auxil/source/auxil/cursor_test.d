@@ -8,7 +8,7 @@ import auxil.cursor;
 
 //     128 118  97  85  72  48  33  17    0
 //           0  10  31  43  56  80  95  111 128
-auto seq = [10, 21, 12, 13, 24, 15, 16, 17];
+enum sequence = [10, 21, 12, 13, 24, 15, 16, 17];
 
 struct LogRecord
 {
@@ -31,83 +31,114 @@ auto test(bool forward, R)(ref Cursor a, R r, ref LogRecord[] log)
 	}
 }
 
-@Name("Basics")
+@Name("start2end")
 unittest
 {
 	LogRecord[] posLog;
+	auto seq = sequence.dup;
 
 	// scroll from the start to the end in forward direction
 	auto a = Cursor();
 	test!true(a, seq, posLog);
-	assert(a.fixedPosition == 128);
-	assert(a.fixedPosition == sum(seq));
-	assert(posLog.map!"a.pos".equal([0, 10, 31, 43, 56, 80, 95, 111]));
-	assert(a.phase == 0);
+	a.fixedPosition.should.be == 128;
+	a.fixedPosition.should.be == sum(seq);
+	posLog.map!"a.pos".should.be == [0, 10, 31, 43, 56, 80, 95, 111];
+	a.phase.should.be == 0;
+
+	a.fixUp;
+	a.fixedPosition.should.be == 111;
+}
+
+@Name("start2endFor40")
+unittest
+{
+	LogRecord[] posLog;
+	auto seq = sequence.dup;
 
 	// scroll from the start for destinationShift in forward direction
-	posLog = null;
-	a = Cursor();
+	auto a = Cursor();
 	a.scroll(40);
 	test!true(a, seq, posLog);
-	assert(a.fixedPosition == 31);
-	assert(a.fixedPosition == sum(seq[0..2]));
-	assert(posLog.map!"a.pos".equal([0, 10, 31]));
-	assert(a.phase == 9);
+	a.fixedPosition.should.be == 31;
+	a.fixedPosition.should.be == sum(seq[0..2]);
+	posLog.map!"a.pos".should.be == [0, 10, 31];
+	a.phase.should.be == 9;
+}
+
+@Name("start2endFor43")
+unittest
+{
+	LogRecord[] posLog;
+	auto seq = sequence.dup;
 
 	// scroll from the start for destinationShift in forward direction
 	// destinationShift is equal to the start position of the element
-	posLog = null;
-	a = Cursor();
+	auto a = Cursor();
 	a.scroll(43);
 	test!true(a, seq, posLog);
-	assert(a.fixedPosition == 43);
-	assert(posLog.map!"a.pos".equal([0, 10, 31, 43]));
-	assert(a.phase == 0);
+	a.fixedPosition.should.be == 43;
+	posLog.map!"a.pos".should.be == [0, 10, 31, 43];
+	a.phase.should.be == 0;
+}
+
+@Name("end2start")
+unittest
+{
+	LogRecord[] posLog;
+	auto seq = sequence.dup;
 
 	// scroll from the end to the start in backward direction
-	posLog = null;
-	a = Cursor(sum(seq));
+	auto a = Cursor(sum(seq));
 	test!false(a, seq, posLog);
-	assert(a.fixedPosition == 128);
-	assert(posLog.map!"a.pos".equal([111, 95, 80, 56, 43, 31, 10, 0]));
-	assert(a.phase == 0);
+	a.fixedPosition.should.be == 128;
+	posLog.map!"a.pos".should.be == [111, 95, 80, 56, 43, 31, 10, 0];
+	a.phase.should.be == 0;
+}
+
+@Name("end2startFor83")
+unittest
+{
+	LogRecord[] posLog;
+	auto seq = sequence.dup;
 
 	// scroll from the end to the start for destinationShift in backward direction
-	posLog = null;
-	a = Cursor(sum(seq));
+	auto a = Cursor(sum(seq));
 	a.scroll(83);
 	test!false(a, seq, posLog);
-	assert(a.fixedPosition == 72);
-	assert(posLog.map!"a.pos".equal([111, 95, 80, 56, 43]));
-	assert(a.phase == 11);
+	a.fixedPosition.should.be == 72;
+	posLog.map!"a.pos".should.be == [111, 95, 80, 56, 43];
+	a.phase.should.be == 11;
+}
+
+@Name("end2startFor85")
+unittest
+{
+	LogRecord[] posLog;
+	auto seq = sequence.dup;
 
 	// scroll from the end to the start for destinationShift in backward direction
 	// destinationShift is equal to the start position of the element
-	posLog = null;
-	a = Cursor(sum(seq));
+	auto a = Cursor(sum(seq));
 	a.scroll(85);
 	test!false(a, seq, posLog);
-	assert(a.fixedPosition == 85);
-	assert(posLog.map!"a.pos".equal([111, 95, 80, 56, 43, 31]));
-	assert(a.phase == 0);
+	a.fixedPosition.should.be == 85;
+	posLog.map!"a.pos".should.be == [111, 95, 80, 56, 43, 31];
+	a.phase.should.be == 0;
+}
+
+@Name("end2startSubSequence")
+unittest
+{
+	LogRecord[] posLog;
 
 	// working with subsequence
 	// scroll from the end to the start for destinationShift in backward direction
-	auto subseq = seq[0..5];
+	auto subseq = sequence.dup[0..5];
 
-	posLog = null;
-	a = Cursor(sum(subseq));
+	auto a = Cursor(sum(subseq));
 	a.scroll(85);
 	test!false(a, subseq, posLog);
-	assert(a.fixedPosition == 80);
-	assert(posLog.map!"a.pos".equal([56, 43, 31, 10, 0]));
-	assert(a.phase == 5);
-
-	posLog = null;
-	a = Cursor(sum(subseq));
-	a.scroll(38);
-	test!false(a, subseq, posLog);
-	assert(a.fixedPosition == 37);
-	assert(posLog.map!"a.pos".equal([56, 43, 31]));
-	assert(a.phase == 1);
+	a.fixedPosition.should.be == 80;
+	posLog.map!"a.pos".should.be == [56, 43, 31, 10, 0];
+	a.phase.should.be == 5;
 }

@@ -40,6 +40,14 @@ struct Cursor
 		return _destination - fixedPosition;
 	}
 
+	// used if the sequence has ended before
+	// the destination was achieved
+	// because the current position is 
+	// the position of the next elements, i.e.
+	// non-existing element because the sequence
+	// has ended
+	//
+	// probably it is a hack
 	auto fixUp() @safe @nogc
 	{
 		fixedPosition -= last_value;
