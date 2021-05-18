@@ -4,6 +4,9 @@ import std.math : isNaN;
 
 struct Cursor
 {
+	/// defines direction of traversing
+	enum Order : bool { backward, forward, }
+
 	// sum of all previous elements
 	// it can have only fixed set of values so it is called `fixed`
 	float fixedPosition = 0;
@@ -48,8 +51,9 @@ struct Cursor
 	// has ended
 	//
 	// probably it is a hack
-	auto fixUp() @safe @nogc
+	auto fixUp(Order order)() @safe @nogc
 	{
+		static assert(order == Order.forward, "the method is intended for forward mode only");
 		fixedPosition -= last_value;
 	}
 

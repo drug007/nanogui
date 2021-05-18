@@ -16,15 +16,15 @@ struct LogRecord
 	float value;
 }
 
-auto test(bool forward, R)(ref Cursor a, R r, ref LogRecord[] log)
+auto test(Cursor.Order order, R)(ref Cursor a, R r, ref LogRecord[] log)
 {
-	static if (forward)
+	static if (order == Cursor.Order.forward)
 		auto data = r;
 	else
 		auto data = r.retro;
 	foreach(e; data)
 	{
-		log ~= LogRecord(a.calcPosition!forward(e), e);
+		log ~= LogRecord(a.calcPosition!(order == Cursor.Order.forward)(e), e);
 		a.next(e);
 		if (a.complete)
 			break;
@@ -34,31 +34,33 @@ auto test(bool forward, R)(ref Cursor a, R r, ref LogRecord[] log)
 @Name("start2end")
 unittest
 {
+	const order = Cursor.Order.forward;
 	LogRecord[] posLog;
 	auto seq = sequence.dup;
 
 	// scroll from the start to the end in forward direction
 	auto a = Cursor();
-	test!true(a, seq, posLog);
+	test!order(a, seq, posLog);
 	a.fixedPosition.should.be == 128;
 	a.fixedPosition.should.be == sum(seq);
 	posLog.map!"a.pos".should.be == [0, 10, 31, 43, 56, 80, 95, 111];
 	a.phase.should.be == 0;
 
-	a.fixUp;
+	a.fixUp!order;
 	a.fixedPosition.should.be == 111;
 }
 
 @Name("start2endFor40")
 unittest
 {
+	const order = Cursor.Order.forward;
 	LogRecord[] posLog;
 	auto seq = sequence.dup;
 
 	// scroll from the start for destinationShift in forward direction
 	auto a = Cursor();
 	a.scroll(40);
-	test!true(a, seq, posLog);
+	test!order(a, seq, posLog);
 	a.fixedPosition.should.be == 31;
 	a.fixedPosition.should.be == sum(seq[0..2]);
 	posLog.map!"a.pos".should.be == [0, 10, 31];
@@ -68,6 +70,7 @@ unittest
 @Name("start2endFor43")
 unittest
 {
+	const order = Cursor.Order.forward;
 	LogRecord[] posLog;
 	auto seq = sequence.dup;
 
@@ -75,7 +78,7 @@ unittest
 	// destinationShift is equal to the start position of the element
 	auto a = Cursor();
 	a.scroll(43);
-	test!true(a, seq, posLog);
+	test!order(a, seq, posLog);
 	a.fixedPosition.should.be == 43;
 	posLog.map!"a.pos".should.be == [0, 10, 31, 43];
 	a.phase.should.be == 0;
@@ -84,12 +87,13 @@ unittest
 @Name("end2start")
 unittest
 {
+	const order = Cursor.Order.backward;
 	LogRecord[] posLog;
 	auto seq = sequence.dup;
 
 	// scroll from the end to the start in backward direction
 	auto a = Cursor(sum(seq));
-	test!false(a, seq, posLog);
+	test!order(a, seq, posLog);
 	a.fixedPosition.should.be == 128;
 	posLog.map!"a.pos".should.be == [111, 95, 80, 56, 43, 31, 10, 0];
 	a.phase.should.be == 0;
@@ -98,13 +102,14 @@ unittest
 @Name("end2startFor83")
 unittest
 {
+	const order = Cursor.Order.backward;
 	LogRecord[] posLog;
 	auto seq = sequence.dup;
 
 	// scroll from the end to the start for destinationShift in backward direction
 	auto a = Cursor(sum(seq));
 	a.scroll(83);
-	test!false(a, seq, posLog);
+	test!order(a, seq, posLog);
 	a.fixedPosition.should.be == 72;
 	posLog.map!"a.pos".should.be == [111, 95, 80, 56, 43];
 	a.phase.should.be == 11;
@@ -113,6 +118,7 @@ unittest
 @Name("end2startFor85")
 unittest
 {
+	const order = Cursor.Order.backward;
 	LogRecord[] posLog;
 	auto seq = sequence.dup;
 
@@ -120,7 +126,7 @@ unittest
 	// destinationShift is equal to the start position of the element
 	auto a = Cursor(sum(seq));
 	a.scroll(85);
-	test!false(a, seq, posLog);
+	test!order(a, seq, posLog);
 	a.fixedPosition.should.be == 85;
 	posLog.map!"a.pos".should.be == [111, 95, 80, 56, 43, 31];
 	a.phase.should.be == 0;
@@ -129,6 +135,7 @@ unittest
 @Name("end2startSubSequence")
 unittest
 {
+	const order = Cursor.Order.backward;
 	LogRecord[] posLog;
 
 	// working with subsequence
@@ -137,7 +144,7 @@ unittest
 
 	auto a = Cursor(sum(subseq));
 	a.scroll(85);
-	test!false(a, subseq, posLog);
+	test!order(a, subseq, posLog);
 	a.fixedPosition.should.be == 80;
 	posLog.map!"a.pos".should.be == [56, 43, 31, 10, 0];
 	a.phase.should.be == 5;
