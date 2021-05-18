@@ -16,6 +16,7 @@ struct Cursor
 	// the start position
 	float init_value = 0;
 	float last_value;
+	float current_value;
 
 	this(float v) @safe @nogc
 	{
@@ -28,6 +29,7 @@ struct Cursor
 		_destination  = _destination.init;
 		init_value    = v;
 		last_value    = 0;
+		current_value = 0;
 	}
 
 	void scroll(float value) @safe @nogc
@@ -59,6 +61,12 @@ struct Cursor
 
 	private bool _complete;
 	bool complete() @safe @nogc { return _complete; }
+
+	void begin(float v) @safe @nogc
+	{
+		current_value = v;
+	}
+
 	void next(float v) @safe @nogc
 	{
 		if (fixedPosition + v > _destination)
@@ -86,11 +94,11 @@ struct Cursor
 		w.put(')');
 	}
 
-	package auto calcPosition(Order order)(float e) @safe @nogc
+	package auto calcPosition(Order order)() @safe @nogc
 	{
 		static if (order == Cursor.Order.forward)
 			return init_value + fixedPosition;
 		else
-			return init_value - fixedPosition - e;
+			return init_value - fixedPosition - current_value;
 	}
 }
