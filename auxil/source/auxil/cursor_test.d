@@ -2,6 +2,7 @@ module auxil.cursor_test;
 
 import std;
 
+version(unittest)
 import unit_threaded;
 
 import auxil.cursor;
@@ -32,6 +33,7 @@ auto test(Cursor.Order order, R)(ref Cursor a, R r, ref LogRecord[] log)
 	}
 }
 
+version(unittest)
 @Name("start2end")
 unittest
 {
@@ -51,6 +53,7 @@ unittest
 	a.fixedPosition.should.be == 111;
 }
 
+version(unittest)
 @Name("start2endPosition50")
 unittest
 {
@@ -72,6 +75,7 @@ unittest
 	a.fixedPosition.should.be == 111;
 }
 
+version(unittest)
 @Name("start2endFor40")
 unittest
 {
@@ -89,6 +93,7 @@ unittest
 	a.phase.should.be == 9;
 }
 
+version(unittest)
 @Name("start2endFor43")
 unittest
 {
@@ -106,6 +111,7 @@ unittest
 	a.phase.should.be == 0;
 }
 
+version(unittest)
 @Name("end2start")
 unittest
 {
@@ -121,6 +127,7 @@ unittest
 	a.phase.should.be == 0;
 }
 
+version(unittest)
 @Name("end2startFor83")
 unittest
 {
@@ -137,6 +144,7 @@ unittest
 	a.phase.should.be == 11;
 }
 
+version(unittest)
 @Name("end2startFor85")
 unittest
 {
@@ -154,6 +162,7 @@ unittest
 	a.phase.should.be == 0;
 }
 
+version(unittest)
 @Name("end2startFor128")
 unittest
 {
@@ -171,6 +180,7 @@ unittest
 	a.phase.should.be == 0;
 }
 
+version(unittest)
 @Name("end2startFor300")
 unittest
 {
@@ -188,6 +198,7 @@ unittest
 	a.phase.should.be == 172;
 }
 
+version(unittest)
 @Name("end2startSubSequence")
 unittest
 {

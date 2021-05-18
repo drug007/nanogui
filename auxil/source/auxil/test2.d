@@ -1,5 +1,6 @@
 module auxil.test2;
 
+version(unittest)
 import unit_threaded : should, be, Name;
 import taggedalgebraic : TaggedAlgebraic;
 
@@ -62,6 +63,7 @@ void setup()
 	}
 }
 
+version(unittest)
 @Name("Test1")
 unittest
 {
@@ -105,6 +107,7 @@ unittest
 	];
 }
 
+version(unittest)
 @Name("Test2")
 unittest
 {
@@ -186,6 +189,7 @@ unittest
 	}
 }
 
+version(unittest)
 @Name("ScrollingTest")
 unittest
 {
