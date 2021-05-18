@@ -132,6 +132,40 @@ unittest
 	a.phase.should.be == 0;
 }
 
+@Name("end2startFor128")
+unittest
+{
+	const order = Cursor.Order.backward;
+	LogRecord[] posLog;
+	auto seq = sequence.dup;
+
+	// scroll from the end to the start for destinationShift in backward direction
+	// destinationShift is equal to the start position of the element
+	auto a = Cursor(sum(seq));
+	a.scroll(128);
+	test!order(a, seq, posLog);
+	a.fixedPosition.should.be == 128;
+	posLog.map!"a.pos".should.be == [111, 95, 80, 56, 43, 31, 10, 0];
+	a.phase.should.be == 0;
+}
+
+@Name("end2startFor300")
+unittest
+{
+	const order = Cursor.Order.backward;
+	LogRecord[] posLog;
+	auto seq = sequence.dup;
+
+	// scroll from the end to the start for destinationShift in backward direction
+	// destinationShift is equal to the start position of the element
+	auto a = Cursor(sum(seq));
+	a.scroll(300);
+	test!order(a, seq, posLog);
+	a.fixedPosition.should.be == 128;
+	posLog.map!"a.pos".should.be == [111, 95, 80, 56, 43, 31, 10, 0];
+	a.phase.should.be == 172;
+}
+
 @Name("end2startSubSequence")
 unittest
 {
