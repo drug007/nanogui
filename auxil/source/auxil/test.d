@@ -1,6 +1,6 @@
 module auxil.test;
 
-version(unittest) import unit_threaded : Name;
+version(unittest) import unit_threaded : Name, should, be;
 
 import auxil.model;
 
@@ -105,7 +105,7 @@ unittest
 	auto d = StructWithStruct();
 	auto m = makeModel(d);
 	m.visitForward(d, visitor);
-	assert(m.size == 10);
+	m.size.should.be == 10;
 	d.d = 0;
 	d.l = 1;
 	d.t.f = 2;
@@ -119,7 +119,6 @@ unittest
 }
 
 version(unittest) @Name("static_array")
-@nogc
 unittest
 {
 	version(Windows) {}
@@ -144,22 +143,22 @@ unittest
 	}
 
 	import std.algorithm : equal;
-	assert(visitor.output[].equal("
+	visitor.output[].should.be == "
 Caption: float[3]
 	1.100000
 	2.200000
 	3.300000
-\0"
-	));
+\0";
 }
 
 version(unittest) @Name("dynamic_array")
 unittest
 {
+	auto visitor = PrettyPrintingVisitor(9);
+
 	float[] d = [1.1f, 2.2f, 3.3f];
 	auto m = Model!d();
 
-	auto visitor = PrettyPrintingVisitor(9);
 	visitor.processItem;
 	visitor.destination = visitor.destination.max;
 	m.collapsed = false;
@@ -182,7 +181,7 @@ unittest
 	}
 
 	import std.algorithm : equal;
-	assert(visitor.output[].equal("
+	visitor.output[].should.be == "
 Caption: float[]
 	1.100000
 	2.200000
@@ -195,8 +194,7 @@ Caption: float[]
 	5.500000
 Caption: float[]
 	3.300000
-\0"
-	));
+\0";
 }
 
 version(none)
@@ -228,10 +226,9 @@ version(unittest) @Name("aggregate_with_only_member")
 	}
 
 	import std.algorithm : equal;
-	assert(visitor.output[].equal("
+	visitor.output[].should.be == "
 one
-\0"
-	));
+\0";
 }
 
 version(unittest) @Name("aggregate_with_render_header")
@@ -275,13 +272,11 @@ unittest
 			visitor.output[].ptr, visitor.output.length);
 	}
 
-	import std.algorithm : equal;
-	assert(visitor.output[].equal("
+	visitor.output[].should.be == "
 Custom header nan, 0
 	nan
 	0
-\0"
-	));
+\0";
 }
 
 version(unittest)
@@ -355,11 +350,9 @@ unittest
 				visitor.output[].ptr, visitor.output.length);
 		}
 
-		import std.algorithm : equal;
-		assert(visitor.output[].equal("
+		visitor.output[].should.be == "
 123.000000
-\0"
-		));
+\0";
 	}
 
 	{
@@ -381,10 +374,9 @@ unittest
 		}
 
 		import std.algorithm : equal;
-		assert(visitor.output[].equal("
+		visitor.output[].should.be == "
 nan
-\0"
-		));
+\0";
 	}
 
 	{
@@ -394,7 +386,7 @@ nan
 
 		static assert(is(m.Proxy));
 		static assert(is(typeof(m.proxy) == int));
-		assert(m.proxy == 112);
+		m.proxy.should.be == 112;
 	}
 
 	{
@@ -416,10 +408,9 @@ nan
 		}
 
 		import std.algorithm : equal;
-		assert(visitor.output[].equal("
+		visitor.output[].should.be == "
 11
-\0"
-		));
+\0";
 	}
 
 	{
@@ -448,11 +439,9 @@ nan
 				visitor.output[].ptr, visitor.output.length);
 		}
 
-		import std.algorithm : equal;
-		assert(visitor.output[].equal("
+		visitor.output[].should.be == "
 1.000000
-\0"
-		));
+\0";
 	}
 }
 
@@ -491,8 +480,8 @@ unittest
 	];
 
 	auto model = makeModel(data);
-	assert(model.length == data.length);
-	assert(model[4].get!(Model!(string[])).length == data[4].length);
+	model.length.should.be == data.length;
+	model[4].get!(Model!(string[])).length.should.be == data[4].length;
 
 	// default value
 	model.collapsed.should.be == true;
@@ -543,7 +532,7 @@ unittest
 	}
 
 	import std.algorithm : equal;
-	assert(visitor.output[].equal("
+	visitor.output[].should.be == "
 Caption: TaggedAlgebraic!(Payload)[]
 	1.200000
 	4
@@ -588,52 +577,50 @@ Caption: TaggedAlgebraic!(Payload)[]
 		0.100000
 		0.200000
 		0.300000
-\0"
-	));
+\0";
 }
 
 version(unittest) @Name("nogc_dynamic_array")
-@nogc
 unittest
 {
-	import std.experimental.allocator.mallocator : Mallocator;
-	import automem.vector : Vector;
-	Vector!(float, Mallocator) data;
-	data ~= 0.1f;
-	data ~= 0.2f;
-	data ~= 0.3f;
-
-	auto model = makeModel(data[]);
-
 	auto visitor = PrettyPrintingVisitor(14);
-	visitor.destination = visitor.destination.max;
-	visitor.processItem;
-	model.visitForward(data[], visitor);
-	assert(model.size == visitor.size + model.Spacing);
+	() {
+		import std.experimental.allocator.mallocator : Mallocator;
+		import automem.vector : Vector;
+		Vector!(float, Mallocator) data;
+		data ~= 0.1f;
+		data ~= 0.2f;
+		data ~= 0.3f;
 
-	model.collapsed = false;
-	model.visitForward(data[], visitor);
+		auto model = makeModel(data[]);
 
-	assert(model.size == 4*(visitor.size + model.Spacing));
-	foreach(e; model.model)
-		assert(e.size == (visitor.size + model.Spacing));
+		visitor.destination = visitor.destination.max;
+		visitor.processItem;
+		model.visitForward(data[], visitor);
+		model.size.should.be == visitor.size + model.Spacing;
 
-	visitor.output ~= '\0';
-	version(none)
-	{
-		import core.stdc.stdio : printf;
-		printf("%s\nlength: %ld\n", visitor.output[].ptr, visitor.output.length);
-	}
+		model.collapsed = false;
+		model.visitForward(data[], visitor);
 
-	import std.algorithm : equal;
-	assert(visitor.output[].equal("
+		model.size.should.be == 4*(visitor.size + model.Spacing);
+		foreach(e; model.model)
+			e.size.should.be == (visitor.size + model.Spacing);
+
+		visitor.output ~= '\0';
+		version(none)
+		{
+			import core.stdc.stdio : printf;
+			printf("%s\nlength: %ld\n", visitor.output[].ptr, visitor.output.length);
+		}
+	} ();
+
+	visitor.output[].should.be == "
 Caption: float[]
 Caption: float[]
 	0.100000
 	0.200000
 	0.300000
-\0"
-	));
+\0";
 }
 
 version(unittest) @Name("size_measuring")
@@ -671,8 +658,8 @@ unittest
 	];
 
 	auto model = makeModel(data);
-	assert(model.length == data.length);
-	assert(model[4].get!(Model!(string[])).length == data[4].length);
+	model.length.should.be == data.length;
+	model[4].get!(Model!(string[])).length.should.be == data[4].length;
 
 	model.size.should.be == 0;
 	auto visitor = PrettyPrintingVisitor(17);
