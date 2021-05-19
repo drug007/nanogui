@@ -4,35 +4,36 @@ import std.math : isNaN;
 
 struct Cursor
 {
+	alias Type = int;
 	/// defines direction of traversing
 	enum Order : bool { backward, forward, }
 
 	// sum of all previous elements
 	// it can have only fixed set of values so it is called `fixed`
-	float fixedPosition = 0;
+	Type fixedPosition;
 	// the value we should iterate over given sequence and
 	// can be any value
-	private float _destination;
+	private Type _destination;
 	// the start position
-	float init_value = 0;
-	float last_value;
-	float current_value;
+	Type init_value;
+	Type last_value;
+	Type current_value;
 
-	this(float v) @safe @nogc
+	this(Type v) @safe @nogc
 	{
 		reset(v);
 	}
 
-	void reset(float v = 0) @safe @nogc
+	void reset(Type v = 0) @safe @nogc
 	{
 		fixedPosition = 0;
-		_destination  = _destination.init;
+		_destination  = 0;
 		init_value    = v;
 		last_value    = 0;
 		current_value = 0;
 	}
 
-	void scroll(float value) @safe @nogc
+	void scroll(Type value) @safe @nogc
 	{
 		assert(value >= 0);
 		_destination = fixedPosition + value;
@@ -40,9 +41,6 @@ struct Cursor
 
 	auto phase() @safe @nogc const
 	{
-		if (_destination.isNaN)
-			return 0;
-
 		return _destination - fixedPosition;
 	}
 
@@ -63,12 +61,12 @@ struct Cursor
 	private bool _complete;
 	bool complete() @safe @nogc { return _complete; }
 
-	void begin(float v) @safe @nogc
+	void begin(Type v) @safe @nogc
 	{
 		current_value = v;
 	}
 
-	void next(float v) @safe @nogc
+	void next(Type v) @safe @nogc
 	{
 		if (fixedPosition + v > _destination)
 		{

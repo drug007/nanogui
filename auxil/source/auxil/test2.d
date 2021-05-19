@@ -70,6 +70,7 @@ unittest
 	setup;
 
 	v.position = 0;
+	v.destination = v.destination.max;
 	model.visitForward(data, v);
 	model.size.should.be == 180;
 	v.output.should.be == [
@@ -117,7 +118,7 @@ unittest
 	{
 		v.path.clear;
 		v.position = 0;
-		v.destination = v.destination.nan;
+		v.destination = v.destination.max;
 		model.visitForward(data, v);
 
 		v.position.should.be == 170;
@@ -300,18 +301,18 @@ unittest
 	v.position.should.be == 80;
 	v.destination.should.be == 80;
 
-	visit(model, data, v, 79.1);
+	visit(model, data, v, 79);
 	v.path.value[].should.be == [4];
 	v.position.should.be == 70;
-	v.destination.should.be ~ 79.1;
+	v.destination.should.be == 79;
 
-	visit(model, data, v, 133.4);
+	visit(model, data, v, 133);
 	v.path.value[].should.be == [4, 3];
 	v.position.should.be == 130;
-	v.destination.should.be ~ 133.4;
+	v.destination.should.be == 133;
 
 	visit(model, data, v, 0);
 	v.path.value[].should.be == (int[]).init;
 	v.position.should.be == 0;
-	v.destination.should.be ~ 0.0;
+	v.destination.should.be == 0;
 }

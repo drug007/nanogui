@@ -7,8 +7,8 @@ import unit_threaded;
 
 import auxil.cursor;
 
-//     128 118  97  85  72  48  33  17    0
-//           0  10  31  43  56  80  95  111 128
+//          128 118  97  85  72  48  33  17    0
+//                0  10  31  43  56  80  95  111 128
 enum sequence = [10, 21, 12, 13, 24, 15, 16, 17];
 
 struct LogRecord
@@ -40,17 +40,22 @@ unittest
 	const order = Cursor.Order.forward;
 	LogRecord[] posLog;
 	auto seq = sequence.dup;
+	const scroll = 130;
+	const total = sum(seq);
 
 	// scroll from the start to the end in forward direction
 	auto a = Cursor();
+	a.scroll = scroll;
 	test!order(a, seq, posLog);
-	a.fixedPosition.should.be == 128;
+	a.fixedPosition.should.be == total;
 	a.fixedPosition.should.be == sum(seq);
 	posLog.map!"a.pos".should.be == [0, 10, 31, 43, 56, 80, 95, 111];
-	a.phase.should.be == 0;
+	a.phase.should.be == scroll - total;
 
+	// before fixUp the Cursor points to the next elements after the sequence
 	a.fixUp!order;
-	a.fixedPosition.should.be == 111;
+	// after fixUp the Cursor points to the last element of the sequence
+	a.fixedPosition.should.be == posLog[$-1].pos;
 }
 
 version(unittest)
@@ -65,11 +70,12 @@ unittest
 	// non zero position
 	auto init_pos = 50;
 	auto a = Cursor(init_pos);
+	a.scroll = a.phase.max;
 	test!order(a, seq, posLog);
 	a.fixedPosition.should.be == 128;
 	a.fixedPosition.should.be == sum(seq);
 	posLog.map!"a.pos".should.be == [0, 10, 31, 43, 56, 80, 95, 111].map!(a=>a+init_pos);
-	a.phase.should.be == 0;
+	a.phase.should.be == a.phase.max - sum(seq);
 
 	a.fixUp!order;
 	a.fixedPosition.should.be == 111;
@@ -118,13 +124,18 @@ unittest
 	const order = Cursor.Order.backward;
 	LogRecord[] posLog;
 	auto seq = sequence.dup;
+	const scroll = 130;
+	const total = sum(seq);
 
 	// scroll from the end to the start in backward direction
 	auto a = Cursor(sum(seq));
+	a.scroll(scroll);
 	test!order(a, seq, posLog);
-	a.fixedPosition.should.be == 128;
+	a.fixedPosition.should.be == total;
 	posLog.map!"a.pos".should.be == [111, 95, 80, 56, 43, 31, 10, 0];
-	a.phase.should.be == 0;
+	total.should.be == 128;
+	a.phase.should.be == scroll - total;
+	a.phase.should.be == 2;
 }
 
 version(unittest)

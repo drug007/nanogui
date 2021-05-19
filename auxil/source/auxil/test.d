@@ -15,7 +15,7 @@ struct PrettyPrintingVisitor
 	DefaultVisitor default_visitor;
 	alias default_visitor this;
 
-	this(float size) @nogc
+	this(SizeType size) @nogc
 	{
 		default_visitor = DefaultVisitor(size);
 	}
@@ -131,6 +131,7 @@ unittest
 	auto m = Model!d();
 
 	auto visitor = PrettyPrintingVisitor(9);
+	visitor.destination = 100;
 	visitor.processItem;
 	m.collapsed = false;
 	m.visitForward(d, visitor);
@@ -160,6 +161,7 @@ unittest
 
 	auto visitor = PrettyPrintingVisitor(9);
 	visitor.processItem;
+	visitor.destination = visitor.destination.max;
 	m.collapsed = false;
 	m.model.length = d.length;
 	m.visitForward(d, visitor);
@@ -260,6 +262,7 @@ unittest
 	m.collapsed = false;
 
 	auto visitor = PrettyPrintingVisitor(9);
+	visitor.destination = visitor.destination.max;
 	visitor.processItem;
 	m.visitForward(d, visitor);
 
@@ -520,6 +523,7 @@ unittest
 
 	auto visitor = PrettyPrintingVisitor(9);
 	visitor.processItem;
+	visitor.destination = visitor.destination.max;
 	model.visitForward(data, visitor);
 
 	data[4] ~= "recently added 4th element";
@@ -602,6 +606,7 @@ unittest
 	auto model = makeModel(data[]);
 
 	auto visitor = PrettyPrintingVisitor(14);
+	visitor.destination = visitor.destination.max;
 	visitor.processItem;
 	model.visitForward(data[], visitor);
 	assert(model.size == visitor.size + model.Spacing);
@@ -674,35 +679,39 @@ unittest
 	model.visitForward(data, visitor);
 
 	model.collapsed.should.be == true;
-	model.size.should.be ~ (visitor.size + model.Spacing);
-	model.size.should.be ~ 18.0;
-	visitor.position.should.be ~ 0.0;
+	model.size.should.be == (visitor.size + model.Spacing);
+	model.size.should.be == 18;
+	visitor.position.should.be == 0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [], false);
+	visitor.destination = visitor.destination.max;
 	model.visitForward(data, visitor);
-	model.size.should.be ~ (visitor.size + model.Spacing)*7;
-	model.size.should.be ~ 18.0*7;
-	visitor.position.should.be ~ 6*18.0;
+	model.size.should.be == (visitor.size + model.Spacing)*7;
+	model.size.should.be == 18*7;
+	visitor.position.should.be == 6*18;
 
 	setPropertyByTreePath!"collapsed"(data, model, [3], false);
+	visitor.destination = visitor.destination.max;
 	model.visitForward(data, visitor);
-	model.size.should.be ~ (visitor.size + model.Spacing)*9;
-	model.size.should.be ~ 18.0*9;
-	visitor.position.should.be ~ (6+2)*18.0;
+	model.size.should.be == (visitor.size + model.Spacing)*9;
+	model.size.should.be == 18*9;
+	visitor.position.should.be == (6+2)*18;
 
 	setPropertyByTreePath!"collapsed"(data, model, [4], false);
+	visitor.destination = visitor.destination.max;
 	model.visitForward(data, visitor);
-	model.size.should.be ~ (visitor.size + model.Spacing)*12;
-	model.size.should.be ~ 18.0*12;
-	visitor.position.should.be ~ (6+2+3)*18.0;
+	model.size.should.be == (visitor.size + model.Spacing)*12;
+	model.size.should.be == 18*12;
+	visitor.position.should.be == (6+2+3)*18;
 
 	setPropertyByTreePath!"collapsed"(data, model, [5], false);
+	visitor.destination = visitor.destination.max;
 	model.visitForward(data, visitor);
-	model.size.should.be ~ (visitor.size + model.Spacing)*15;
-	model.size.should.be ~ 18.0*15;
-	visitor.position.should.be ~ (6+2+3+3)*18.0;
+	model.size.should.be == (visitor.size + model.Spacing)*15;
+	model.size.should.be == 18*15;
+	visitor.position.should.be == (6+2+3+3)*18;
 
-	visitor.destination = visitor.destination.nan;
+	visitor.destination = visitor.destination.max;
 	model.visitForward(data, visitor);
 	model.size.should.be == 270;
 	visitor.position.should.be == 252;
@@ -796,6 +805,7 @@ unittest
 		model.visitForward(data, mv);
 	}
 	visitor.position = 0;
+	visitor.destination = visitor.destination.max;
 	model.visitForward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([ ],  0),
@@ -807,6 +817,7 @@ unittest
 
 	visitor.position.should.be == 40;
 
+	visitor.destination = -visitor.destination.max;
 	model.visitBackward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([3], 40),
@@ -818,6 +829,7 @@ unittest
 
 	visitor.path.value = [1,];
 	visitor.position = 20;
+	visitor.destination = visitor.destination.max;
 	model.visitForward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([1], 20),
@@ -825,6 +837,7 @@ unittest
 		TreePosition([3], 40),
 	];
 	visitor.position = 20;
+	visitor.destination = -visitor.destination.max;
 	model.visitBackward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([1], 20),
@@ -870,6 +883,7 @@ unittest
 		model.visitForward(data, mv);
 	}
 	visitor.position = 0;
+	visitor.destination = visitor.destination.max;
 	model.visitForward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([], 0),
@@ -924,7 +938,7 @@ unittest
 
 	visitor.path.value = [2];
 	visitor.position = 30;
-	visitor.destination = visitor.destination.nan;
+	visitor.destination = visitor.destination.max;
 	model.visitForward(data, visitor);
 
 	visitor.output.should.be == [
@@ -934,7 +948,7 @@ unittest
 	];
 
 	visitor.path.clear;
-	visitor.destination = visitor.destination.nan;
+	visitor.destination = -visitor.destination.max;
 	model.visitBackward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([4], 50),

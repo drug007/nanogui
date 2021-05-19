@@ -3,8 +3,11 @@ module auxil.model;
 import std.traits : isInstanceOf;
 import taggedalgebraic : TaggedAlgebraic, taget = get;
 import auxil.traits;
+import auxil.cursor : Cursor;
 
 version(unittest) import unit_threaded : Name;
+
+alias SizeType = Cursor.Type;
 
 struct FixedAppender(size_t Size)
 {
@@ -111,8 +114,8 @@ private enum dataHasTaggedAlgebraicModel(T) = is(T == struct) && isInstanceOf!(T
 
 mixin template State()
 {
-	enum Spacing = 1;
-	double size = 0, header_size = 0;
+	enum SizeType Spacing = 1;
+	SizeType size = 0, header_size = 0;
 	int _placeholder = 1 << Field.Collapsed | 
 	                   1 << Field.Enabled;
 
@@ -633,7 +636,7 @@ struct NullableModel(alias A)
 		return (isNull) ? nulled_model.size : nullable_model.size;
 	}
 
-	@property auto size(double v)
+	@property auto size(SizeType v)
 	{
 		if (isNull)
 			nulled_model.size = v;
@@ -751,8 +754,8 @@ struct ScalarModel(alias A)
 	    !dataHasTaggedAlgebraicModel!(TypeOf!A) &&
 	    !dataHasAssociativeArrayModel!(TypeOf!A))
 {
-	enum Spacing = 1;
-	float size = 0;
+	enum SizeType Spacing = 1;
+	SizeType size = 0;
 
 	enum Collapsable = false;
 
@@ -1404,7 +1407,7 @@ unittest
 	}
 }
 
-void visit(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor, double destination)
+void visit(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor, SizeType destination)
 {
 	if (destination == visitor.position)
 	{
@@ -1415,7 +1418,10 @@ void visit(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visito
 		return;
 	}
 
-	if (destination < visitor.destination)
+	// visitor.position not visitor.destination!
+	// because the direction is defined by relations between
+	// the current position and the next destination
+	if (destination < visitor.position)
 	{
 		visitor.destination = destination;
 		model.visitBackward(data, visitor);
@@ -1465,7 +1471,8 @@ void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, re
 	{
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
 		visitor.deferred_change = 0;
-		visitor.total_shift = visitor.destination - visitor.position;
+		assert(visitor.position >= visitor.destination);
+		visitor.total_shift = visitor.position - visitor.destination;
 		if (visitor.total_shift < 0)
 			visitor.total_shift = -visitor.total_shift;
 		visitor.curr_shift = 0;
@@ -1580,7 +1587,6 @@ struct DefaultVisitorImpl(
 	alias sizeEnabled     = _size_;
 	alias treePathEnabled = _tree_path_;
 
-	alias SizeType = double;
 	static if (sizeEnabled == SizeEnabled.yes)
 	{
 		SizeType size;
@@ -1601,9 +1607,9 @@ struct DefaultVisitorImpl(
 		import auxil.cursor;
 		Cursor cursorY;
 
-		@property position(double v) { _position = v; }
+		@property position(SizeType v) { _position = v; }
 		@property position() { return _position; }
-		@property destination(double v) { _destination = v; }
+		@property destination(SizeType v) { _destination = v; }
 		@property destination() { return _destination; }
 	}
 
