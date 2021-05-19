@@ -68,6 +68,10 @@ struct Cursor
 	void begin(Type v) @safe @nogc
 	{
 		current_value = v;
+debug {
+	import std;
+	writeln(current_value);
+}
 	}
 
 	void next(Type v) @safe @nogc

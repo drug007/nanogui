@@ -228,6 +228,107 @@ unittest
 }
 
 version(unittest)
+@Name("testTraversingBackward")
+unittest
+{
+	import auxil.cursor : Cursor;
+
+	const order = Cursor.Order.backward;
+	LogRecord[] posLog;
+	auto seq = sequence.dup.retro;
+	CursorAccumulator ca;
+
+	// start traversing
+	ca.start(sum(seq));
+
+	// step #1 - scroll 3 first elements
+	{
+		posLog = null;
+		foreach(e; seq[0..3])
+		{
+			ca.begin(e);
+			posLog ~= LogRecord(ca.position!order, e);
+			ca.end(e);
+		}
+
+		// checks
+		posLog.should.be == [
+			LogRecord(111, 17), 
+			LogRecord( 95, 16), 
+			LogRecord( 80, 15),
+		];
+
+		ca.csr.fixUp;
+
+writeln(ca.csr);
+		ca.position!order.should.be == 80;
+		ca.csr.last_value.should.be == 15;
+	}
+
+	// step #2 - scroll for the next 3 elements
+	{
+		posLog = null;
+		foreach(e; seq[3..6])
+		{
+			ca.begin(e);
+			posLog ~= LogRecord(ca.position!order, e);
+			ca.end(e);
+		}
+
+		// checks
+		posLog.should.be == [
+			LogRecord(43, 13),
+			LogRecord(56, 24),
+			LogRecord(80, 15),
+		];
+
+		ca.position!order.should.be == 95;
+		ca.csr.last_value.should.be == 15;
+	}
+
+	// step #3 - scroll for the last two elements
+	{
+		posLog = null;
+		foreach(e; seq[6..$])
+		{
+			ca.begin(e);
+			posLog ~= LogRecord(ca.position!order, e);
+			ca.end(e);
+		}
+
+		// check
+		posLog.should.be == [
+			LogRecord(95, 16),
+			LogRecord(111, 17),
+		];
+
+		ca.position!order.should.be == 128;
+		ca.csr.last_value.should.be == 17;
+	}
+
+	// step #4 - scroll for the first two elements
+	{
+		ca.start;
+		posLog = null;
+		foreach(e; seq[0..2])
+		{
+			ca.begin(e);
+			posLog ~= LogRecord(ca.position!order, e);
+			ca.end(e);
+		}
+
+		// check
+		posLog.should.be == [
+			LogRecord(0, 10),
+			LogRecord(10, 21),
+		];
+
+		ca.position!order.should.be == 31;
+		ca.csr.last_value.should.be == 21;
+	}
+}
+
+version(unittest)
 @Name("testScrollingForward")
 unittest
 {
