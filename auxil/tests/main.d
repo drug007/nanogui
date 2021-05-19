@@ -6,4 +6,5 @@ mixin runTestsMain!(
 	"auxil.test",
 	"auxil.test2",
 	"auxil.cursor_test",
+	"auxil.cursor_accumulator_test",
 );

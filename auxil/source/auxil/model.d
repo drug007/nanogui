@@ -1456,9 +1456,8 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 	static if (Visitor.treePathEnabled)
 	{
 		import auxil.cursor;
-		enum o = (order == order.Sinking) ? Cursor.Order.forward : Cursor.Order.backward;
 		if (!visitor.complete)
-			visitor.cursorY.fixUp!o;
+			visitor.cursorY.fixUp;
 	}
 }
 

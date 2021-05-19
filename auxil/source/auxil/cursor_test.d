@@ -13,8 +13,8 @@ enum sequence = [10, 21, 12, 13, 24, 15, 16, 17];
 
 struct LogRecord
 {
-	float pos;
-	float value;
+	Cursor.Type pos;
+	Cursor.Type value;
 }
 
 auto test(Cursor.Order order, R)(ref Cursor a, R r, ref LogRecord[] log)
@@ -53,7 +53,7 @@ unittest
 	a.phase.should.be == scroll - total;
 
 	// before fixUp the Cursor points to the next elements after the sequence
-	a.fixUp!order;
+	a.fixUp;
 	// after fixUp the Cursor points to the last element of the sequence
 	a.fixedPosition.should.be == posLog[$-1].pos;
 }
@@ -77,7 +77,7 @@ unittest
 	posLog.map!"a.pos".should.be == [0, 10, 31, 43, 56, 80, 95, 111].map!(a=>a+init_pos);
 	a.phase.should.be == a.phase.max - sum(seq);
 
-	a.fixUp!order;
+	a.fixUp;
 	a.fixedPosition.should.be == 111;
 }
 

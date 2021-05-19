@@ -51,11 +51,15 @@ struct Cursor
 	// non-existing element because the sequence
 	// has ended
 	//
-	// probably it is a hack
-	auto fixUp(Order order)() @safe @nogc
+	// the reason is that there is no way to get know
+	// if the current element is the last one
+	auto fixUp() @safe @nogc
 	{
-		static assert(order == Order.forward, "the method is intended for forward mode only");
-		fixedPosition -= last_value;
+		// if processing was not completed it
+		// means the fixed position belongs to the next
+		// element after the last one so correct this
+		if (!_complete)
+			fixedPosition -= last_value;
 	}
 
 	private bool _complete;
