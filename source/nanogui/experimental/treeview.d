@@ -12,7 +12,7 @@ module nanogui.experimental.treeview;
 
 import nanogui.widget;
 import nanogui.common : MouseButton, Vector2f, Vector2i;
-import nanogui.experimental.utils : Model;
+import nanogui.experimental.utils : Model, TreePathVisitor;
 
 /**
  * Tree view widget.
@@ -239,7 +239,7 @@ private struct RenderingVisitor
 	import auxil.model;
 
 	NanoContext ctx;
-	DefaultVisitorImpl!(SizeEnabled.no, TreePathEnabled.yes) default_visitor;
+	TreePathVisitor default_visitor;
 	alias default_visitor this;
 
 	TreePath selected_item;

@@ -3,6 +3,7 @@ module auxil.test;
 version(unittest) import unit_threaded : Name;
 
 import auxil.model;
+import auxil.default_visitor : DefaultVisitor, TreePathVisitor, MeasuringVisitor, NullVisitor;
 
 @safe private
 struct PrettyPrintingVisitor
@@ -47,7 +48,6 @@ struct PrettyPrintingVisitor
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		import std.conv : to;
 		import auxil.traits : hasRenderHeader;
 
 		static if (hasRenderHeader!data)
@@ -714,7 +714,7 @@ unittest
 
 struct RelativeMeasurer
 {
-	DefaultVisitorImpl!(SizeEnabled.no, TreePathEnabled.yes) default_visitor;
+	TreePathVisitor default_visitor;
 	alias default_visitor this;
 
 	TreePosition[] output;
@@ -1286,4 +1286,30 @@ unittest
 	m.visitForward(d, visitor);
 	import std;
 	writeln(m);
+}
+
+version(unittest) @Name("null_visitor")
+unittest
+{
+	int[] data = [1, 2];
+	NullVisitor visitor;
+	auto model = makeModel(data);
+	model.visitForward(data, visitor);
+}
+
+version(unittest) @Name("MeasuringVisitor")
+unittest
+{
+	import std.algorithm : map;
+	import unit_threaded : should, be;
+
+	auto data = [0, 1, 2, 3];
+	auto model = makeModel(data);
+	auto visitor = MeasuringVisitor(9);
+
+	model.collapsed = false;
+	model.visitForward(data, visitor);
+
+	model.size.should.be == 50;
+	model[].map!"a.size".should.be == [10, 10, 10, 10];
 }

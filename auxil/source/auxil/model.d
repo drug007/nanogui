@@ -3,6 +3,8 @@ module auxil.model;
 import std.traits : isInstanceOf;
 import taggedalgebraic : TaggedAlgebraic, taget = get;
 import auxil.traits;
+import auxil.location : Location, SizeType;
+public import auxil.location : Order;
 
 version(unittest) import unit_threaded : Name;
 
@@ -980,6 +982,7 @@ auto getPropertyByTreePath(string propertyName, Value, Data, Model)(auto ref Dat
 private struct PropertyVisitor(string propertyName, Value)
 {
 	import std.typecons : Nullable;
+	import auxil.default_visitor : TreePathVisitor;
 
 	TreePathVisitor default_visitor;
 	alias default_visitor this;
@@ -1069,8 +1072,6 @@ private struct ApplyVisitor(T)
 		}
 	}
 }
-
-enum Order { Sinking, Bubbling, }
 
 private struct TwoFacedRange(Order order)
 {
@@ -1176,252 +1177,6 @@ void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, re
 	}
 	visitor.enterTree!order(data, model);
 	model.visit!order(data, visitor);
-}
-
-struct TreePath
-{
-	import std.experimental.allocator.mallocator : Mallocator;
-	import automem.vector : Vector;
-
-@safe:
-
-	Vector!(int, Mallocator)  value;
-
-	ref int back() return @nogc
-	{
-		assert(value.length);
-		return value[$-1];
-	}
-
-	void popBack() @nogc
-	{
-		value.popBack;
-	}
-
-	void clear() @nogc
-	{
-		value.clear;
-	}
-
-	auto put(int i) @nogc @trusted
-	{
-		value.put(i);
-	}
-
-	import std.range : isOutputRange;
-	import std.format : FormatSpec;
-
-	void toString(Writer) (ref Writer w, scope const ref FormatSpec!char fmt) const  @trusted
-		if (isOutputRange!(Writer, char))
-	{
-		import std;
-		import std.conv : text;
-
-		w.put('[');
-		if (value.length)
-		{
-			foreach(e; value[0..$-1])
-				copy(text(e, "."), w);
-			copy(text(value[$-1]), w);
-		}
-		w.put(']');
-	}
-}
-
-version(unittest) @Name("null_visitor")
-unittest
-{
-	int[] data = [1, 2];
-	NullVisitor visitor;
-	auto model = makeModel(data);
-	model.visitForward(data, visitor);
-}
-
-import std.typecons : Flag;
-
-alias SizeEnabled     = Flag!"SizeEnabled";
-alias TreePathEnabled = Flag!"TreePathEnabled";
-
-alias NullVisitor      = DefaultVisitorImpl!(SizeEnabled.no,  TreePathEnabled.no );
-alias MeasuringVisitor = DefaultVisitorImpl!(SizeEnabled.yes, TreePathEnabled.no );
-alias TreePathVisitor  = DefaultVisitorImpl!(SizeEnabled.no,  TreePathEnabled.yes);
-alias DefaultVisitor   = DefaultVisitorImpl!(SizeEnabled.yes, TreePathEnabled.yes);
-
-/// Default implementation of Visitor
-struct DefaultVisitorImpl(
-	SizeEnabled _size_,
-	TreePathEnabled _tree_path_,
-)
-{
-	alias sizeEnabled     = _size_;
-	alias treePathEnabled = _tree_path_;
-
-	alias SizeType = double;
-	static if (sizeEnabled == SizeEnabled.yes)
-	{
-		SizeType size;
-
-		this(SizeType s) @safe @nogc nothrow
-		{
-			size = s;
-		}
-	}
-
-	static if (treePathEnabled == TreePathEnabled.yes)
-	{
-		struct Location
-		{
-			enum State { seeking, first, rest, finishing, }
-			private State _state;
-			TreePath tree_path, path;
-			SizeType position, destination;
-			private SizeType _deferred_change;
-
-			@property State state() { return _state; }
-
-			private void resetState()
-			{
-				_state = (path.value.length) ? State.seeking : State.rest;
-				_deferred_change = 0;
-			}
-
-			/// returns true if the processing should be interrupted
-			private bool checkState()
-			{
-				final switch(_state)
-				{
-					case State.seeking:
-						if (tree_path.value == path.value)
-							_state = State.first;
-					break;
-					case State.first:
-						_state = State.rest;
-					break;
-					case State.rest:
-						// do nothing
-					break;
-					case State.finishing:
-					{
-						return true;
-					}
-				}
-				return false;
-			}
-
-			auto movePositionIfSinking(Order order)(SizeType header_size)
-			{
-				static if (order == Order.Sinking)
-				{
-					position += _deferred_change;
-					_deferred_change = header_size;
-				}
-			}
-
-			auto checkPositionIfSinking(Order order)()
-			{
-				static if (order == Order.Sinking)
-				{
-					if (position+_deferred_change > destination)
-					{
-						path = tree_path;
-						_state = State.finishing;
-					}
-				}
-			}
-
-			auto movePositionIfBubbling(Order order)(SizeType header_size)
-			{
-				static if (order == Order.Bubbling)
-				{
-					position += _deferred_change;
-					_deferred_change = -header_size;
-				}
-			}
-
-			auto checkPositionIfBubbling(Order order)()
-			{
-				static if (order == Order.Bubbling)
-				{
-					if (position <= destination)
-					{
-						_state = State.finishing;
-						path = tree_path;
-					}
-				}
-			}
-
-			void intend()
-			{
-				tree_path.put(0);
-			}
-
-			void unintend()
-			{
-				tree_path.popBack;
-			}
-
-			auto startValue(Order order)(size_t len)
-			{
-				import std.algorithm : among;
-
-				size_t start_value;
-				static if (order == Order.Bubbling)
-				{
-					start_value = len;
-					start_value--;
-				}
-				if (_state.among(State.seeking, State.first))
-				{
-					auto idx = tree_path.value.length;
-					if (idx && path.value.length >= idx)
-					{
-						start_value = path.value[idx-1];
-						// position should change only if we've got the initial path
-						// and don't get the end
-						if (_state == State.seeking) _deferred_change = 0;
-					}
-				}
-				return start_value;
-			}
-
-			void setPath(int v)
-			{
-				tree_path.back = v;
-			}
-
-			bool stateFirstOrRest()
-			{
-				import std.algorithm : among;
-				return !!_state.among(State.first, State.rest);
-			}
-		}
-		Location loc;
-	}
-
-	void indent() {}
-	void unindent() {}
-	bool complete() @safe @nogc { return false; }
-	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model) {}
-	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
-	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
-	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
-}
-
-version(unittest) @Name("MeasuringVisitor")
-unittest
-{
-	import std.algorithm : map;
-	import unit_threaded : should, be;
-
-	auto data = [0, 1, 2, 3];
-	auto model = makeModel(data);
-	auto visitor = MeasuringVisitor(9);
-
-	model.collapsed = false;
-	model.visitForward(data, visitor);
-
-	model.size.should.be == 50;
-	model[].map!"a.size".should.be == [10, 10, 10, 10];
 }
 
 version(unittest) @Name("union")
