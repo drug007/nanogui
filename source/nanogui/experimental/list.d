@@ -398,7 +398,7 @@ protected:
 	size_t _finish_item;
 	// y coordinate of the widget in space of first item
 	size_t _shift;
-	// if model size should be recalculated
+	// defines if model size should be recalculated
 	bool _model_changed;
 	// if mouse left button has been pressed and not released over scroll button
 	bool _pushed_scroll_btn;
