@@ -6,6 +6,8 @@ import nanogui.common : Vector2f, Vector2i;
 public import auxil.sizeindex;
 public import auxil.model;
 public import auxil.traits;
+public import auxil.treepath : TreePath;
+public import auxil.default_visitor : MeasuringVisitor, TreePathVisitor;
 
 private string enumToString(E)(E e) @nogc @safe nothrow
 	if (is(E == enum))

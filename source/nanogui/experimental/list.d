@@ -14,7 +14,7 @@ import std.algorithm : min, max;
 import std.range : isRandomAccessRange, ElementType;
 import nanogui.widget;
 import nanogui.common : MouseButton, Vector2f, Vector2i, NanoContext;
-import nanogui.experimental.utils : Model, isProcessible;
+import nanogui.experimental.utils : Model, isProcessible, TreePathVisitor;
 
 /**
  * Tree view widget.
@@ -409,9 +409,10 @@ private struct RenderingVisitor
 {
 	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath;
 	import auxil.model;
+	import auxil.default_visitor : TreePathVisitor;
 
 	NanoContext ctx;
-	DefaultVisitorImpl!(SizeEnabled.no, TreePathEnabled.yes) default_visitor;
+	TreePathVisitor default_visitor;
 	alias default_visitor this;
 
 	TreePath selected_item;
@@ -535,11 +536,4 @@ private struct RenderingVisitor
 }
 
 // This visitor updates current path to the first visible element
-struct RelativeMeasurer
-{
-	import auxil.model;
-
-	alias DefVisitor = DefaultVisitorImpl!(SizeEnabled.no, TreePathEnabled.yes);
-	DefVisitor default_visitor;
-	alias default_visitor this;
-}
+alias RelativeMeasurer = TreePathVisitor;
