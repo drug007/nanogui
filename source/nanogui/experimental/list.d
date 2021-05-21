@@ -61,7 +61,7 @@ public:
 		_model.size = 0;
 		_model_changed = true;
 		calculateScrollableState;
-		rm.position = 0;
+		rm.loc.position = 0;
 		visit(_model, _data, rm, 1);
 	}
 
@@ -309,19 +309,19 @@ public:
 		if (_model.size > mSize.y)
 			ctx.size.x -= ScrollBarWidth;
 		ctx.position.x = 0;
-		ctx.position.y = rm.position - rm.destination;
+		ctx.position.y = rm.loc.position - rm.loc.destination;
 
 		ctx.mouse -= mPos;
 		scope(exit) ctx.mouse += mPos;
 		ctx.translate(mPos.x, mPos.y);
 		ctx.intersectScissor(0, 0, ctx.size.x, mSize.y);
 		auto renderer = RenderingVisitor(ctx);
-		renderer.path = rm.path;
-		renderer.position = rm.position;
-		renderer.finish = rm.destination + size.y;
+		renderer.loc.path = rm.loc.path;
+		renderer.loc.position = rm.loc.position;
+		renderer.finish = rm.loc.destination + size.y;
 		import nanogui.layout : Orientation;
 		renderer.ctx.orientation = Orientation.Vertical;
-		visit(_model, _data, renderer, rm.destination + size.y + 50); // FIXME `+ 50` is dirty hack
+		visit(_model, _data, renderer, rm.loc.destination + size.y + 50); // FIXME `+ 50` is dirty hack
 		tree_path = renderer.selected_item;
 
 		ctx.restore;
@@ -480,7 +480,7 @@ private struct RenderingVisitor
 			symb[0] = model.collapsed ? Entypo.ICON_CHEVRON_RIGHT :
 			                            Entypo.ICON_CHEVRON_DOWN;
 			if (drawItem(ctx, ctx.size[ctx.orientation], symb[]))
-				selected_item = tree_path;
+				selected_item = loc.tree_path;
 			ctx.size[axis2] = old; // restore full width
 			ctx.position[ctx.orientation] -= ctx.size[ctx.orientation];
 		}
@@ -510,7 +510,7 @@ private struct RenderingVisitor
 			else
 				auto header = Data.stringof;
 			if (drawItem(ctx, model.header_size, header))
-				selected_item = tree_path;
+				selected_item = loc.tree_path;
 		}
 	}
 
@@ -530,7 +530,7 @@ private struct RenderingVisitor
 		ctx.fontFace("sans");
 		ctx.fillColor(ctx.theme.mTextColor);
 		if (drawItem(ctx, model.size, data))
-			selected_item = tree_path;
+			selected_item = loc.tree_path;
 	}
 }
 
