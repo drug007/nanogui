@@ -8,36 +8,35 @@ version(unittest) import unit_threaded : Name;
 
 struct FixedAppender(size_t Size)
 {
+@nogc:
+nothrow:
+@safe:
 	void put(char c) pure
 	{
-		import std.exception : enforce;
-
-		enforce(size < Size);
-		buffer[size++] = c;
+		if (size < Size)
+			buffer[size++] = c;
 	}
 
 	void put(scope const(char)[] s) pure
 	{
-		import std.exception : enforce;
-
-		enforce(size + s.length <= Size);
-		foreach(c; s)
-			buffer[size++] = c;
+		if (size + s.length <= Size)
+			foreach(c; s)
+				buffer[size++] = c;
 	}
 
-	@property size_t length() const @safe nothrow @nogc pure
+	@property size_t length() const @safe pure
 	{
 		return size;
 	}
 
-	string opSlice() return scope pure nothrow @property
+	string opSlice() return scope pure @property @trusted
 	{
 		import std.exception : assumeUnique;
 		assert(size <= Size);
 		return buffer[0..size].assumeUnique;
 	}
 
-	void clear() @safe nothrow @nogc pure
+	void clear() pure
 	{
 		size = 0;
 	}
