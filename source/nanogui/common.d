@@ -33,10 +33,7 @@ struct NanoContext
 	Vector2f mouse;
 	Rebindable!(const Theme) theme;
 	Orientation orientation;
-	// current width or height (other dimension is passed to drawing function explicitely)
 	Vector2f size;
-	// nesting level of current item
-	int tree_view_nesting_level;
 }
 
 alias Vector2i = vec2i;
