@@ -389,7 +389,6 @@ struct TaggedAlgebraicModel(alias A)// if (dataHasTaggedAlgebraicModel!(TypeOf!A
 
 	bool visit(Order order, Visitor)(ref const(Data) data, ref Visitor visitor)
 	{
-		dbgPrint!(true, true)(" dataHasTaggedAlgebraicModel!Data");
 		final switch (data.kind) {
 			foreach (i, fname; Data.UnionType.fieldNames)
 			{
@@ -399,7 +398,6 @@ struct TaggedAlgebraicModel(alias A)// if (dataHasTaggedAlgebraicModel!(TypeOf!A
 							visitor,
 						))
 					{
-						dbgPrint!(true, true)("premature quitting at ", __FILE__, ":", __LINE__);
 						return true;
 					}
 				break;
@@ -763,68 +761,7 @@ struct ScalarModel(alias A)
 	{
 	}
 
-	private bool visit(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
-	{
-		import std.algorithm : among;
-
-		enum Sinking     = order == Order.Sinking;
-		enum Bubbling    = !Sinking; 
-		enum hasTreePath = Visitor.treePathEnabled;
-		enum hasSize     = Visitor.sizeEnabled;
-
-		static if (hasTreePath)
-		{
-			with(visitor) final switch(state)
-			{
-				case State.seeking:
-					if (tree_path.value == path.value)
-						state = State.first;
-				break;
-				case State.first:
-					state = State.rest;
-				break;
-				case State.rest:
-					// do nothing
-				break;
-				case State.finishing:
-				{
-					dbgPrint!(hasSize, hasTreePath)("state is State.finishing");
-					return true;
-				}
-			}
-		}
-		if (visitor.complete)
-		{
-			dbgPrint!(hasSize, hasTreePath)("visitor.complete is true");
-			return true;
-		}
-
-		static if (hasTreePath) with(visitor) { dbgPrint!(hasSize, hasTreePath)(" no constraint ", position, " ", deferred_change, " ", destination, " ");}
-		else {dbgPrint!(hasSize, hasTreePath)(" no constraint ", Data.stringof, " ", data);}
-		static if (hasSize) this.size = visitor.size + this.Spacing;
-		static if (hasTreePath) with(visitor) 
-		{
-			position += deferred_change;
-			deferred_change = (Sinking) ? this.size : -this.size;
-
-			if (state.among(State.first, State.rest))
-			{
-				static if (Sinking) visitor.processLeaf!order(data, this);
-				if ((Sinking  && position+deferred_change > destination) ||
-					(Bubbling && position                 < destination))
-				{
-					dbgPrint!(hasSize, hasTreePath)("state becomes State.finishing at ", __FILE__, ":", __LINE__);
-					state = State.finishing;
-					path = tree_path;
-				}
-				static if (Bubbling) visitor.processLeaf!order(data, this);
-			}
-		}
-		else
-			visitor.processLeaf!order(data, this);
-
-		return false;
-	}
+	mixin visitImpl;
 }
 
 auto makeModel(T)(auto ref const(T) data)
@@ -846,6 +783,14 @@ mixin template visitImpl()
 		return baseVisit!order(data, visitor);
 	}
 
+	private auto currentSize()
+	{
+		static if (Collapsable)
+			return this.header_size;
+		else
+			return this.size;
+	}
+
 	bool baseVisit(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
 	{
 		static if (Data.sizeof > 24 && !__traits(isRef, data))
@@ -861,83 +806,53 @@ mixin template visitImpl()
 
 		static if (hasTreePath)
 		{
-			with(visitor) final switch(state)
-			{
-				case State.seeking:
-					if (tree_path.value == path.value)
-						state = State.first;
-				break;
-				case State.first:
-					state = State.rest;
-				break;
-				case State.rest:
-					// do nothing
-				break;
-				case State.finishing:
-				{
-					dbgPrint!(hasSize, hasTreePath)("state is State.finishing");
-					return true;
-				}
-			}
+			if (visitor.loc.checkState)
+				return true;
 		}
+
 		if (visitor.complete)
 		{
-			dbgPrint!(hasSize, hasTreePath)("visitor.complete is true");
 			return true;
 		}
 
-		static if (hasSize) size = header_size = visitor.size + Spacing;
-
-		static if (hasTreePath) with(visitor)
+		static if (hasSize)
 		{
-			if (visitor.state.among(visitor.State.first, visitor.State.rest))
+			size = visitor.size + Spacing;
+			static if (Collapsable)
+				header_size = size;
+		}
+
+		static if (hasTreePath)
+		{
+			if (visitor.loc.stateFirstOrRest)
 			{
-				static if (Sinking)
+				visitor.loc.movePositionIfSinking!order(currentSize);
+				static if (this.Collapsable)
+					visitor.enterNode!(order, Data)(data, this);
+				else static if (order == Order.Sinking)
+					visitor.processLeaf!(order, Data)(data, this);
+				visitor.loc.checkPositionIfSinking!order;
+			}
+			scope(exit)
+			{
+				if (visitor.loc.stateFirstOrRest)
 				{
-					visitor.position += visitor.deferred_change;
-					visitor.deferred_change = this.header_size;
-				}
-				visitor.enterNode!(order, Data)(data, this);
-				static if (Sinking)
-				{
-					if (position+deferred_change > destination)
-					{
-						dbgPrint!(hasSize, hasTreePath)("state becomes State.finishing [", visitor.tree_path, "] at ", __FILE__, ":", __LINE__);
-						state = State.finishing;
-						path = tree_path;
-					}
+					visitor.loc.movePositionIfBubbling!order(currentSize);
+					visitor.loc.checkPositionIfBubbling!order;
+					static if (Collapsable)
+						visitor.leaveNode!order(data, this);
+					else static if (Bubbling)
+						visitor.processLeaf!(order, Data)(data, this);
 				}
 			}
 		}
 		else
-			visitor.enterNode!(order, Data)(data, this);
-
-		scope(exit)
 		{
-			static if (hasTreePath) with(visitor)
-			{
-				if (state.among(State.first, State.rest))
-				{
-					static if (Bubbling)
-					{
-						position += deferred_change;
-						deferred_change = -this.header_size;
-						if (position <= destination)
-						{
-							dbgPrint!(hasSize, hasTreePath)("state becomes State.finishing at ", __FILE__, ":", __LINE__);
-							state = State.finishing;
-							path = tree_path;
-						}
-					}
-					visitor.leaveNode!order(data, this);
-				}
-			}
-			else
-				visitor.leaveNode!order(data, this);
+			visitor.enterNode!(order, Data)(data, this);
+			scope(exit) visitor.leaveNode!order(data, this);
 		}
 
-		dbgPrint!(hasSize, hasTreePath)(" ", Data.stringof);
-		if (!this.collapsed)
+		static if (this.Collapsable) if (!this.collapsed)
 		{
 			visitor.indent;
 			scope(exit) visitor.unindent;
@@ -946,60 +861,42 @@ mixin template visitImpl()
 			{
 				// Edge case if the start path starts from this collapsable exactly
 				// then the childs of the collapsable aren't processed
-				if (visitor.path.value.length && visitor.tree_path.value[] == visitor.path.value[])
+				if (visitor.loc.path.value.length && visitor.loc.tree_path.value[] == visitor.loc.path.value[])
 				{
-					dbgPrint!(hasSize, hasTreePath)("special edge case at ", __FILE__, ":", __LINE__);
 					return false;
 				}
 			}
 
-			static if (hasTreePath) visitor.tree_path.put(0);
-			static if (hasTreePath) scope(exit) visitor.tree_path.popBack;
-			auto len = getLength!(Data, data);
+			static if (hasTreePath) visitor.loc.intend;
+			static if (hasTreePath) scope(exit) visitor.loc.unintend;
+			const len = getLength!(Data, data);
 			static if (is(typeof(model.length)))
 				assert(len == model.length);
 			if (!len)
 				return false;
 
 			size_t start_value;
-			static if (Bubbling)
-			{
-				start_value = len;
-				start_value--;
-			}
+
 			static if (hasTreePath)
-			{
-				if (visitor.state.among(visitor.State.seeking, visitor.State.first))
-				{
-					auto idx = visitor.tree_path.value.length;
-					if (idx && visitor.path.value.length >= idx)
-					{
-						start_value = visitor.path.value[idx-1];
-						// position should change only if we've got the initial path
-						// and don't get the end
-						if (visitor.state == visitor.State.seeking) visitor.deferred_change = 0;
-					}
-				}
-			}
+				start_value = visitor.loc.startValue!order(len);
+
 			static if (dataHasStaticArrayModel!Data || 
 			           dataHasRandomAccessRangeModel!Data ||
 			           dataHasAssociativeArrayModel!Data)
 			{
 				foreach(i; TwoFacedRange!order(start_value, data.length))
 				{
-					static if (hasTreePath) visitor.tree_path.back = i;
+					static if (hasTreePath) visitor.loc.setPath(i);
 					static if (hasSize) scope(exit) this.size += model[i].size;
 					auto idx = getIndex!(Data)(this, i);
 					if (model[i].visit!order(data[idx], visitor))
 					{
-						dbgPrint!(hasSize, hasTreePath)("premature quitting at ", __FILE__, ":", __LINE__);
 						return true;
 					}
 				}
 			}
 			else static if (dataHasAggregateModel!Data)
 			{
-				scope(exit) dbgPrint!(hasSize, hasTreePath)("scope(exit) this.size: ", this.size);
 				// work around ldc2 issue
 				// expression `const len = getLength!(Data, data);` is not a constant
 				const len2 = DrawableMembers!Data.length;
@@ -1012,13 +909,10 @@ mixin template visitImpl()
 						{
 							enum FieldNo = (Sinking) ? i : len2 - i - 1;
 							enum member = DrawableMembers!Data[FieldNo];
-							static if (hasTreePath) visitor.tree_path.back = cast(int) FieldNo;
+							static if (hasTreePath) visitor.loc.setPath(cast(int) FieldNo);
 							static if (hasSize) scope(exit) this.size += mixin("this." ~ member).size;
-							dbgPrint!(hasSize, hasTreePath)("this.size: ", this.size);
-							scope(exit) dbgPrint!(hasSize, hasTreePath)("member.size: ", mixin("this." ~ member).size);
 							if (mixin("this." ~ member).visit!order(mixin("data." ~ member), visitor))
 							{
-								dbgPrint!(hasSize, hasTreePath)("premature quitting at ", __FILE__, ":", __LINE__);
 								return true;
 							}
 						}
@@ -1034,10 +928,6 @@ mixin template visitImpl()
 						assert(0);
 				}
 			}
-		}
-		else
-		{
-			dbgPrint!(hasSize, hasTreePath)("is collapsed");
 		}
 
 		return false;
@@ -1068,21 +958,12 @@ private auto getLength(Data, alias data)()
 		static assert(0);
 }
 
-void dbgPrint(bool hasSize, bool hasTreePath, Args...)(Args args)
-{
-	version(none) static if (hasSize)
-	{
-		import std;
-		debug writeln(args);
-	}
-}
-
 private enum PropertyKind { setter, getter }
 
 auto setPropertyByTreePath(string propertyName, Value, Data, Model)(auto ref Data data, ref Model model, int[] path, Value value)
 {
 	auto pv = PropertyVisitor!(propertyName, Value)();
-	pv.path.value = path;
+	pv.loc.path.value = path;
 	pv.value = value;
 	pv.propertyKind = PropertyKind.setter;
 	model.visitForward(data, pv);
@@ -1091,7 +972,7 @@ auto setPropertyByTreePath(string propertyName, Value, Data, Model)(auto ref Dat
 auto getPropertyByTreePath(string propertyName, Value, Data, Model)(auto ref Data data, ref Model model, int[] path)
 {
 	auto pv = PropertyVisitor!(propertyName, Value)();
-	pv.path.value = path;
+	pv.loc.path.value = path;
 	pv.propertyKind = PropertyKind.getter;
 	model.visitForward(data, pv);
 	return pv.value;
@@ -1136,7 +1017,7 @@ private struct PropertyVisitor(string propertyName, Value)
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		assert(!completed);
-		completed = tree_path.value[] == path.value[];
+		completed = loc.stateFirstOrRest;
 	}
 }
 
@@ -1267,10 +1148,10 @@ unittest
 
 void visit(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor, double destination)
 {
-	visitor.destination = destination;
-	if (destination == visitor.position)
+	visitor.loc.destination = destination;
+	if (destination == visitor.loc.position)
 		return;
-	else if (destination < visitor.position)
+	else if (destination < visitor.loc.position)
 		model.visitBackward(data, visitor);
 	else
 		model.visitForward(data, visitor);
@@ -1281,8 +1162,7 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 	enum order = Order.Sinking;
 	static if (Visitor.treePathEnabled)
 	{
-		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
-		visitor.deferred_change = 0;
+		visitor.loc.resetState;
 	}
 	visitor.enterTree!order(data, model);
 	model.visit!order(data, visitor);
@@ -1293,8 +1173,7 @@ void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, re
 	enum order = Order.Bubbling;
 	static if (Visitor.treePathEnabled)
 	{
-		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
-		visitor.deferred_change = 0;
+		visitor.loc.resetState;
 	}
 	visitor.enterTree!order(data, model);
 	model.visit!order(data, visitor);
@@ -1391,10 +1270,133 @@ struct DefaultVisitorImpl(
 
 	static if (treePathEnabled == TreePathEnabled.yes)
 	{
-		enum State { seeking, first, rest, finishing, }
-		State state;
-		TreePath tree_path, path;
-		SizeType position, deferred_change, destination;
+		struct Location
+		{
+			enum State { seeking, first, rest, finishing, }
+			private State _state;
+			TreePath tree_path, path;
+			SizeType position, destination;
+			private SizeType _deferred_change;
+
+			@property State state() { return _state; }
+
+			private void resetState()
+			{
+				_state = (path.value.length) ? State.seeking : State.rest;
+				_deferred_change = 0;
+			}
+
+			/// returns true if the processing should be interrupted
+			private bool checkState()
+			{
+				final switch(_state)
+				{
+					case State.seeking:
+						if (tree_path.value == path.value)
+							_state = State.first;
+					break;
+					case State.first:
+						_state = State.rest;
+					break;
+					case State.rest:
+						// do nothing
+					break;
+					case State.finishing:
+					{
+						return true;
+					}
+				}
+				return false;
+			}
+
+			auto movePositionIfSinking(Order order)(SizeType header_size)
+			{
+				static if (order == Order.Sinking)
+				{
+					position += _deferred_change;
+					_deferred_change = header_size;
+				}
+			}
+
+			auto checkPositionIfSinking(Order order)()
+			{
+				static if (order == Order.Sinking)
+				{
+					if (position+_deferred_change > destination)
+					{
+						path = tree_path;
+						_state = State.finishing;
+					}
+				}
+			}
+
+			auto movePositionIfBubbling(Order order)(SizeType header_size)
+			{
+				static if (order == Order.Bubbling)
+				{
+					position += _deferred_change;
+					_deferred_change = -header_size;
+				}
+			}
+
+			auto checkPositionIfBubbling(Order order)()
+			{
+				static if (order == Order.Bubbling)
+				{
+					if (position <= destination)
+					{
+						_state = State.finishing;
+						path = tree_path;
+					}
+				}
+			}
+
+			void intend()
+			{
+				tree_path.put(0);
+			}
+
+			void unintend()
+			{
+				tree_path.popBack;
+			}
+
+			auto startValue(Order order)(size_t len)
+			{
+				import std.algorithm : among;
+
+				size_t start_value;
+				static if (order == Order.Bubbling)
+				{
+					start_value = len;
+					start_value--;
+				}
+				if (_state.among(State.seeking, State.first))
+				{
+					auto idx = tree_path.value.length;
+					if (idx && path.value.length >= idx)
+					{
+						start_value = path.value[idx-1];
+						// position should change only if we've got the initial path
+						// and don't get the end
+						if (_state == State.seeking) _deferred_change = 0;
+					}
+				}
+				return start_value;
+			}
+
+			void setPath(int v)
+			{
+				tree_path.back = v;
+			}
+
+			bool stateFirstOrRest()
+			{
+				import std.algorithm : among;
+				return !!_state.among(State.first, State.rest);
+			}
+		}
+		Location loc;
 	}
 
 	void indent() {}

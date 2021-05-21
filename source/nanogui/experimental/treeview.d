@@ -172,7 +172,7 @@ public:
 		//scope(exit) ctx.mouse += mPos;
 
 		auto renderer = RenderingVisitor(ctx);
-		renderer.destination = ctx.position.y + size.y;
+		renderer.loc.destination = ctx.position.y + size.y;
 		import nanogui.layout : Orientation;
 		renderer.ctx.orientation = Orientation.Vertical;
 		_model.visitForward(_data, renderer);
@@ -299,7 +299,7 @@ private struct RenderingVisitor
 			dchar symb = model.collapsed ? Entypo.ICON_CHEVRON_RIGHT :
 			                               Entypo.ICON_CHEVRON_DOWN;
 			if (drawItem(ctx, ctx.size[ctx.orientation], [symb]))
-				selected_item = tree_path;
+				selected_item = loc.tree_path;
 			ctx.size[axis2] = old; // restore full width
 			ctx.position[ctx.orientation] -= ctx.size[ctx.orientation];
 		}
@@ -312,7 +312,7 @@ private struct RenderingVisitor
 			ctx.fontFace("sans");
 			ctx.fillColor(model.enabled ? ctx.theme.mTextColor : ctx.theme.mDisabledTextColor);
 			if (drawItem(ctx, ctx.size.y, Data.stringof))
-				selected_item = tree_path;
+				selected_item = loc.tree_path;
 		}
 	}
 
@@ -322,6 +322,6 @@ private struct RenderingVisitor
 		ctx.fontFace("sans");
 		ctx.fillColor(ctx.theme.mTextColor);
 		if (drawItem(ctx, cast(int) ctx.size[ctx.orientation], data))
-			selected_item = tree_path;
+			selected_item = loc.tree_path;
 	}
 }
