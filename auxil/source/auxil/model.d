@@ -113,11 +113,12 @@ private enum dataHasTaggedAlgebraicModel(T) = is(T == struct) && isInstanceOf!(T
 mixin template State()
 {
 	enum Spacing = 1;
-	double size = 0, header_size = 0;
+	SizeType size = 0, header_size = 0;
 	int _placeholder = 1 << Field.Collapsed | 
-	                   1 << Field.Enabled;
+	                   1 << Field.Enabled   |
+	                   1 << Field.Orientation;
 
-	private enum Field { Collapsed, Enabled, }
+	private enum Field { Collapsed, Enabled, Orientation, }
 
 	@property void collapsed(bool v)
 	{
@@ -142,6 +143,35 @@ mixin template State()
 		}
 	}
 	@property bool enabled() const { return (_placeholder & (1 << Field.Enabled)) != 0; }
+
+	@property void orientation(Orientation v)
+	{
+		if (orientation != v)
+		{
+			final switch(v)
+			{
+				case Orientation.Horizontal:
+					_placeholder &= ~(1 << Field.Orientation);
+				break;
+				case Orientation.Vertical:
+					_placeholder |=   1 << Field.Orientation;
+				break;
+			}
+		}
+	}
+
+	@property Orientation orientation() const
+	{
+		auto tmp = (_placeholder & (1 << Field.Orientation));
+		return cast(Orientation) (tmp >> Field.Orientation);
+	}
+}
+
+enum Orientation { Horizontal, Vertical }
+
+Orientation nextAxis(Orientation axis) @safe @nogc
+{
+	return cast(Orientation) ((axis + 1) % 2);
 }
 
 template Model(alias A)
