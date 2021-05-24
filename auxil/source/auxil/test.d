@@ -30,12 +30,12 @@ struct PrettyPrintingVisitor
 		} ();
 	}
 
-	void indent() @nogc @trusted
+	void beforeChildren() @nogc @trusted
 	{
 		_indentation ~= '\t';
 	}
 
-	void unindent() @nogc @trusted
+	void afterChildren() @nogc @trusted
 	{
 		if (_indentation.length)
 			_indentation.popBack;

@@ -36,8 +36,8 @@ struct DefaultVisitorImpl(
 		Location loc;
 	}
 
-	void indent() {}
-	void unindent() {}
+	void beforeChildren() {}
+	void afterChildren() {}
 	bool complete() @safe @nogc { return false; }
 	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model) {}
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}

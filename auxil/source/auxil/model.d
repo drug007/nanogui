@@ -885,8 +885,8 @@ mixin template visitImpl()
 
 		static if (this.Collapsable) if (!this.collapsed)
 		{
-			visitor.indent;
-			scope(exit) visitor.unindent;
+			visitor.beforeChildren;
+			scope(exit) visitor.afterChildren;
 
 			static if (Bubbling && hasTreePath)
 			{

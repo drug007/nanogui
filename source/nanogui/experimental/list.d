@@ -423,12 +423,12 @@ private struct RenderingVisitor
 		return ctx.position.y > finish;
 	}
 
-	void indent()
+	void beforeChildren()
 	{
 		ctx.indent;
 	}
 
-	void unindent()
+	void afterChildren()
 	{
 		ctx.unindent;
 	}
