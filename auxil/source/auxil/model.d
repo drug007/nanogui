@@ -662,7 +662,7 @@ struct NullableModel(alias A)
 		return (isNull) ? nulled_model.size : nullable_model.size;
 	}
 
-	@property auto size(double v)
+	@property auto size(SizeType v)
 	{
 		if (isNull)
 			nulled_model.size = v;
@@ -734,7 +734,7 @@ struct TimemarkedModel(alias A)
 		return (isNull) ? nulled_model.size : timemarked_model.size;
 	}
 
-	@property auto size(double v)
+	@property auto size(SizeType v)
 	{
 		if (isNull)
 			nulled_model.size = v;
@@ -781,7 +781,7 @@ struct ScalarModel(alias A)
 	    !dataHasAssociativeArrayModel!(TypeOf!A))
 {
 	enum Spacing = 1;
-	float size = 0;
+	SizeType size = 0;
 
 	enum Collapsable = false;
 
@@ -1176,7 +1176,7 @@ unittest
 	}
 }
 
-void visit(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor, double destination)
+void visit(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor, SizeType destination)
 {
 	visitor.loc.destination = destination;
 	if (destination == visitor.loc.position)

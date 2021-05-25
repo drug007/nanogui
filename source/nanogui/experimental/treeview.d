@@ -159,6 +159,7 @@ public:
 	/// Draws this TreeView.
 	override void draw(ref NanoContext ctx)
 	{
+		import auxil.location : SizeType;
 		// do not call super.draw() because we do custom drawing
 
 		//ctx.fontSize(theme.mButtonFontSize);
@@ -172,7 +173,7 @@ public:
 		//scope(exit) ctx.mouse += mPos;
 
 		auto renderer = RenderingVisitor(ctx);
-		renderer.loc.destination = ctx.position.y + size.y;
+		renderer.loc.destination = cast(SizeType) (ctx.position.y + size.y);
 		import nanogui.layout : Orientation;
 		renderer.ctx.orientation = Orientation.Vertical;
 		_model.visitForward(_data, renderer);

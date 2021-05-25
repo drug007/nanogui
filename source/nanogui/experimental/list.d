@@ -291,6 +291,8 @@ public:
 	/// Draws this TreeView.
 	override void draw(ref NanoContext ctx)
 	{
+		import auxil.location : SizeType;
+
 		ctx.save;
 
 		ctx.fontSize(theme.mButtonFontSize);
@@ -301,7 +303,7 @@ public:
 		if (_scroll_position != scroll_position)
 		{
 			_scroll_position = scroll_position;
-			visit(_model, _data, rm, _scroll_position);
+			visit(_model, _data, rm, cast(SizeType)_scroll_position);
 		}
 
 		ctx.theme = theme;

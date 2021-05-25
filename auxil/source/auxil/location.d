@@ -2,7 +2,7 @@ module auxil.location;
 
 import auxil.treepath;
 
-alias SizeType = double;
+alias SizeType = int;
 
 enum Order { Sinking, Bubbling, }
 
