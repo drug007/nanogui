@@ -392,6 +392,19 @@ struct TaggedAlgebraicModel(alias A)// if (dataHasTaggedAlgebraicModel!(TypeOf!A
 			assert(0);
 		}
 
+		@property size(SizeType v)
+		{
+			final switch(value.kind)
+			{
+				foreach (i, FT; value.UnionType.FieldTypes)
+				{
+					case __traits(getMember, value.Kind, value.UnionType.fieldNames[i]):
+						taget!FT(value).size = v;
+				}
+			}
+			assert(0);
+		}
+
 		this(T)(T v)
 		{
 			value = v;
@@ -848,9 +861,20 @@ mixin template visitImpl()
 
 		static if (hasSize)
 		{
-			size = visitor.size + Spacing;
 			static if (Collapsable)
-				header_size = size;
+				auto o = this.orientation;
+			else
+				auto o = visitor.orientation;
+			final switch(o)
+			{
+				case Orientation.Horizontal:
+				break;
+				case Orientation.Vertical:
+					size = visitor.size + Spacing;
+					static if (Collapsable)
+						header_size = size;
+				break;
+			}
 		}
 
 		static if (hasTreePath)
@@ -907,6 +931,7 @@ mixin template visitImpl()
 				return false;
 
 			size_t start_value;
+			float residual = 0;
 
 			static if (hasTreePath)
 				start_value = visitor.loc.startValue!order(len);
@@ -918,12 +943,29 @@ mixin template visitImpl()
 				foreach(i; TwoFacedRange!order(start_value, data.length))
 				{
 					static if (hasTreePath) visitor.loc.setPath(i);
-					static if (hasSize) scope(exit) this.size += model[i].size;
+					static if (hasSize) scope(exit)
+					{
+						final switch(this.orientation)
+						{
+							case Orientation.Horizontal:
+								double sf = cast(double)(this.size)/cast(int)len;
+								SizeType sz = cast(SizeType)sf;
+								residual += sf - sz;
+								if (residual >= 1.0)
+								{
+									sf -= 1;
+									sz += 1;
+								}
+								model[i].size = sz;
+							break;
+							case Orientation.Vertical:
+								this.size += model[i].size;
+							break;
+						}
+					}
 					auto idx = getIndex!(Data)(this, i);
 					if (model[i].visit!order(data[idx], visitor))
-					{
 						return true;
-					}
 				}
 			}
 			else static if (dataHasAggregateModel!Data)
@@ -941,7 +983,26 @@ mixin template visitImpl()
 							enum FieldNo = (Sinking) ? i : len2 - i - 1;
 							enum member = DrawableMembers!Data[FieldNo];
 							static if (hasTreePath) visitor.loc.setPath(cast(int) FieldNo);
-							static if (hasSize) scope(exit) this.size += mixin("this." ~ member).size;
+							static if (hasSize) scope(exit)
+							{
+								final switch(this.orientation)
+								{
+									case Orientation.Horizontal:
+										double sf = cast(double)(this.size)/cast(int)len;
+										SizeType sz = cast(SizeType)sf;
+										residual += sf - sz;
+										if (residual >= 1.0)
+										{
+											sf -= 1;
+											sz += 1;
+										}
+										mixin("this." ~ member).size = sz;
+									break;
+									case Orientation.Vertical:
+										this.size += mixin("this." ~ member).size;
+									break;
+								}
+							}
 							if (mixin("this." ~ member).visit!order(mixin("data." ~ member), visitor))
 							{
 								return true;
