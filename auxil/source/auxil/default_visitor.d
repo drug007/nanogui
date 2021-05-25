@@ -3,6 +3,7 @@ module auxil.default_visitor;
 import std.typecons : Flag;
 
 import auxil.location : Location, SizeType, Order;
+import auxil.model : Orientation;
 
 alias SizeEnabled     = Flag!"SizeEnabled";
 alias TreePathEnabled = Flag!"TreePathEnabled";
@@ -35,6 +36,8 @@ struct DefaultVisitorImpl(
 	{
 		Location loc;
 	}
+
+	Orientation orientation = Orientation.Vertical;
 
 	void beforeChildren() {}
 	void afterChildren() {}

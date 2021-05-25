@@ -9,29 +9,6 @@ import auxil.location : SizeType;
 struct Pos
 {
 	SizeType x, y, w, h;
-
-	void next(Orientation o, SizeType s)
-	{
-		final switch(o)
-		{
-			case Orientation.Vertical:
-				y += s;
-			break;
-			case Orientation.Horizontal:
-				x += s;
-			break;
-		}
-	}
-
-	void indent(SizeType s)
-	{
-		x += s;
-	}
-
-	void unindent(SizeType s)
-	{
-		x -= s;
-	}
 }
 
 @safe private
@@ -209,9 +186,28 @@ unittest
 	}();
 
 	model[0].orientation = Orientation.Horizontal;
-	model[0].f.size = 93;
-	model[0].i.size = 93;
-	model[0].s.size = 280-2*93;
+	model[0].size = 280;
+	{
+		auto mv = MeasuringVisitor(9);
+		model.visitForward(data, mv);
+
+		with(model[0])
+		{
+			size.should.be == 280;
+			header_size.should.be == 10;
+			f.size.should.be == 93;
+			i.size.should.be == 93;
+			s.size.should.be == 94;
+		}
+		with(model[1])
+		{
+			size.should.be == 40;
+			header_size.should.be == 10;
+			f.size.should.be == 10;
+			i.size.should.be == 10;
+			s.size.should.be == 10;
+		}
+	}
 	visitor.output.clear;
 	visitor.position.clear;
 	model.visitForward(data, visitor);
