@@ -3,6 +3,7 @@ module auxil.test;
 version(unittest) import unit_threaded : Name;
 
 import auxil.model;
+import auxil.location : SizeType;
 import auxil.default_visitor : DefaultVisitor, TreePathVisitor, MeasuringVisitor, NullVisitor;
 
 @safe private
@@ -16,7 +17,7 @@ struct PrettyPrintingVisitor
 	DefaultVisitor default_visitor;
 	alias default_visitor this;
 
-	this(float size) @nogc
+	this(SizeType size) @nogc
 	{
 		default_visitor = DefaultVisitor(size);
 	}
@@ -119,7 +120,6 @@ unittest
 }
 
 version(unittest) @Name("static_array")
-@nogc
 unittest
 {
 	version(Windows) {}
@@ -127,29 +127,35 @@ unittest
 		import core.stdc.locale;
 		setlocale(LC_NUMERIC, "C");
 	}
-	float[3] d = [1.1f, 2.2f, 3.3f];
-	auto m = Model!d();
 
-	auto visitor = PrettyPrintingVisitor(9);
-	visitor.processItem;
-	m.collapsed = false;
-	m.visitForward(d, visitor);
+	PrettyPrintingVisitor visitor;
 
-	visitor.output ~= '\0';
-	version(none)
+	() @nogc
 	{
-		import core.stdc.stdio : printf;
-		printf("%s\nlength: %ld\n", visitor.output[].ptr, visitor.output.length);
-	}
+		float[3] d = [1.1f, 2.2f, 3.3f];
+		auto m = Model!d();
+
+		visitor = PrettyPrintingVisitor(9);
+		visitor.processItem;
+		m.collapsed = false;
+		visitor.loc.destination = visitor.loc.destination.max;
+		m.visitForward(d, visitor);
+
+		visitor.output ~= '\0';
+		version(none)
+		{
+			import core.stdc.stdio : printf;
+			printf("%s\nlength: %ld\n", visitor.output[].ptr, visitor.output.length);
+		}
+	}();
 
 	import std.algorithm : equal;
-	assert(visitor.output[].equal("
+	visitor.output[].should.be == "
 Caption: float[3]
 	1.100000
 	2.200000
 	3.300000
-\0"
-	));
+\0";
 }
 
 version(unittest) @Name("dynamic_array")
@@ -162,6 +168,7 @@ unittest
 	visitor.processItem;
 	m.collapsed = false;
 	m.model.length = d.length;
+	visitor.loc.destination = visitor.loc.destination.max;
 	m.visitForward(d, visitor);
 
 	d ~= [4.4f, 5.5f];
@@ -180,7 +187,7 @@ unittest
 	}
 
 	import std.algorithm : equal;
-	assert(visitor.output[].equal("
+	visitor.output[].should.be == "
 Caption: float[]
 	1.100000
 	2.200000
@@ -193,8 +200,7 @@ Caption: float[]
 	5.500000
 Caption: float[]
 	3.300000
-\0"
-	));
+\0";
 }
 
 version(unittest) @Name("aggregate_with_only_member")
@@ -260,6 +266,7 @@ unittest
 
 	auto visitor = PrettyPrintingVisitor(9);
 	visitor.processItem;
+	visitor.loc.destination = visitor.loc.destination.max;
 	m.visitForward(d, visitor);
 
 	visitor.output ~= '\0';
@@ -518,6 +525,7 @@ unittest
 
 	auto visitor = PrettyPrintingVisitor(9);
 	visitor.processItem;
+	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data, visitor);
 
 	data[4] ~= "recently added 4th element";
@@ -537,7 +545,7 @@ unittest
 	}
 
 	import std.algorithm : equal;
-	assert(visitor.output[].equal("
+	visitor.output[].should.be == "
 Caption: TaggedAlgebraic!(Payload)[]
 	1.200000
 	4
@@ -582,8 +590,7 @@ Caption: TaggedAlgebraic!(Payload)[]
 		0.100000
 		0.200000
 		0.300000
-\0"
-	));
+\0";
 }
 
 version(unittest) @Name("nogc_dynamic_array")
@@ -605,6 +612,7 @@ unittest
 	assert(model.size == visitor.size + model.Spacing);
 
 	model.collapsed = false;
+	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data[], visitor);
 
 	assert(model.size == 4*(visitor.size + model.Spacing));
@@ -672,35 +680,39 @@ unittest
 	model.visitForward(data, visitor);
 
 	model.collapsed.should.be == true;
-	model.size.should.be ~ (visitor.size + model.Spacing);
-	model.size.should.be ~ 18.0;
-	visitor.loc.position.should.be ~ 0.0;
+	model.size.should.be == (visitor.size + model.Spacing);
+	model.size.should.be == 18;
+	visitor.loc.position.should.be == 0.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [], false);
+	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data, visitor);
-	model.size.should.be ~ (visitor.size + model.Spacing)*7;
-	model.size.should.be ~ 18.0*7;
+	model.size.should.be == (visitor.size + model.Spacing)*7;
+	model.size.should.be == 18*7;
 	visitor.loc.position.should.be == 6*18;
 
 	setPropertyByTreePath!"collapsed"(data, model, [3], false);
+	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data, visitor);
-	model.size.should.be ~ (visitor.size + model.Spacing)*9;
-	model.size.should.be ~ 18.0*9;
-	visitor.loc.position.should.be ~ (6+2)*18.0;
+	model.size.should.be == (visitor.size + model.Spacing)*9;
+	model.size.should.be == 18*9;
+	visitor.loc.position.should.be == (6+2)*18;
 
 	setPropertyByTreePath!"collapsed"(data, model, [4], false);
+	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data, visitor);
-	model.size.should.be ~ (visitor.size + model.Spacing)*12;
-	model.size.should.be ~ 18.0*12;
-	visitor.loc.position.should.be ~ (6+2+3)*18.0;
+	model.size.should.be == (visitor.size + model.Spacing)*12;
+	model.size.should.be == 18*12;
+	visitor.loc.position.should.be == (6+2+3)*18;
 
 	setPropertyByTreePath!"collapsed"(data, model, [5], false);
+	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data, visitor);
-	model.size.should.be ~ (visitor.size + model.Spacing)*15;
-	model.size.should.be ~ 18.0*15;
-	visitor.loc.position.should.be ~ (6+2+3+3)*18.0;
+	model.size.should.be == (visitor.size + model.Spacing)*15;
+	model.size.should.be == 18*15;
+	visitor.loc.position.should.be == (6+2+3+3)*18;
 
-	visitor.loc.destination = visitor.loc.destination.nan;
+	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data, visitor);
 	model.size.should.be == 270;
 	visitor.loc.position.should.be == 252;
@@ -852,6 +864,7 @@ version(unittest)
 		override void test()
 		{
 			v.loc.position = 0;
+			v.loc.destination = v.loc.destination.max;
 			model.visitForward(data, v);
 			model.size.should.be == 180;
 			v.output.should.be == [
@@ -898,7 +911,7 @@ version(unittest)
 			{
 				v.loc.path.clear;
 				v.loc.position = 0;
-				v.loc.destination = v.loc.destination.nan;
+				v.loc.destination = v.loc.destination.max;
 				model.visitForward(data, v);
 
 				v.loc.position.should.be == 170;
@@ -1080,16 +1093,6 @@ version(unittest)
 			v.loc.position.should.be == 80;
 			v.loc.destination.should.be == 80;
 
-			visit(model, data, v, 79.1);
-			v.loc.path.value[].should.be == [4];
-			v.loc.position.should.be == 70;
-			v.loc.destination.should.be ~ 79.1;
-
-			visit(model, data, v, 133.4);
-			v.loc.path.value[].should.be == [4, 3];
-			v.loc.position.should.be == 130;
-			v.loc.destination.should.be ~ 133.4;
-
 			visit(model, data, v, 0);
 			v.loc.path.value[].should.be == (int[]).init;
 			v.loc.position.should.be == 0;
@@ -1113,6 +1116,7 @@ unittest
 		model.visitForward(data, mv);
 	}
 	visitor.loc.position = 0;
+	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([ ],  0),
@@ -1124,6 +1128,7 @@ unittest
 
 	visitor.loc.position.should.be == 40;
 
+	visitor.loc.destination = visitor.loc.destination.min;
 	model.visitBackward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([3], 40),
@@ -1135,6 +1140,7 @@ unittest
 
 	visitor.loc.path.value = [1,];
 	visitor.loc.position = 20;
+	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([1], 20),
@@ -1142,6 +1148,7 @@ unittest
 		TreePosition([3], 40),
 	];
 	visitor.loc.position = 20;
+	visitor.loc.destination = visitor.loc.destination.min;
 	model.visitBackward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([1], 20),
@@ -1187,6 +1194,7 @@ unittest
 		model.visitForward(data, mv);
 	}
 	visitor.loc.position = 0;
+	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([], 0),
@@ -1241,7 +1249,7 @@ unittest
 
 	visitor.loc.path.value = [2];
 	visitor.loc.position = 30;
-	visitor.loc.destination = visitor.loc.destination.nan;
+	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data, visitor);
 
 	visitor.output.should.be == [
@@ -1251,7 +1259,7 @@ unittest
 	];
 
 	visitor.loc.path.clear;
-	visitor.loc.destination = visitor.loc.destination.nan;
+	visitor.loc.destination = visitor.loc.destination.min;
 	model.visitBackward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([4], 50),

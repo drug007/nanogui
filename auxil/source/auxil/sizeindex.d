@@ -257,7 +257,7 @@ version(unittest)
 
 			index.start  .should.be == index_window.start;
 			index.length .should.be == index_window.length;
-			index.current.should.be  ~ index_window.current;
+			index.current.should.be == index_window.current;
 		}
 	}
 

@@ -178,6 +178,7 @@ unittest
 		auto mv = MeasuringVisitor(9);
 		model.visitForward(data, mv);
 	}
+	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data, visitor);
 
 	() @trusted
