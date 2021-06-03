@@ -494,11 +494,19 @@ struct Test
 	string s = "some text";
 }
 
+@("Orientation.Horizontal")
+struct Test1
+{
+	int l = 42;
+	string s = "some text";
+}
+
 struct Test2
 {
 	double d = 8.8;
 	long l = 999;
 	Test t;
+	Test1 t1;
 }
 
 import taggedalgebraic : TaggedAlgebraic;
