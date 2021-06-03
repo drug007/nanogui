@@ -25,10 +25,11 @@ struct Visitor2D
 
 	Vector!(Pos, Mallocator) position;
 	Pos pos, old_pos;
+	SizeType size;
 
-	this(float size) @nogc
+	this(SizeType size) @nogc
 	{
-		default_visitor = TreePathVisitor();
+		this.size = size;
 	}
 
 	auto processItem(T...)(T msg)
@@ -43,7 +44,17 @@ struct Visitor2D
 	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
 		loc.position = 0;
-		pos = Pos(0, 0, 300, 20);
+
+		final switch (this.orientation)
+		{
+			case Orientation.Vertical:
+				pos = Pos(0, 0, size, model.header_size);
+			break;
+			case Orientation.Horizontal:
+				pos = Pos(0, 0, model.size, size);
+			break;
+		}
+
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
@@ -73,8 +84,8 @@ struct Visitor2D
 				() @trusted {
 					output ~= "\n";
 					_indentation ~= "\t";
-					pos.x += 2*model.header_size;
-					pos.w -= 2*model.header_size;
+					pos.x += model.header_size;
+					pos.w -= model.header_size;
 				} ();
 			break;
 			case Orientation.Horizontal:
@@ -90,8 +101,8 @@ struct Visitor2D
 			case Orientation.Vertical:
 				if (_indentation.length)
 					_indentation.popBack;
-				pos.x -= 2*model.header_size;
-				pos.w += 2*model.header_size;
+				pos.x -= model.header_size;
+				pos.w += model.header_size;
 			break;
 			case Orientation.Horizontal:
 				() @trusted {
@@ -146,13 +157,14 @@ unittest
 
 	Test[2] data;
 
-	auto visitor = Visitor2D();
+	auto visitor = Visitor2D(300);
+	visitor.orientation = visitor.orientation.Vertical;
 	auto model = makeModel(data);
 	model.collapsed = false;
 	model[0].collapsed = false;
 	model[1].collapsed = false;
 	{
-		auto mv = MeasuringVisitor(9);
+		auto mv = MeasuringVisitor([300, 9]);
 		model.visitForward(data, mv);
 	}
 	visitor.loc.destination = visitor.loc.destination.max;
@@ -161,15 +173,15 @@ unittest
 	() @trusted
 	{
 		visitor.position[].should.be == [
-			Pos( 0, 10, 300, 20), 
-				Pos(20, 20, 280, 20), 
-					Pos(40, 30, 260, 20), 
-					Pos(40, 40, 260, 20), 
-					Pos(40, 50, 260, 20),
-				Pos(20, 60, 280, 20), 
-					Pos(40, 70, 260, 20), 
-					Pos(40, 80, 260, 20), 
-					Pos(40, 90, 260, 20),
+			Pos( 0, 10, 300, 10), 
+				Pos(10, 20, 290, 10), 
+					Pos(20, 30, 280, 10), 
+					Pos(20, 40, 280, 10), 
+					Pos(20, 50, 280, 10),
+				Pos(10, 60, 290, 10), 
+					Pos(20, 70, 280, 10), 
+					Pos(20, 80, 280, 10), 
+					Pos(20, 90, 280, 10),
 		];
 
 		visitor.output[].should.be == 
@@ -186,18 +198,17 @@ unittest
 	}();
 
 	model[0].orientation = Orientation.Horizontal;
-	model[0].size = 280;
 	{
-		auto mv = MeasuringVisitor(9);
+		auto mv = MeasuringVisitor([300, 9]);
 		model.visitForward(data, mv);
 
 		with(model[0])
 		{
-			size.should.be == 280;
+			size.should.be == 290;
 			header_size.should.be == 10;
-			f.size.should.be == 93;
-			i.size.should.be == 93;
-			s.size.should.be == 94;
+			f.size.should.be == 96;
+			i.size.should.be == 97;
+			s.size.should.be == 97;
 		}
 		with(model[1])
 		{
@@ -215,13 +226,13 @@ unittest
 	() @trusted
 	{
 		visitor.position[].should.be == [
-			Pos( 0, 10, 300, 20), 
-				Pos(20, 20, 280, 20), 
-					Pos(20, 20, 93, 20), Pos(20+1*93, 20, 93, 20), Pos(20+2*93, 20, 280-2*93, 20),
-				Pos(20, 30, 280, 20), 
-					Pos(40, 40, 260, 20), 
-					Pos(40, 50, 260, 20), 
-					Pos(40, 60, 260, 20),
+			Pos( 0, 10, 300, 10), 
+				Pos(10, 20, 290, 10), 
+					Pos(10, 20, 96, 10), Pos(10+96, 20, 97, 10), Pos(10+96+97, 20, 290-96-97, 10),
+				Pos(10, 30, 290, 10), 
+					Pos(20, 40, 280, 10), 
+					Pos(20, 50, 280, 10), 
+					Pos(20, 60, 280, 10),
 		];
 
 		visitor.output[].should.be == 

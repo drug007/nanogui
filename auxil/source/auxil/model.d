@@ -870,7 +870,7 @@ mixin template visitImpl()
 				case Orientation.Horizontal:
 				break;
 				case Orientation.Vertical:
-					size = visitor.size + Spacing;
+					size = visitor.size[o] + Spacing;
 					static if (Collapsable)
 						header_size = size;
 				break;

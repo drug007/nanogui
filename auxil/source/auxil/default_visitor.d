@@ -24,9 +24,9 @@ struct DefaultVisitorImpl(
 
 	static if (sizeEnabled == SizeEnabled.yes)
 	{
-		SizeType size;
+		SizeType[2] size;
 
-		this(SizeType s) @safe @nogc nothrow
+		this(SizeType[2] s) @safe @nogc nothrow
 		{
 			size = s;
 		}
