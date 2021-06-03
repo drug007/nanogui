@@ -110,7 +110,7 @@ private enum dataHasRandomAccessRangeModel(T) = isRandomAccessRange!T && !isSome
 private enum dataHasAggregateModel(T) = (is(T == struct) || is(T == union)) && !dataHasRandomAccessRangeModel!T && !dataHasTaggedAlgebraicModel!T;
 private enum dataHasTaggedAlgebraicModel(T) = is(T == struct) && isInstanceOf!(TaggedAlgebraic, T);
 
-mixin template State()
+mixin template State(alias This)
 {
 	enum Spacing = 1;
 	SizeType size = 0, header_size = 0;
@@ -144,26 +144,33 @@ mixin template State()
 	}
 	@property bool enabled() const { return (_placeholder & (1 << Field.Enabled)) != 0; }
 
-	@property void orientation(Orientation v)
+	static if (getGivenAttributeAsString!(This, "Orientation").length)
 	{
-		if (orientation != v)
+		enum orientation = mixin("Orientation." ~ getGivenAttributeAsString!(This, "Orientation")[0]);
+	}
+	else
+	{
+		@property void orientation(Orientation v)
 		{
-			final switch(v)
+			if (orientation != v)
 			{
-				case Orientation.Horizontal:
-					_placeholder &= ~(1 << Field.Orientation);
-				break;
-				case Orientation.Vertical:
-					_placeholder |=   1 << Field.Orientation;
-				break;
+				final switch(v)
+				{
+					case Orientation.Horizontal:
+						_placeholder &= ~(1 << Field.Orientation);
+					break;
+					case Orientation.Vertical:
+						_placeholder |=   1 << Field.Orientation;
+					break;
+				}
 			}
 		}
-	}
 
-	@property Orientation orientation() const
-	{
-		auto tmp = (_placeholder & (1 << Field.Orientation));
-		return cast(Orientation) (tmp >> Field.Orientation);
+		@property Orientation orientation() const
+		{
+			auto tmp = (_placeholder & (1 << Field.Orientation));
+			return cast(Orientation) (tmp >> Field.Orientation);
+		}
 	}
 }
 
@@ -211,7 +218,7 @@ struct StaticArrayModel(alias A)// if (dataHasStaticArrayModel!(TypeOf!A))
 {
 	enum Collapsable = true;
 
-	mixin State;
+	mixin State!A;
 
 	alias Data = TypeOf!A;
 	static assert(isProcessible!Data);
@@ -242,7 +249,7 @@ struct RaRModel(alias A)// if (dataHasRandomAccessRangeModel!(TypeOf!A))
 
 	enum Collapsable = true;
 
-	mixin State;
+	mixin State!A;
 
 	alias Data = TypeOf!A;
 	static assert(isProcessible!Data);
@@ -285,7 +292,7 @@ struct AssocArrayModel(alias A)// if (dataHasAssociativeArrayModel!(TypeOf!A))
 
 	static assert(dataHasAssociativeArrayModel!(TypeOf!A));
 
-	mixin State;
+	mixin State!A;
 
 	alias Data = TypeOf!A;
 	alias Key = typeof(Data.init.byKey.front);
@@ -496,7 +503,7 @@ template AggregateModel(alias A) // if (dataHasAggregateModel!(TypeOf!A) && !is(
 
 			import std.format : format;
 
-			mixin State;
+			mixin State!A;
 
 			import auxil.traits : DrawableMembers;
 			static foreach(member; DrawableMembers!Data)

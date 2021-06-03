@@ -245,3 +245,59 @@ unittest
 ";
 	}();
 }
+
+version(unittest) @Name("staticAttribute")
+@safe
+unittest
+{
+	static struct Test
+	{
+		float f = 7.7;
+		int i = 8;
+		string s = "some text";
+	}
+
+	static struct Wrapper
+	{
+		@("Orientation.Horizontal")
+		Test t1;
+		Test t2;
+	}
+
+	Wrapper data;
+
+	auto visitor = Visitor2D(300);
+	visitor.orientation = visitor.orientation.Vertical;
+	auto model = makeModel(data);
+	model.collapsed = false;
+	model.t1.collapsed = false;
+	model.t2.collapsed = false;
+	{
+		auto mv = MeasuringVisitor([300, 9]);
+		model.visitForward(data, mv);
+	}
+	visitor.loc.destination = visitor.loc.destination.max;
+	model.visitForward(data, visitor);
+
+	() @trusted
+	{
+		visitor.position[].should.be == [
+			Pos( 0, 10, 300, 10), 
+				Pos(10, 20, 290, 10), 
+					Pos(10, 20, 96, 10), Pos(10+96, 20, 97, 10), Pos(10+96+97, 20, 290-96-97, 10),
+				Pos(10, 30, 290, 10), 
+					Pos(20, 40, 280, 10), 
+					Pos(20, 50, 280, 10), 
+					Pos(20, 60, 280, 10),
+		];
+
+		visitor.output[].should.be == 
+"Caption: Wrapper
+	7.700000	8	some text
+	Caption: Test
+		7.700000
+		8
+		some text
+";
+	}();
+}
