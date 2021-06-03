@@ -861,20 +861,27 @@ mixin template visitImpl()
 
 		static if (hasSize)
 		{
-			static if (Collapsable)
-				auto o = this.orientation;
-			else
-				auto o = visitor.orientation;
-			final switch(o)
+			final switch(visitor.orientation)
 			{
 				case Orientation.Horizontal:
+					size = visitor.size[visitor.orientation];
+					static if (Collapsable)
+						header_size = 0;
 				break;
 				case Orientation.Vertical:
-					size = visitor.size[o] + Spacing;
+					size = visitor.size[visitor.orientation] + Spacing;
 					static if (Collapsable)
 						header_size = size;
 				break;
 			}
+		}
+
+		static if (Collapsable)
+		{
+			const old_orientation = visitor.orientation;
+			visitor.orientation  = this.orientation;
+
+			scope(exit) visitor.orientation = old_orientation;
 		}
 
 		static if (hasTreePath)
@@ -909,8 +916,20 @@ mixin template visitImpl()
 
 		static if (this.Collapsable) if (!this.collapsed)
 		{
+			static if (hasSize) if (visitor.orientation == Orientation.Horizontal)
+			{
+				visitor.size[visitor.orientation] -= visitor.size[Orientation.Vertical]+Spacing;
+				this.size = visitor.size[visitor.orientation];
+			}
 			visitor.beforeChildren;
-			scope(exit) visitor.afterChildren;
+			scope(exit)
+			{
+				visitor.afterChildren;
+				static if (hasSize) if (visitor.orientation == Orientation.Horizontal)
+				{
+					visitor.size[visitor.orientation] += visitor.size[Orientation.Vertical]+Spacing;
+				}
+			}
 
 			static if (Bubbling && hasTreePath)
 			{
@@ -953,7 +972,7 @@ mixin template visitImpl()
 								residual += sf - sz;
 								if (residual >= 1.0)
 								{
-									sf -= 1;
+									residual -= 1;
 									sz += 1;
 								}
 								model[i].size = sz;
@@ -993,7 +1012,7 @@ mixin template visitImpl()
 										residual += sf - sz;
 										if (residual >= 1.0)
 										{
-											sf -= 1;
+											residual -= 1;
 											sz += 1;
 										}
 										mixin("this." ~ member).size = sz;
