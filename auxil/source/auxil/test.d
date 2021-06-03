@@ -17,7 +17,7 @@ struct PrettyPrintingVisitor
 	DefaultVisitor default_visitor;
 	alias default_visitor this;
 
-	this(SizeType size) @nogc
+	this(SizeType[2] size) @nogc
 	{
 		default_visitor = DefaultVisitor(size);
 	}
@@ -102,11 +102,11 @@ unittest
 		TestClass tc;
 	}
 
-	auto visitor = PrettyPrintingVisitor(9);
+	auto visitor = PrettyPrintingVisitor([99, 9]);
 	auto d = StructWithStruct();
 	auto m = makeModel(d);
 	m.visitForward(d, visitor);
-	assert(m.size == 10);
+	m.size.should.be == 10;
 	d.d = 0;
 	d.l = 1;
 	d.t.f = 2;
@@ -135,7 +135,7 @@ unittest
 		float[3] d = [1.1f, 2.2f, 3.3f];
 		auto m = Model!d();
 
-		visitor = PrettyPrintingVisitor(9);
+		visitor = PrettyPrintingVisitor([99, 9]);
 		visitor.processItem;
 		m.collapsed = false;
 		visitor.loc.destination = visitor.loc.destination.max;
@@ -164,7 +164,7 @@ unittest
 	float[] d = [1.1f, 2.2f, 3.3f];
 	auto m = Model!d();
 
-	auto visitor = PrettyPrintingVisitor(9);
+	auto visitor = PrettyPrintingVisitor([99, 9]);
 	visitor.processItem;
 	m.collapsed = false;
 	m.model.length = d.length;
@@ -217,7 +217,7 @@ version(unittest) @Name("aggregate_with_only_member")
 	import std.meta : AliasSeq;
 	static assert(FieldNameTuple!(typeof(m)) == AliasSeq!("single_member_model"));
 
-	auto visitor = PrettyPrintingVisitor(9);
+	auto visitor = PrettyPrintingVisitor([99, 9]);
 	visitor.processItem;
 	m.visitForward(d, visitor);
 
@@ -264,7 +264,7 @@ unittest
 	auto m = Model!d();
 	m.collapsed = false;
 
-	auto visitor = PrettyPrintingVisitor(9);
+	auto visitor = PrettyPrintingVisitor([99, 9]);
 	visitor.processItem;
 	visitor.loc.destination = visitor.loc.destination.max;
 	m.visitForward(d, visitor);
@@ -344,7 +344,7 @@ unittest
 		import std.meta : AliasSeq;
 		static assert(FieldNameTuple!(typeof(m)) == AliasSeq!("single_member_model"));
 
-		auto visitor = PrettyPrintingVisitor(9);
+		auto visitor = PrettyPrintingVisitor([99, 9]);
 		visitor.processItem;
 		m.visitForward(d, visitor);
 
@@ -369,7 +369,7 @@ unittest
 		auto m = makeModel(d);
 		static assert(!m.Collapsable);
 
-		auto visitor = PrettyPrintingVisitor(9);
+		auto visitor = PrettyPrintingVisitor([99, 9]);
 		visitor.processItem;
 		m.visitForward(d, visitor);
 
@@ -404,7 +404,7 @@ nan
 		auto m = makeModel(d);
 		static assert(!m.Collapsable);
 
-		auto visitor = PrettyPrintingVisitor(9);
+		auto visitor = PrettyPrintingVisitor([99, 9]);
 		visitor.processItem;
 		m.visitForward(d, visitor);
 
@@ -437,7 +437,7 @@ nan
 		auto m = makeModel(d);
 		static assert(!m.Collapsable);
 
-		auto visitor = PrettyPrintingVisitor(9);
+		auto visitor = PrettyPrintingVisitor([99, 9]);
 		visitor.processItem;
 		m.visitForward(d, visitor);
 
@@ -523,7 +523,7 @@ unittest
 	foreach(ref e; model.model)
 		e.collapsed = false;
 
-	auto visitor = PrettyPrintingVisitor(9);
+	auto visitor = PrettyPrintingVisitor([99, 9]);
 	visitor.processItem;
 	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data, visitor);
@@ -606,18 +606,18 @@ unittest
 
 	auto model = makeModel(data[]);
 
-	auto visitor = PrettyPrintingVisitor(14);
+	auto visitor = PrettyPrintingVisitor([99, 14]);
 	visitor.processItem;
 	model.visitForward(data[], visitor);
-	assert(model.size == visitor.size + model.Spacing);
+	assert(model.size == visitor.size[visitor.orientation] + model.Spacing);
 
 	model.collapsed = false;
 	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data[], visitor);
 
-	assert(model.size == 4*(visitor.size + model.Spacing));
+	assert(model.size == 4*(visitor.size[visitor.orientation] + model.Spacing));
 	foreach(e; model.model)
-		assert(e.size == (visitor.size + model.Spacing));
+		assert(e.size == (visitor.size[visitor.orientation] + model.Spacing));
 
 	visitor.output ~= '\0';
 	version(none)
@@ -676,39 +676,39 @@ unittest
 	assert(model[4].get!(Model!(string[])).length == data[4].length);
 
 	model.size.should.be == 0;
-	auto visitor = PrettyPrintingVisitor(17);
+	auto visitor = PrettyPrintingVisitor([99, 17]);
 	model.visitForward(data, visitor);
 
 	model.collapsed.should.be == true;
-	model.size.should.be == (visitor.size + model.Spacing);
+	model.size.should.be == (visitor.size[visitor.orientation] + model.Spacing);
 	model.size.should.be == 18;
 	visitor.loc.position.should.be == 0.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [], false);
 	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data, visitor);
-	model.size.should.be == (visitor.size + model.Spacing)*7;
+	model.size.should.be == (visitor.size[visitor.orientation] + model.Spacing)*7;
 	model.size.should.be == 18*7;
 	visitor.loc.position.should.be == 6*18;
 
 	setPropertyByTreePath!"collapsed"(data, model, [3], false);
 	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data, visitor);
-	model.size.should.be == (visitor.size + model.Spacing)*9;
+	model.size.should.be == (visitor.size[visitor.orientation] + model.Spacing)*9;
 	model.size.should.be == 18*9;
 	visitor.loc.position.should.be == (6+2)*18;
 
 	setPropertyByTreePath!"collapsed"(data, model, [4], false);
 	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data, visitor);
-	model.size.should.be == (visitor.size + model.Spacing)*12;
+	model.size.should.be == (visitor.size[visitor.orientation] + model.Spacing)*12;
 	model.size.should.be == 18*12;
 	visitor.loc.position.should.be == (6+2+3)*18;
 
 	setPropertyByTreePath!"collapsed"(data, model, [5], false);
 	visitor.loc.destination = visitor.loc.destination.max;
 	model.visitForward(data, visitor);
-	model.size.should.be == (visitor.size + model.Spacing)*15;
+	model.size.should.be == (visitor.size[visitor.orientation] + model.Spacing)*15;
 	model.size.should.be == 18*15;
 	visitor.loc.position.should.be == (6+2+3+3)*18;
 
@@ -821,7 +821,7 @@ version(unittest)
 
 			// measure size
 			{
-				auto mv = MeasuringVisitor(9);
+				auto mv = MeasuringVisitor([99, 9]);
 				model.visitForward(data, mv);
 			}
 		}
@@ -1112,7 +1112,7 @@ unittest
 
 	model.collapsed = false;
 	{
-		auto mv = MeasuringVisitor(9);
+		auto mv = MeasuringVisitor([99, 9]);
 		model.visitForward(data, mv);
 	}
 	visitor.loc.position = 0;
@@ -1190,7 +1190,7 @@ unittest
 
 	model.collapsed = false;
 	{
-		auto mv = MeasuringVisitor(9);
+		auto mv = MeasuringVisitor([99, 9]);
 		model.visitForward(data, mv);
 	}
 	visitor.loc.position = 0;
@@ -1290,7 +1290,7 @@ unittest
 	auto d = StructNullable();
 	auto m = makeModel(d);
 	m.collapsed = false;
-	auto visitor = DefaultVisitor(19);
+	auto visitor = DefaultVisitor([99, 19]);
 	m.visitForward(d, visitor);
 	import std;
 	writeln(m);
@@ -1313,7 +1313,7 @@ unittest
 
 	auto data = [0, 1, 2, 3];
 	auto model = makeModel(data);
-	auto visitor = MeasuringVisitor(9);
+	auto visitor = MeasuringVisitor([99, 9]);
 
 	model.collapsed = false;
 	model.visitForward(data, visitor);
