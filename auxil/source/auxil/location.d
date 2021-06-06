@@ -8,7 +8,7 @@ enum Order { Sinking, Bubbling, }
 
 struct Axis
 {
-	SizeType value, destination, change, size;
+	SizeType position, destination, change, size;
 }
 
 @safe
@@ -18,21 +18,21 @@ struct Location
 	enum State { seeking, first, rest, finishing, }
 	private State _state;
 	TreePath current_path, path;
-	private Axis _yaxis;
+	Axis y;
 
 	@property
 	{
 		State state() @safe @nogc nothrow { return _state; }
-		SizeType position() const { return _yaxis.value; }
-		void     position(SizeType v) { _yaxis.value = v; }
-		SizeType destination() const { return _yaxis.destination; }
-		void     destination(SizeType v) { _yaxis.destination = v; }
+		SizeType position() const { return y.position; }
+		void     position(SizeType v) { y.position = v; }
+		SizeType destination() const { return y.destination; }
+		void     destination(SizeType v) { y.destination = v; }
 	}
 
 	package void resetState() @safe @nogc nothrow
 	{
 		_state = (path.value.length) ? State.seeking : State.rest;
-		_yaxis.change = 0;
+		y.change = 0;
 	}
 
 	/// returns true if the processing should be interrupted
@@ -62,8 +62,8 @@ struct Location
 	{
 		static if (order == Order.Sinking)
 		{
-			_yaxis.value = _yaxis.value + _yaxis.change;
-			_yaxis.change = header_size;
+			y.position = y.position + y.change;
+			y.change = header_size;
 		}
 	}
 
@@ -71,7 +71,7 @@ struct Location
 	{
 		static if (order == Order.Sinking)
 		{
-			if (_yaxis.value +_yaxis.change > _yaxis.destination)
+			if (y.position +y.change > y.destination)
 			{
 				path = current_path;
 				_state = State.finishing;
@@ -83,8 +83,8 @@ struct Location
 	{
 		static if (order == Order.Bubbling)
 		{
-			_yaxis.value = _yaxis.value + _yaxis.change;
-			_yaxis.change = -header_size;
+			y.position = y.position + y.change;
+			y.change = -header_size;
 		}
 	}
 
@@ -92,7 +92,7 @@ struct Location
 	{
 		static if (order == Order.Bubbling)
 		{
-			if (_yaxis.value <= _yaxis.destination)
+			if (y.position <= y.destination)
 			{
 				_state = State.finishing;
 				path = current_path;
@@ -128,7 +128,7 @@ struct Location
 				start_value = path.value[idx-1];
 				// position should change only if we've got the initial path
 				// and don't get the end
-				if (_state == State.seeking) _yaxis.change = 0;
+				if (_state == State.seeking) y.change = 0;
 			}
 		}
 		return start_value;
