@@ -40,15 +40,7 @@ struct Visitor2D
 	SizeType size;
 
 
-	Axis x, old_x, y;
-
-	void setAxis(SizeType x, SizeType y, SizeType w, SizeType h)
-	{
-		this.x.position = x;
-		this.y.position = y;
-		this.x.size = w;
-		this.y.size = h;
-	}
+	Axis x, old_x;
 
 	this(SizeType size) @nogc
 	{
@@ -66,15 +58,22 @@ struct Visitor2D
 
 	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
-		loc.y.position = 0;
+		// loc.y.position = 0;
 
 		final switch (this.orientation)
 		{
 			case Orientation.Vertical:
-				setAxis(0, 0, size, model.header_size);
+				x.position = 0;
+				// loc.y.position = 0;
+				x.size = size;
+				// loc.y.size = model.header_size;
+
 			break;
 			case Orientation.Horizontal:
-				setAxis(0, 0, model.size, size);
+				x.position = 0;
+				// loc.y.position = 0;
+				x.size = model.size;
+				// loc.y.size = size;
 			break;
 		}
 
@@ -89,15 +88,15 @@ struct Visitor2D
 		final switch (model.orientation)
 		{
 			case Orientation.Vertical:
-				y.position = y.position + model.header_size;
+				loc.y.position = loc.y.position + model.header_size;
 			break;
 			case Orientation.Horizontal:
-				y.position = y.position + model.header_size;
+				loc.y.position = loc.y.position + model.header_size;
 			break;
 		}
 
 		() @trusted {
-			position ~= Pos(x, y);
+			position ~= Pos(x, loc.y);
 		} ();
 
 		final switch (model.orientation)
@@ -142,14 +141,14 @@ struct Visitor2D
 		final switch (orientation)
 		{
 			case Orientation.Vertical:
-				y.position = y.position + model.size;
+				loc.y.position = loc.y.position + model.size;
 			break;
 			case Orientation.Horizontal:
 				x.size = model.size;
 			break;
 		}
 		() @trusted {
-			position ~= Pos(x, y);
+			position ~= Pos(x, loc.y);
 		} ();
 		processItem(data);
 		final switch (this.orientation)
@@ -190,7 +189,7 @@ unittest
 		auto mv = MeasuringVisitor([300, 9]);
 		model.visitForward(data, mv);
 	}
-	visitor.loc.y.destination = visitor.loc.y.destination.max;
+	// // visitor.loc.y.destination = visitor.loc.y.destination.max;
 	model.visitForward(data, visitor);
 
 	() @trusted
@@ -299,7 +298,7 @@ unittest
 		auto mv = MeasuringVisitor([300, 9]);
 		model.visitForward(data, mv);
 	}
-	visitor.loc.y.destination = visitor.loc.y.destination.max;
+	// // visitor.loc.y.destination = visitor.loc.y.destination.max;
 	model.visitForward(data, visitor);
 
 	() @trusted
