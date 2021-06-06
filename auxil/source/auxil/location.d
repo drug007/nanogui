@@ -23,10 +23,6 @@ struct Location
 	@property
 	{
 		State state() @safe @nogc nothrow { return _state; }
-		SizeType position() const { return y.position; }
-		void     position(SizeType v) { y.position = v; }
-		SizeType destination() const { return y.destination; }
-		void     destination(SizeType v) { y.destination = v; }
 	}
 
 	package void resetState() @safe @nogc nothrow
