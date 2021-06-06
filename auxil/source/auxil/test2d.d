@@ -8,7 +8,6 @@ import auxil.location : SizeType, Axis;
 
 struct Pos
 {
-	@safe:
 	Axis[2] axis;
 
 	this(SizeType x, SizeType y, SizeType w, SizeType h)
@@ -42,8 +41,28 @@ struct Visitor2D
 	alias default_visitor this;
 
 	Vector!(Pos, Mallocator) position;
-	Pos pos, old_pos;
 	SizeType size;
+
+
+	Axis xaxis, old_xaxis, yaxis;
+
+	void setAxis(SizeType x, SizeType y, SizeType w, SizeType h)
+	{
+		this.x = x;
+		this.y = y;
+		this.w = w;
+		this.h = h;
+	}
+
+	@property SizeType x() const { return xaxis.position; }
+	@property SizeType w() const { return xaxis.size; }
+	@property SizeType y() const { return yaxis.position; }
+	@property SizeType h() const { return yaxis.size; }
+
+	@property x(SizeType v) { xaxis.position = v; }
+	@property w(SizeType v) { xaxis.size = v; }
+	@property y(SizeType v) { yaxis.position = v; }
+	@property h(SizeType v) { yaxis.size = v; }
 
 	this(SizeType size) @nogc
 	{
@@ -66,10 +85,10 @@ struct Visitor2D
 		final switch (this.orientation)
 		{
 			case Orientation.Vertical:
-				pos = Pos(0, 0, size, model.header_size);
+				setAxis(0, 0, size, model.header_size);
 			break;
 			case Orientation.Horizontal:
-				pos = Pos(0, 0, model.size, size);
+				setAxis(0, 0, model.size, size);
 			break;
 		}
 
@@ -79,20 +98,20 @@ struct Visitor2D
 	{
 		import auxil.traits : hasRenderHeader;
 
-		old_pos = pos;
+		old_xaxis = xaxis;
 
 		final switch (model.orientation)
 		{
 			case Orientation.Vertical:
-				pos.y = pos.y + model.header_size;
+				yaxis.position = yaxis.position + model.header_size;
 			break;
 			case Orientation.Horizontal:
-				pos.y = pos.y + model.header_size;
+				yaxis.position = yaxis.position + model.header_size;
 			break;
 		}
 
 		() @trusted {
-			position ~= pos;
+			position ~= Pos(x, y, w, h);
 		} ();
 
 		final switch (model.orientation)
@@ -102,8 +121,8 @@ struct Visitor2D
 				() @trusted {
 					output ~= "\n";
 					_indentation ~= "\t";
-					pos.x = pos.x + model.header_size;
-					pos.w = pos.w - model.header_size;
+					xaxis.position = xaxis.position + model.header_size;
+					xaxis.size = xaxis.size - model.header_size;
 				} ();
 			break;
 			case Orientation.Horizontal:
@@ -119,15 +138,15 @@ struct Visitor2D
 			case Orientation.Vertical:
 				if (_indentation.length)
 					_indentation.popBack;
-				pos.x = pos.x - model.header_size;
-				pos.w = pos.w + model.header_size;
+				xaxis.position = xaxis.position - model.header_size;
+				xaxis.size = xaxis.size + model.header_size;
 			break;
 			case Orientation.Horizontal:
 				() @trusted {
 					output ~= "\n";
 				} ();
-				pos.x = old_pos.x;
-				pos.w = old_pos.w;
+				xaxis.position = old_xaxis.position;
+				xaxis.size = old_xaxis.size;
 			break;
 		}
 	}
@@ -137,14 +156,14 @@ struct Visitor2D
 		final switch (orientation)
 		{
 			case Orientation.Vertical:
-				pos.y = pos.y + model.size;
+				yaxis.position = yaxis.position + model.size;
 			break;
 			case Orientation.Horizontal:
-				pos.w = model.size;
+				xaxis.size = model.size;
 			break;
 		}
 		() @trusted {
-			position ~= pos;
+			position ~= Pos(x, y, w, h);
 		} ();
 		processItem(data);
 		final switch (this.orientation)
@@ -155,7 +174,7 @@ struct Visitor2D
 				} ();
 			break;
 			case Orientation.Horizontal:
-				pos.x = pos.x + model.size;
+				xaxis.position = xaxis.position + model.size;
 			break;
 		}
 	}
