@@ -6,28 +6,33 @@ alias SizeType = int;
 
 enum Order { Sinking, Bubbling, }
 
+struct Axis
+{
+	SizeType value, destination, change;
+}
+
 @safe
 struct Location
 {
 @nogc:
 	enum State { seeking, first, rest, finishing, }
-	enum Orientation { Horizontal, Vertical, }
 	private State _state;
-	Orientation orientation = Orientation.Vertical;
 	TreePath tree_path, path;
-	SizeType destination;
-	SizeType[2] _position;
-	private SizeType _deferred_change;
+	private Axis _yaxis;
 
-	@property position() { return _position[orientation]; }
-	@property position(SizeType v) { _position[orientation] = v; }
-
-	@property State state() @safe @nogc nothrow { return _state; }
+	@property
+	{
+		State state() @safe @nogc nothrow { return _state; }
+		SizeType position() const { return _yaxis.value; }
+		void     position(SizeType v) { _yaxis.value = v; }
+		SizeType destination() const { return _yaxis.destination; }
+		void     destination(SizeType v) { _yaxis.destination = v; }
+	}
 
 	package void resetState() @safe @nogc nothrow
 	{
 		_state = (path.value.length) ? State.seeking : State.rest;
-		_deferred_change = 0;
+		_yaxis.change = 0;
 	}
 
 	/// returns true if the processing should be interrupted
@@ -53,20 +58,20 @@ struct Location
 		return false;
 	}
 
-	auto movePositionIfSinking(Order order)(SizeType header_size)
+	auto enterNode(Order order)(SizeType header_size)
 	{
 		static if (order == Order.Sinking)
 		{
-			position = position + _deferred_change;
-			_deferred_change = header_size;
+			position = position + _yaxis.change;
+			_yaxis.change = header_size;
 		}
 	}
 
-	auto checkPositionIfSinking(Order order)()
+	auto enterNodeCheck(Order order)()
 	{
 		static if (order == Order.Sinking)
 		{
-			if (position+_deferred_change > destination)
+			if (position+_yaxis.change > destination)
 			{
 				path = tree_path;
 				_state = State.finishing;
@@ -74,16 +79,16 @@ struct Location
 		}
 	}
 
-	auto movePositionIfBubbling(Order order)(SizeType header_size)
+	auto leaveNode(Order order)(SizeType header_size)
 	{
 		static if (order == Order.Bubbling)
 		{
-			position = position + _deferred_change;
-			_deferred_change = -header_size;
+			position = position + _yaxis.change;
+			_yaxis.change = -header_size;
 		}
 	}
 
-	auto checkPositionIfBubbling(Order order)()
+	auto leaveNodeCheck(Order order)()
 	{
 		static if (order == Order.Bubbling)
 		{
@@ -123,7 +128,7 @@ struct Location
 				start_value = path.value[idx-1];
 				// position should change only if we've got the initial path
 				// and don't get the end
-				if (_state == State.seeking) _deferred_change = 0;
+				if (_state == State.seeking) _yaxis.change = 0;
 			}
 		}
 		return start_value;
@@ -134,7 +139,7 @@ struct Location
 		tree_path.back = v;
 	}
 
-	bool stateFirstOrRest()
+	bool stateFirstOrRest() @safe @nogc pure nothrow
 	{
 		import std.algorithm : among;
 		return !!_state.among(State.first, State.rest);
