@@ -19,14 +19,14 @@ struct Pos
 		this.h = h;
 	}
 
-	@property SizeType x() const { return axis[0].value; }
+	@property SizeType x() const { return axis[0].position; }
 	@property SizeType w() const { return axis[0].size; }
-	@property SizeType y() const { return axis[1].value; }
+	@property SizeType y() const { return axis[1].position; }
 	@property SizeType h() const { return axis[1].size; }
 
-	@property x(SizeType v) { axis[0].value = v; }
+	@property x(SizeType v) { axis[0].position = v; }
 	@property w(SizeType v) { axis[0].size = v; }
-	@property y(SizeType v) { axis[1].value = v; }
+	@property y(SizeType v) { axis[1].position = v; }
 	@property h(SizeType v) { axis[1].size = v; }
 }
 
