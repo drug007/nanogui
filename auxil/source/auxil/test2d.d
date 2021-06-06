@@ -8,25 +8,21 @@ import auxil.location : SizeType, Axis;
 
 struct Pos
 {
-	Axis[2] axis;
+	Axis x, y;
 
-	this(SizeType x, SizeType y, SizeType w, SizeType h)
+	this(ref Axis x, ref Axis y)
 	{
 		this.x = x;
 		this.y = y;
-		this.w = w;
-		this.h = h;
 	}
 
-	@property SizeType x() const { return axis[0].position; }
-	@property SizeType w() const { return axis[0].size; }
-	@property SizeType y() const { return axis[1].position; }
-	@property SizeType h() const { return axis[1].size; }
-
-	@property x(SizeType v) { axis[0].position = v; }
-	@property w(SizeType v) { axis[0].size = v; }
-	@property y(SizeType v) { axis[1].position = v; }
-	@property h(SizeType v) { axis[1].size = v; }
+	this(SizeType x, SizeType y, SizeType w, SizeType h)
+	{
+		this.x.position = x;
+		this.y.position = y;
+		this.x.size = w;
+		this.y.size = h;
+	}
 }
 
 @safe private
@@ -48,21 +44,11 @@ struct Visitor2D
 
 	void setAxis(SizeType x, SizeType y, SizeType w, SizeType h)
 	{
-		this.x = x;
-		this.y = y;
-		this.w = w;
-		this.h = h;
+		xaxis.position = x;
+		yaxis.position = y;
+		xaxis.size = w;
+		yaxis.size = h;
 	}
-
-	@property SizeType x() const { return xaxis.position; }
-	@property SizeType w() const { return xaxis.size; }
-	@property SizeType y() const { return yaxis.position; }
-	@property SizeType h() const { return yaxis.size; }
-
-	@property x(SizeType v) { xaxis.position = v; }
-	@property w(SizeType v) { xaxis.size = v; }
-	@property y(SizeType v) { yaxis.position = v; }
-	@property h(SizeType v) { yaxis.size = v; }
 
 	this(SizeType size) @nogc
 	{
@@ -111,7 +97,7 @@ struct Visitor2D
 		}
 
 		() @trusted {
-			position ~= Pos(x, y, w, h);
+			position ~= Pos(xaxis, yaxis);
 		} ();
 
 		final switch (model.orientation)
@@ -163,7 +149,7 @@ struct Visitor2D
 			break;
 		}
 		() @trusted {
-			position ~= Pos(x, y, w, h);
+			position ~= Pos(xaxis, yaxis);
 		} ();
 		processItem(data);
 		final switch (this.orientation)
