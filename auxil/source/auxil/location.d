@@ -62,7 +62,7 @@ struct Location
 	{
 		static if (order == Order.Sinking)
 		{
-			position = position + _yaxis.change;
+			_yaxis.value = _yaxis.value + _yaxis.change;
 			_yaxis.change = header_size;
 		}
 	}
@@ -71,7 +71,7 @@ struct Location
 	{
 		static if (order == Order.Sinking)
 		{
-			if (position+_yaxis.change > destination)
+			if (_yaxis.value +_yaxis.change > _yaxis.destination)
 			{
 				path = current_path;
 				_state = State.finishing;
@@ -83,7 +83,7 @@ struct Location
 	{
 		static if (order == Order.Bubbling)
 		{
-			position = position + _yaxis.change;
+			_yaxis.value = _yaxis.value + _yaxis.change;
 			_yaxis.change = -header_size;
 		}
 	}
@@ -92,7 +92,7 @@ struct Location
 	{
 		static if (order == Order.Bubbling)
 		{
-			if (position <= destination)
+			if (_yaxis.value <= _yaxis.destination)
 			{
 				_state = State.finishing;
 				path = current_path;
