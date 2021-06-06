@@ -17,7 +17,7 @@ struct Location
 @nogc:
 	enum State { seeking, first, rest, finishing, }
 	private State _state;
-	TreePath tree_path, path;
+	TreePath current_path, path;
 	private Axis _yaxis;
 
 	@property
@@ -41,7 +41,7 @@ struct Location
 		final switch(_state)
 		{
 			case State.seeking:
-				if (tree_path.value == path.value)
+				if (current_path.value == path.value)
 					_state = State.first;
 			break;
 			case State.first:
@@ -73,7 +73,7 @@ struct Location
 		{
 			if (position+_yaxis.change > destination)
 			{
-				path = tree_path;
+				path = current_path;
 				_state = State.finishing;
 			}
 		}
@@ -95,19 +95,19 @@ struct Location
 			if (position <= destination)
 			{
 				_state = State.finishing;
-				path = tree_path;
+				path = current_path;
 			}
 		}
 	}
 
 	void intend()
 	{
-		tree_path.put(0);
+		current_path.put(0);
 	}
 
 	void unintend()
 	{
-		tree_path.popBack;
+		current_path.popBack;
 	}
 
 	auto startValue(Order order)(size_t len)
@@ -122,7 +122,7 @@ struct Location
 		}
 		if (_state.among(State.seeking, State.first))
 		{
-			auto idx = tree_path.value.length;
+			auto idx = current_path.value.length;
 			if (idx && path.value.length >= idx)
 			{
 				start_value = path.value[idx-1];
@@ -136,7 +136,7 @@ struct Location
 
 	void setPath(int v)
 	{
-		tree_path.back = v;
+		current_path.back = v;
 	}
 
 	bool stateFirstOrRest() @safe @nogc pure nothrow

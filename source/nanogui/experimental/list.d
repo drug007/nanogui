@@ -483,7 +483,7 @@ private struct RenderingVisitor
 			symb[0] = model.collapsed ? Entypo.ICON_CHEVRON_RIGHT :
 			                            Entypo.ICON_CHEVRON_DOWN;
 			if (drawItem(ctx, ctx.size[ctx.orientation], symb[]))
-				selected_item = loc.tree_path;
+				selected_item = loc.current_path;
 			ctx.size[axis2] = old; // restore full width
 			ctx.position[ctx.orientation] -= ctx.size[ctx.orientation];
 		}
@@ -513,7 +513,7 @@ private struct RenderingVisitor
 			else
 				auto header = Data.stringof;
 			if (drawItem(ctx, model.header_size, header))
-				selected_item = loc.tree_path;
+				selected_item = loc.current_path;
 		}
 	}
 
@@ -533,7 +533,7 @@ private struct RenderingVisitor
 		ctx.fontFace("sans");
 		ctx.fillColor(ctx.theme.mTextColor);
 		if (drawItem(ctx, model.size, data))
-			selected_item = loc.tree_path;
+			selected_item = loc.current_path;
 	}
 }
 

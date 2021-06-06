@@ -942,7 +942,7 @@ mixin template visitImpl()
 			{
 				// Edge case if the start path starts from this collapsable exactly
 				// then the childs of the collapsable aren't processed
-				if (visitor.loc.path.value.length && visitor.loc.tree_path.value[] == visitor.loc.path.value[])
+				if (visitor.loc.path.value.length && visitor.loc.current_path.value[] == visitor.loc.path.value[])
 				{
 					return false;
 				}
