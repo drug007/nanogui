@@ -40,7 +40,6 @@ struct Visitor2D
 	private Vector!(char, Mallocator) _indentation;
 	TreePathVisitor default_visitor;
 	alias default_visitor this;
-	Orientation  orientation;
 
 	Vector!(Pos, Mallocator) position;
 	Pos pos, old_pos;
