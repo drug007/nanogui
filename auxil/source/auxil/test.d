@@ -739,18 +739,18 @@ struct RelativeMeasurer
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		static if (order == Order.Sinking)
-			output ~= TreePosition(loc.tree_path.value, loc.position);
+			output ~= TreePosition(loc.current_path.value, loc.position);
 	}
 
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		static if (order == Order.Bubbling)
-			output ~= TreePosition(loc.tree_path.value, loc.position);
+			output ~= TreePosition(loc.current_path.value, loc.position);
 	}
 
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		output ~= TreePosition(loc.tree_path.value, loc.position);
+		output ~= TreePosition(loc.current_path.value, loc.position);
 	}
 }
 
