@@ -1265,10 +1265,10 @@ unittest
 
 void visit(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor, SizeType destination)
 {
-	visitor.loc.destination = destination;
-	if (destination == visitor.loc.position)
+	visitor.loc.y.destination = destination;
+	if (destination == visitor.loc.y.position)
 		return;
-	else if (destination < visitor.loc.position)
+	else if (destination < visitor.loc.y.position)
 		model.visitBackward(data, visitor);
 	else
 		model.visitForward(data, visitor);

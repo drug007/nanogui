@@ -61,7 +61,7 @@ struct Visitor2D
 
 	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
-		loc.position = 0;
+		loc.y.position = 0;
 
 		final switch (this.orientation)
 		{
@@ -185,7 +185,7 @@ unittest
 		auto mv = MeasuringVisitor([300, 9]);
 		model.visitForward(data, mv);
 	}
-	visitor.loc.destination = visitor.loc.destination.max;
+	visitor.loc.y.destination = visitor.loc.y.destination.max;
 	model.visitForward(data, visitor);
 
 	() @trusted
@@ -294,7 +294,7 @@ unittest
 		auto mv = MeasuringVisitor([300, 9]);
 		model.visitForward(data, mv);
 	}
-	visitor.loc.destination = visitor.loc.destination.max;
+	visitor.loc.y.destination = visitor.loc.y.destination.max;
 	model.visitForward(data, visitor);
 
 	() @trusted
