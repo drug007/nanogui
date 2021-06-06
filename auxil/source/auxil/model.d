@@ -895,19 +895,19 @@ mixin template visitImpl()
 		{
 			if (visitor.loc.stateFirstOrRest)
 			{
-				visitor.loc.movePositionIfSinking!order(currentSize);
+				visitor.loc.enterNode!order(currentSize);
 				static if (this.Collapsable)
 					visitor.enterNode!(order, Data)(data, this);
 				else static if (order == Order.Sinking)
 					visitor.processLeaf!(order, Data)(data, this);
-				visitor.loc.checkPositionIfSinking!order;
+				visitor.loc.enterNodeCheck!order;
 			}
 			scope(exit)
 			{
 				if (visitor.loc.stateFirstOrRest)
 				{
-					visitor.loc.movePositionIfBubbling!order(currentSize);
-					visitor.loc.checkPositionIfBubbling!order;
+					visitor.loc.leaveNode!order(currentSize);
+					visitor.loc.leaveNodeCheck!order;
 					static if (Collapsable)
 						visitor.leaveNode!order(data, this);
 					else static if (Bubbling)
