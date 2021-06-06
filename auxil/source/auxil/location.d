@@ -8,7 +8,7 @@ enum Order { Sinking, Bubbling, }
 
 struct Axis
 {
-	SizeType value, destination, change;
+	SizeType value, destination, change, size;
 }
 
 @safe

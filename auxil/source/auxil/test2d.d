@@ -4,11 +4,30 @@ version(unittest) import unit_threaded : Name, should, be;
 
 import auxil.model;
 import auxil.default_visitor : TreePathVisitor, MeasuringVisitor;
-import auxil.location : SizeType;
+import auxil.location : SizeType, Axis;
 
 struct Pos
 {
-	SizeType x, y, w, h;
+	@safe:
+	Axis[2] axis;
+
+	this(SizeType x, SizeType y, SizeType w, SizeType h)
+	{
+		this.x = x;
+		this.y = y;
+		this.w = w;
+		this.h = h;
+	}
+
+	@property SizeType x() const { return axis[0].value; }
+	@property SizeType w() const { return axis[0].size; }
+	@property SizeType y() const { return axis[1].value; }
+	@property SizeType h() const { return axis[1].size; }
+
+	@property x(SizeType v) { axis[0].value = v; }
+	@property w(SizeType v) { axis[0].size = v; }
+	@property y(SizeType v) { axis[1].value = v; }
+	@property h(SizeType v) { axis[1].size = v; }
 }
 
 @safe private
@@ -66,10 +85,10 @@ struct Visitor2D
 		final switch (model.orientation)
 		{
 			case Orientation.Vertical:
-				pos.y += model.header_size;
+				pos.y = pos.y + model.header_size;
 			break;
 			case Orientation.Horizontal:
-				pos.y += model.header_size;
+				pos.y = pos.y + model.header_size;
 			break;
 		}
 
@@ -84,8 +103,8 @@ struct Visitor2D
 				() @trusted {
 					output ~= "\n";
 					_indentation ~= "\t";
-					pos.x += model.header_size;
-					pos.w -= model.header_size;
+					pos.x = pos.x + model.header_size;
+					pos.w = pos.w - model.header_size;
 				} ();
 			break;
 			case Orientation.Horizontal:
@@ -101,8 +120,8 @@ struct Visitor2D
 			case Orientation.Vertical:
 				if (_indentation.length)
 					_indentation.popBack;
-				pos.x -= model.header_size;
-				pos.w += model.header_size;
+				pos.x = pos.x - model.header_size;
+				pos.w = pos.w + model.header_size;
 			break;
 			case Orientation.Horizontal:
 				() @trusted {
@@ -119,7 +138,7 @@ struct Visitor2D
 		final switch (orientation)
 		{
 			case Orientation.Vertical:
-				pos.y += model.size;
+				pos.y = pos.y + model.size;
 			break;
 			case Orientation.Horizontal:
 				pos.w = model.size;
@@ -137,7 +156,7 @@ struct Visitor2D
 				} ();
 			break;
 			case Orientation.Horizontal:
-				pos.x += model.size;
+				pos.x = pos.x + model.size;
 			break;
 		}
 	}
