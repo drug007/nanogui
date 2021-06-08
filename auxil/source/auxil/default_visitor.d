@@ -22,7 +22,7 @@ struct DefaultVisitorImpl(
 	alias sizeEnabled     = _size_;
 	alias treePathEnabled = _tree_path_;
 
-	static if (sizeEnabled == SizeEnabled.yes)
+	static if (sizeEnabled == SizeEnabled.yes || treePathEnabled == TreePathEnabled.yes)
 	{
 		SizeType[2] size;
 
@@ -42,7 +42,24 @@ struct DefaultVisitorImpl(
 	void beforeChildren() {}
 	void afterChildren() {}
 	bool complete() @safe @nogc { return false; }
-	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model) {}
+	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
+	{
+		static if (treePathEnabled == TreePathEnabled.yes)
+		{
+			loc.y.position = 0;
+
+			final switch (this.orientation)
+			{
+				case Orientation.Vertical:
+					loc.y.size = model.header_size;
+
+				break;
+				case Orientation.Horizontal:
+					loc.y.size = size[this.orientation];
+				break;
+			}
+		}
+	}
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model) {}

@@ -23,6 +23,33 @@ struct Pos
 		this.x.size = w;
 		this.y.size = h;
 	}
+
+	auto opEquals(ref const(Pos) other) const
+	{
+		if (x.position != other.x.position)
+			return false;
+		if (x.size != other.x.size)
+			return false;
+		if (y.position != other.y.position)
+			return false;
+		if (y.size != other.y.size)
+			return false;
+		return true;
+	}
+
+	void toString(W)(ref W w) const
+	{
+		import std.algorithm : copy;
+		import std.conv : text;
+
+		text("Pos(", 
+			x.position, ", ",
+			y.position, ", ",
+			x.size, ", ",
+			y.size, 
+		")"
+		).copy(w);
+	}
 }
 
 @safe private
@@ -58,25 +85,17 @@ struct Visitor2D
 
 	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
-		// loc.y.position = 0;
-
+		x.position = 0;
 		final switch (this.orientation)
 		{
 			case Orientation.Vertical:
-				x.position = 0;
-				// loc.y.position = 0;
 				x.size = size;
-				// loc.y.size = model.header_size;
-
 			break;
 			case Orientation.Horizontal:
-				x.position = 0;
-				// loc.y.position = 0;
 				x.size = model.size;
-				// loc.y.size = size;
 			break;
 		}
-
+		default_visitor.enterTree!(order, Data)(data, model);
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
@@ -84,16 +103,6 @@ struct Visitor2D
 		import auxil.traits : hasRenderHeader;
 
 		old_x = x;
-
-		final switch (model.orientation)
-		{
-			case Orientation.Vertical:
-				loc.y.position = loc.y.position + model.header_size;
-			break;
-			case Orientation.Horizontal:
-				loc.y.position = loc.y.position + model.header_size;
-			break;
-		}
 
 		() @trusted {
 			position ~= Pos(x, loc.y);
@@ -141,7 +150,6 @@ struct Visitor2D
 		final switch (orientation)
 		{
 			case Orientation.Vertical:
-				loc.y.position = loc.y.position + model.size;
 			break;
 			case Orientation.Horizontal:
 				x.size = model.size;
@@ -189,21 +197,21 @@ unittest
 		auto mv = MeasuringVisitor([300, 9]);
 		model.visitForward(data, mv);
 	}
-	// // visitor.loc.y.destination = visitor.loc.y.destination.max;
+	visitor.loc.y.destination = visitor.loc.y.destination.max;
 	model.visitForward(data, visitor);
 
 	() @trusted
 	{
 		visitor.position[].should.be == [
-			Pos( 0, 10, 300, 10), 
-				Pos(10, 20, 290, 10), 
+			Pos( 0, 0, 300, 10), 
+				Pos(10, 10, 290, 10), 
+					Pos(20, 20, 280, 10), 
 					Pos(20, 30, 280, 10), 
-					Pos(20, 40, 280, 10), 
-					Pos(20, 50, 280, 10),
-				Pos(10, 60, 290, 10), 
+					Pos(20, 40, 280, 10),
+				Pos(10, 50, 290, 10), 
+					Pos(20, 60, 280, 10), 
 					Pos(20, 70, 280, 10), 
-					Pos(20, 80, 280, 10), 
-					Pos(20, 90, 280, 10),
+					Pos(20, 80, 280, 10),
 		];
 
 		visitor.output[].should.be == 
@@ -248,13 +256,13 @@ unittest
 	() @trusted
 	{
 		visitor.position[].should.be == [
-			Pos( 0, 10, 300, 10), 
+			Pos( 0, 0, 300, 10), 
+				Pos(10, 10, 290, 10), 
+					Pos(10, 10, 96, 10), Pos(10+96, 10, 97, 10), Pos(10+96+97, 10, 290-96-97, 10),
 				Pos(10, 20, 290, 10), 
-					Pos(10, 20, 96, 10), Pos(10+96, 20, 97, 10), Pos(10+96+97, 20, 290-96-97, 10),
-				Pos(10, 30, 290, 10), 
+					Pos(20, 30, 280, 10), 
 					Pos(20, 40, 280, 10), 
-					Pos(20, 50, 280, 10), 
-					Pos(20, 60, 280, 10),
+					Pos(20, 50, 280, 10),
 		];
 
 		visitor.output[].should.be == 

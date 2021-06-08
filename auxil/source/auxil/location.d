@@ -67,7 +67,7 @@ struct Location
 	{
 		static if (order == Order.Sinking)
 		{
-			if (y.position +y.change > y.destination)
+			if (y.position + y.change > y.destination)
 			{
 				path = current_path;
 				_state = State.finishing;
