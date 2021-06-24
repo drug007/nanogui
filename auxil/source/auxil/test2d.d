@@ -100,49 +100,59 @@ struct Visitor2D
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		import auxil.traits : hasRenderHeader;
-
-		old_x = x;
-
-		() @trusted {
-			position ~= Pos(x, loc.y);
-		} ();
-
-		final switch (model.orientation)
+		static if (Model.Collapsable)
 		{
-			case Orientation.Vertical:
-				processItem("Caption: ", Data.stringof);
-				() @trusted {
-					output ~= "\n";
-					_indentation ~= "\t";
-					x.position = x.position + model.header_size;
-					x.size = x.size - model.header_size;
-				} ();
-			break;
-			case Orientation.Horizontal:
-			break;
+			import auxil.traits : hasRenderHeader;
+
+			old_x = x;
+
+			() @trusted {
+				position ~= Pos(x, loc.y);
+			} ();
+
+			final switch (model.orientation)
+			{
+				case Orientation.Vertical:
+					processItem("Caption: ", Data.stringof);
+					() @trusted {
+						output ~= "\n";
+						_indentation ~= "\t";
+						x.position = x.position + model.header_size;
+						x.size = x.size - model.header_size;
+					} ();
+				break;
+				case Orientation.Horizontal:
+				break;
+			}
+			orientation = model.orientation;
 		}
-		orientation = model.orientation;
+		else static if (order == Order.Sinking)
+			processLeaf!(order, Data, Model)(data, model);
 	}
 
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		final switch (model.orientation)
+		static if (Model.Collapsable)
 		{
-			case Orientation.Vertical:
-				if (_indentation.length)
-					_indentation.popBack;
-				x.position = x.position - model.header_size;
-				x.size = x.size + model.header_size;
-			break;
-			case Orientation.Horizontal:
-				() @trusted {
-					output ~= "\n";
-				} ();
-				x.position = old_x.position;
-				x.size = old_x.size;
-			break;
+			final switch (model.orientation)
+			{
+				case Orientation.Vertical:
+					if (_indentation.length)
+						_indentation.popBack;
+					x.position = x.position - model.header_size;
+					x.size = x.size + model.header_size;
+				break;
+				case Orientation.Horizontal:
+					() @trusted {
+						output ~= "\n";
+					} ();
+					x.position = old_x.position;
+					x.size = old_x.size;
+				break;
+			}
 		}
+		else static if (order == Order.Bubbling)
+			processLeaf!(order, Data, Model)(data, model);
 	}
 
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)

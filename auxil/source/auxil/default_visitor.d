@@ -69,5 +69,4 @@ struct DefaultVisitorImpl(
 	}
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
-	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 }

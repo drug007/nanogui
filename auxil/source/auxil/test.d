@@ -49,6 +49,14 @@ struct PrettyPrintingVisitor
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
+		static if (Model.Collapsable)
+			processNode!(order, Data, Model)(data, model);
+		else
+			processLeaf!(order, Data, Model)(data, model);
+	}
+
+	void processNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
 		import auxil.traits : hasRenderHeader;
 
 		static if (hasRenderHeader!data)
