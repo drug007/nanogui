@@ -42,6 +42,13 @@ struct DefaultVisitorImpl(
 	void beforeChildren() {}
 	void afterChildren() {}
 	bool complete() @safe @nogc { return false; }
+	bool engaged() @safe @nogc nothrow
+	{
+		static if (treePathEnabled == TreePathEnabled.yes)
+			return loc.stateFirstOrRest;
+		else
+			return true;
+	}
 	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
 		static if (treePathEnabled == TreePathEnabled.yes)

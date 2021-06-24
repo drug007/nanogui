@@ -891,34 +891,32 @@ mixin template visitImpl()
 			scope(exit) visitor.orientation = old_orientation;
 		}
 
-		static if (hasTreePath)
+		if (visitor.engaged)
 		{
-			if (visitor.loc.stateFirstOrRest)
+			static if (hasTreePath)
 			{
 				visitor.loc.enterNode!order(currentSize);
-				static if (this.Collapsable)
-					visitor.enterNode!(order, Data)(data, this);
-				else static if (order == Order.Sinking)
-					visitor.processLeaf!(order, Data)(data, this);
-				visitor.loc.enterNodeCheck!order;
+				scope(exit) visitor.loc.enterNodeCheck!order;
 			}
-			scope(exit)
+			static if (this.Collapsable)
+				visitor.enterNode!(order, Data)(data, this);
+			else static if (order == Order.Sinking)
+				visitor.processLeaf!(order, Data)(data, this);
+		}
+		scope(exit)
+		{
+			if (visitor.engaged)
 			{
-				if (visitor.loc.stateFirstOrRest)
+				static if (hasTreePath)
 				{
 					visitor.loc.leaveNode!order(currentSize);
 					visitor.loc.leaveNodeCheck!order;
-					static if (Collapsable)
-						visitor.leaveNode!order(data, this);
-					else static if (Bubbling)
-						visitor.processLeaf!(order, Data)(data, this);
 				}
+				static if (Collapsable)
+					visitor.leaveNode!order(data, this);
+				else static if (Bubbling)
+					visitor.processLeaf!(order, Data)(data, this);
 			}
-		}
-		else
-		{
-			visitor.enterNode!(order, Data)(data, this);
-			scope(exit) visitor.leaveNode!order(data, this);
 		}
 
 		static if (this.Collapsable) if (!this.collapsed)
