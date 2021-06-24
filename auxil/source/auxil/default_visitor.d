@@ -41,7 +41,13 @@ struct DefaultVisitorImpl(
 
 	void beforeChildren() {}
 	void afterChildren() {}
-	bool complete() @safe @nogc { return false; }
+	bool complete() @safe @nogc
+	{
+		static if (treePathEnabled == TreePathEnabled.yes)
+			return loc.checkState;
+		else
+			return false;
+	}
 	bool engaged() @safe @nogc nothrow
 	{
 		static if (treePathEnabled == TreePathEnabled.yes)

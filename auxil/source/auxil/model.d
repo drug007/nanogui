@@ -855,16 +855,8 @@ mixin template visitImpl()
 		enum hasTreePath = Visitor.treePathEnabled;
 		enum hasSize     = Visitor.sizeEnabled;
 
-		static if (hasTreePath)
-		{
-			if (visitor.loc.checkState)
-				return true;
-		}
-
 		if (visitor.complete)
-		{
 			return true;
-		}
 
 		static if (hasSize)
 		{
@@ -1109,7 +1101,7 @@ private struct PropertyVisitor(string propertyName, Value)
 
 	bool complete()
 	{
-		return completed;
+		return completed || default_visitor.complete;
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
@@ -1154,7 +1146,7 @@ private struct ApplyVisitor(T)
 
 	bool complete()
 	{
-		return completed;
+		return completed || default_visitor.complete;
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
