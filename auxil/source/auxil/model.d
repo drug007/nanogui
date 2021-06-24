@@ -940,8 +940,6 @@ mixin template visitImpl()
 				}
 			}
 
-			static if (hasTreePath) visitor.loc.intend;
-			static if (hasTreePath) scope(exit) visitor.loc.unintend;
 			const len = getLength!(Data, data);
 			static if (is(typeof(model.length)))
 				assert(len == model.length);
@@ -952,7 +950,11 @@ mixin template visitImpl()
 			float residual = 0;
 
 			static if (hasTreePath)
+			{
+				visitor.loc.intend;
+				scope(exit) visitor.loc.unintend;
 				start_value = visitor.loc.startValue!order(len);
+			}
 
 			static if (dataHasStaticArrayModel!Data || 
 			           dataHasRandomAccessRangeModel!Data ||
