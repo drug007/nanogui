@@ -859,19 +859,9 @@ mixin template visitImpl()
 
 		static if (hasSize)
 		{
-			final switch(visitor.orientation)
-			{
-				case Orientation.Horizontal:
-					size = visitor.size[visitor.orientation];
-					static if (Collapsable)
-						header_size = 0;
-				break;
-				case Orientation.Vertical:
-					size = visitor.size[visitor.orientation] + Spacing;
-					static if (Collapsable)
-						header_size = size;
-				break;
-			}
+			size = visitor.size[visitor.orientation] + Spacing;
+			static if (Collapsable)
+				header_size = size;
 		}
 
 		static if (Collapsable)
@@ -908,8 +898,7 @@ mixin template visitImpl()
 		{
 			static if (hasSize) if (visitor.orientation == Orientation.Horizontal)
 			{
-				visitor.size[visitor.orientation] -= visitor.size[Orientation.Vertical]+Spacing;
-				this.size = visitor.size[visitor.orientation];
+				visitor.size[visitor.orientation] -= visitor.size[Orientation.Vertical] + Spacing;
 			}
 			visitor.beforeChildren;
 			scope(exit)
@@ -917,7 +906,7 @@ mixin template visitImpl()
 				visitor.afterChildren;
 				static if (hasSize) if (visitor.orientation == Orientation.Horizontal)
 				{
-					visitor.size[visitor.orientation] += visitor.size[Orientation.Vertical]+Spacing;
+					visitor.size[visitor.orientation] += visitor.size[Orientation.Vertical] + Spacing;
 				}
 			}
 
