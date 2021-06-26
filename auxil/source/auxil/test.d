@@ -5,7 +5,7 @@ version(unittest) import unit_threaded : Name;
 import auxil.model;
 import auxil.location : SizeType;
 import auxil.default_visitor : DefaultVisitorImpl, SizeEnabled, TreePathEnabled, 
-	TreePathVisitor, MeasuringVisitor, NullVisitor;
+	TreePathVisitor, MeasuringVisitor;
 
 @safe private
 struct PrettyPrintingVisitor
@@ -1310,15 +1310,6 @@ unittest
 	m.visitForward(d, visitor);
 	import std;
 	writeln(m);
-}
-
-version(unittest) @Name("null_visitor")
-unittest
-{
-	int[] data = [1, 2];
-	NullVisitor visitor;
-	auto model = makeModel(data);
-	model.visitForward(data, visitor);
 }
 
 version(unittest) @Name("MeasuringVisitor")
