@@ -73,8 +73,10 @@ struct DefaultVisitorImpl(
 			final switch (this.orientation)
 			{
 				case Orientation.Vertical:
-					loc.y.size = model.header_size;
-
+					static if (model.Collapsable)
+						loc.y.size = model.header_size;
+					else
+						loc.y.size = model.size;
 				break;
 				case Orientation.Horizontal:
 					loc.y.size = size[this.orientation];
