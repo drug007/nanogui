@@ -164,7 +164,7 @@ struct DefaultVisitorImpl(
 			loc.unintend;
 
 		() @trusted { (cast(Derived*) &this).afterChildren!(order, Data, Model)(data, model); }();
-		static if ((sizeEnabled == SizeEnabled.yes)) if (orientation == Orientation.Horizontal)
+		static if (sizeEnabled == SizeEnabled.yes) if (orientation == Orientation.Horizontal)
 		{
 			size[orientation] += size[Orientation.Vertical] + model.Spacing;
 		}
@@ -181,5 +181,29 @@ struct DefaultVisitorImpl(
 	auto setPath(int i)
 	{
 		static if (treePathEnabled == TreePathEnabled.yes) loc.setPath(i);
+	}
+
+	auto setChildSize(Model, ChildModel)(ref Model model, ref ChildModel child_model, int len, ref float residual)
+	{
+		static if (sizeEnabled == SizeEnabled.yes)
+		{
+			final switch(model.orientation)
+			{
+				case Orientation.Horizontal:
+					double sf = cast(double)(model.size)/len;
+					SizeType sz = cast(SizeType)sf;
+					residual += sf - sz;
+					if (residual >= 1.0)
+					{
+						residual -= 1;
+						sz += 1;
+					}
+					child_model.size = sz;
+				break;
+				case Orientation.Vertical:
+					model.size += child_model.size;
+				break;
+			}
+		}
 	}
 }
