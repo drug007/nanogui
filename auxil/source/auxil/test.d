@@ -57,6 +57,8 @@ struct PrettyPrintingVisitor
 			processLeaf!(order, Data, Model)(data, model);
 	}
 
+	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
+
 	void processNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		import auxil.traits : hasRenderHeader;

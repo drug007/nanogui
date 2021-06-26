@@ -835,14 +835,6 @@ mixin template visitImpl()
 		return baseVisit!order(data, visitor);
 	}
 
-	private auto currentSize()
-	{
-		static if (Collapsable)
-			return this.header_size;
-		else
-			return this.size;
-	}
-
 	bool baseVisit(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
 	{
 		static if (Data.sizeof > 24 && !__traits(isRef, data))
@@ -874,19 +866,7 @@ mixin template visitImpl()
 		}
 
 		visitor.doEnterNode!(order, Data)(data, this);
-
-		scope(exit)
-		{
-			if (visitor.engaged)
-			{
-				static if (hasTreePath)
-				{
-					visitor.loc.leaveNode!order(currentSize);
-					visitor.loc.leaveNodeCheck!order;
-				}
-				visitor.leaveNode!order(data, this);
-			}
-		}
+		scope(exit) visitor.doLeaveNode!(order, Data)(data, this);
 
 		static if (this.Collapsable) if (!this.collapsed)
 		{
@@ -1099,6 +1079,8 @@ private struct PropertyVisitor(string propertyName, Value)
 
 		processLeaf!order(data, model);
 	}
+
+	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
