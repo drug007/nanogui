@@ -173,7 +173,7 @@ public:
 		//scope(exit) ctx.mouse += mPos;
 
 		auto renderer = RenderingVisitor(ctx);
-		renderer.loc.destination = cast(SizeType) (ctx.position.y + size.y);
+		renderer.loc.y.destination = cast(SizeType) (ctx.position.y + size.y);
 		import nanogui.layout : Orientation;
 		renderer.ctx.orientation = Orientation.Vertical;
 		_model.visitForward(_data, renderer);
