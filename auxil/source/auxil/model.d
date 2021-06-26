@@ -850,21 +850,6 @@ mixin template visitImpl()
 		if (visitor.complete)
 			return true;
 
-		static if (hasSize)
-		{
-			size = visitor.size[visitor.orientation] + Spacing;
-			static if (Collapsable)
-				header_size = size;
-		}
-
-		static if (Collapsable)
-		{
-			const old_orientation = visitor.orientation;
-			visitor.orientation  = this.orientation;
-
-			scope(exit) visitor.orientation = old_orientation;
-		}
-
 		visitor.doEnterNode!(order, Data)(data, this);
 		scope(exit) visitor.doLeaveNode!(order, Data)(data, this);
 

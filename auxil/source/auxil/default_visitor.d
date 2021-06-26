@@ -82,6 +82,21 @@ struct DefaultVisitorImpl(
 	}
 	void doEnterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
+		static if (sizeEnabled == SizeEnabled.yes)
+		{
+			model.size = size[orientation] + model.Spacing;
+			static if (model.Collapsable)
+				model.header_size = model.size;
+		}
+
+		version(none) static if (model.Collapsable)
+		{
+			const old_orientation = visitor.orientation;
+			visitor.orientation  = this.orientation;
+
+			scope(exit) visitor.orientation = old_orientation;
+		}
+
 		if (engaged)
 		{
 			static if (treePathEnabled == TreePathEnabled.yes)
