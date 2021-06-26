@@ -12,8 +12,8 @@ struct PrettyPrintingVisitor
 {
 	import std.experimental.allocator.mallocator : Mallocator;
 	import automem.vector : Vector;
-	alias DefaultVisitor = DefaultVisitorImpl!(SizeEnabled.yes,  TreePathEnabled.yes, typeof(this));
-	DefaultVisitor default_visitor;
+	alias TreePathVisitor = DefaultVisitorImpl!(SizeEnabled.no,  TreePathEnabled.yes, typeof(this));
+	TreePathVisitor default_visitor;
 	alias default_visitor this;
 
 	Vector!(char, Mallocator) output;
@@ -21,7 +21,7 @@ struct PrettyPrintingVisitor
 
 	this(SizeType[2] size) @nogc
 	{
-		default_visitor = DefaultVisitor(size);
+		default_visitor = TreePathVisitor(size);
 	}
 
 	auto processItem(T...)(T msg)
@@ -689,6 +689,11 @@ unittest
 
 	model.size.should.be == 0;
 	auto visitor = PrettyPrintingVisitor([99, 17]);
+	// measure size
+	{
+		auto mv = MeasuringVisitor([99, 17]);
+		model.visitForward(data, mv);
+	}
 	model.visitForward(data, visitor);
 
 	model.collapsed.should.be == true;
@@ -698,6 +703,11 @@ unittest
 
 	setPropertyByTreePath!"collapsed"(data, model, [], false);
 	visitor.loc.y.destination = visitor.loc.y.destination.max;
+	// measure size
+	{
+		auto mv = MeasuringVisitor([99, 17]);
+		model.visitForward(data, mv);
+	}
 	model.visitForward(data, visitor);
 	model.size.should.be == (visitor.size[visitor.orientation] + model.Spacing)*7;
 	model.size.should.be == 18*7;
@@ -705,12 +715,22 @@ unittest
 
 	setPropertyByTreePath!"collapsed"(data, model, [3], false);
 	visitor.loc.y.destination = visitor.loc.y.destination.max;
+	// measure size
+	{
+		auto mv = MeasuringVisitor([99, 17]);
+		model.visitForward(data, mv);
+	}
 	model.visitForward(data, visitor);
 	model.size.should.be == (visitor.size[visitor.orientation] + model.Spacing)*9;
 	model.size.should.be == 18*9;
 	visitor.loc.y.position.should.be == (6+2)*18;
 
 	setPropertyByTreePath!"collapsed"(data, model, [4], false);
+	// measure size
+	{
+		auto mv = MeasuringVisitor([99, 17]);
+		model.visitForward(data, mv);
+	}
 	visitor.loc.y.destination = visitor.loc.y.destination.max;
 	model.visitForward(data, visitor);
 	model.size.should.be == (visitor.size[visitor.orientation] + model.Spacing)*12;
@@ -718,6 +738,11 @@ unittest
 	visitor.loc.y.position.should.be == (6+2+3)*18;
 
 	setPropertyByTreePath!"collapsed"(data, model, [5], false);
+	// measure size
+	{
+		auto mv = MeasuringVisitor([99, 17]);
+		model.visitForward(data, mv);
+	}
 	visitor.loc.y.destination = visitor.loc.y.destination.max;
 	model.visitForward(data, visitor);
 	model.size.should.be == (visitor.size[visitor.orientation] + model.Spacing)*15;
@@ -732,7 +757,7 @@ unittest
 	visitor.loc.y.position = 0;
 	visitor.loc.y.destination = 100;
 	model.visitForward(data, visitor);
-	model.size.should.be == 126;
+	model.size.should.be == 270;
 	visitor.loc.y.position.should.be == 90;
 }
 
@@ -1306,7 +1331,7 @@ unittest
 	auto d = StructNullable();
 	auto m = makeModel(d);
 	m.collapsed = false;
-	auto visitor = DefaultVisitor([99, 19]);
+	auto visitor = TreePathVisitor([99, 19]);
 	m.visitForward(d, visitor);
 	import std;
 	writeln(m);
