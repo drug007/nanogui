@@ -17,6 +17,8 @@ struct Void
 {
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
+	void beforeChildren(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
+	void afterChildren(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 }
 
 /// Default implementation of Visitor
@@ -46,8 +48,6 @@ struct DefaultVisitorImpl(
 
 	Orientation orientation = Orientation.Vertical;
 
-	void beforeChildren() {}
-	void afterChildren() {}
 	bool complete() @safe @nogc
 	{
 		static if (treePathEnabled == TreePathEnabled.yes)
@@ -55,6 +55,7 @@ struct DefaultVisitorImpl(
 		else
 			return false;
 	}
+
 	bool engaged() @safe @nogc nothrow
 	{
 		static if (treePathEnabled == TreePathEnabled.yes)
@@ -62,6 +63,7 @@ struct DefaultVisitorImpl(
 		else
 			return true;
 	}
+
 	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
 		static if (treePathEnabled == TreePathEnabled.yes)
@@ -80,6 +82,7 @@ struct DefaultVisitorImpl(
 			}
 		}
 	}
+
 	void doEnterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		static if (sizeEnabled == SizeEnabled.yes)
@@ -111,6 +114,7 @@ struct DefaultVisitorImpl(
 			() @trusted { (cast(Derived*) &this).enterNode!(order, Data, Model)(data, model); }();
 		}
 	}
+
 	void doLeaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		if (engaged)
@@ -125,6 +129,37 @@ struct DefaultVisitorImpl(
 				loc.leaveNodeCheck!order;
 			}
 			() @trusted { (cast(Derived*) &this).leaveNode!(order, Data, Model)(data, model); }();
+		}
+	}
+
+	/// returns true if the current children shouldn't be processed
+	/// but traversing should be continued
+	bool doBeforeChildren(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		static if (sizeEnabled == SizeEnabled.yes) if (orientation == Orientation.Horizontal)
+		{
+			size[orientation] -= size[Orientation.Vertical] + model.Spacing;
+		}
+		() @trusted { (cast(Derived*) &this).beforeChildren!(order, Data, Model)(data, model); }();
+
+		static if (order == Order.Bubbling && treePathEnabled == TreePathEnabled.yes)
+		{
+			// Edge case if the start path starts from this collapsable exactly
+			// then the childs of the collapsable aren't processed
+			if (loc.path.value.length && loc.current_path.value[] == loc.path.value[])
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	void doAfterChildren(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		() @trusted { (cast(Derived*) &this).afterChildren!(order, Data, Model)(data, model); }();
+		static if ((sizeEnabled == SizeEnabled.yes)) if (orientation == Orientation.Horizontal)
+		{
+			size[orientation] += size[Orientation.Vertical] + model.Spacing;
 		}
 	}
 }

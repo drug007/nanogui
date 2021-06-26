@@ -855,29 +855,9 @@ mixin template visitImpl()
 
 		static if (this.Collapsable) if (!this.collapsed)
 		{
-			static if (hasSize) if (visitor.orientation == Orientation.Horizontal)
-			{
-				visitor.size[visitor.orientation] -= visitor.size[Orientation.Vertical] + Spacing;
-			}
-			visitor.beforeChildren;
-			scope(exit)
-			{
-				visitor.afterChildren;
-				static if (hasSize) if (visitor.orientation == Orientation.Horizontal)
-				{
-					visitor.size[visitor.orientation] += visitor.size[Orientation.Vertical] + Spacing;
-				}
-			}
-
-			static if (Bubbling && hasTreePath)
-			{
-				// Edge case if the start path starts from this collapsable exactly
-				// then the childs of the collapsable aren't processed
-				if (visitor.loc.path.value.length && visitor.loc.current_path.value[] == visitor.loc.path.value[])
-				{
-					return false;
-				}
-			}
+			if (visitor.doBeforeChildren!(order, Data)(data, this))
+				return false;
+			scope(exit) visitor.doAfterChildren!(order, Data)(data, this);
 
 			const len = getLength!(Data, data);
 			static if (is(typeof(model.length)))
@@ -1066,6 +1046,8 @@ private struct PropertyVisitor(string propertyName, Value)
 	}
 
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
+	void beforeChildren(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
+	void afterChildren(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
