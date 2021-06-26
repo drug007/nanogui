@@ -870,8 +870,6 @@ mixin template visitImpl()
 
 			static if (hasTreePath)
 			{
-				visitor.loc.intend;
-				scope(exit) visitor.loc.unintend;
 				start_value = visitor.loc.startValue!order(len);
 			}
 
