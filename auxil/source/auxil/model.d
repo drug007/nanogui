@@ -843,8 +843,7 @@ mixin template visitImpl()
 		// static assert(Data.sizeof <= 24 || __traits(isRef, data));
 
 		enum Sinking     = order == Order.Sinking;
-		enum Bubbling    = !Sinking; 
-		enum hasTreePath = Visitor.treePathEnabled;
+		enum Bubbling    = !Sinking;
 		enum hasSize     = Visitor.sizeEnabled;
 
 		if (visitor.complete)
@@ -865,13 +864,8 @@ mixin template visitImpl()
 			if (!len)
 				return false;
 
-			size_t start_value;
+			size_t start_value = visitor.startValue!order(len);
 			float residual = 0;
-
-			static if (hasTreePath)
-			{
-				start_value = visitor.loc.startValue!order(len);
-			}
 
 			static if (dataHasStaticArrayModel!Data || 
 			           dataHasRandomAccessRangeModel!Data ||
@@ -879,7 +873,7 @@ mixin template visitImpl()
 			{
 				foreach(i; TwoFacedRange!order(start_value, data.length))
 				{
-					static if (hasTreePath) visitor.loc.setPath(i);
+					visitor.setPath(i);
 					static if (hasSize) scope(exit)
 					{
 						final switch(this.orientation)
@@ -919,7 +913,7 @@ mixin template visitImpl()
 						{
 							enum FieldNo = (Sinking) ? i : len2 - i - 1;
 							enum member = DrawableMembers!Data[FieldNo];
-							static if (hasTreePath) visitor.loc.setPath(cast(int) FieldNo);
+							visitor.setPath(cast(int) FieldNo);
 							static if (hasSize) scope(exit)
 							{
 								final switch(this.orientation)
