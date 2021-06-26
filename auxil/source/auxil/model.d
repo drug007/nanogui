@@ -844,7 +844,6 @@ mixin template visitImpl()
 
 		enum Sinking     = order == Order.Sinking;
 		enum Bubbling    = !Sinking;
-		enum hasSize     = Visitor.sizeEnabled;
 
 		if (visitor.complete)
 			return true;
@@ -874,26 +873,8 @@ mixin template visitImpl()
 				foreach(i; TwoFacedRange!order(start_value, data.length))
 				{
 					visitor.setPath(i);
-					static if (hasSize) scope(exit)
-					{
-						final switch(this.orientation)
-						{
-							case Orientation.Horizontal:
-								double sf = cast(double)(this.size)/cast(int)len;
-								SizeType sz = cast(SizeType)sf;
-								residual += sf - sz;
-								if (residual >= 1.0)
-								{
-									residual -= 1;
-									sz += 1;
-								}
-								model[i].size = sz;
-							break;
-							case Orientation.Vertical:
-								this.size += model[i].size;
-							break;
-						}
-					}
+					scope(exit) visitor.setChildSize(this, model[i], cast(int) len, residual);
+
 					auto idx = getIndex!(Data)(this, i);
 					if (model[i].visit!order(data[idx], visitor))
 						return true;
@@ -914,26 +895,8 @@ mixin template visitImpl()
 							enum FieldNo = (Sinking) ? i : len2 - i - 1;
 							enum member = DrawableMembers!Data[FieldNo];
 							visitor.setPath(cast(int) FieldNo);
-							static if (hasSize) scope(exit)
-							{
-								final switch(this.orientation)
-								{
-									case Orientation.Horizontal:
-										double sf = cast(double)(this.size)/cast(int)len;
-										SizeType sz = cast(SizeType)sf;
-										residual += sf - sz;
-										if (residual >= 1.0)
-										{
-											residual -= 1;
-											sz += 1;
-										}
-										mixin("this." ~ member).size = sz;
-									break;
-									case Orientation.Vertical:
-										this.size += mixin("this." ~ member).size;
-									break;
-								}
-							}
+							scope(exit) visitor.setChildSize(this, mixin("this." ~ member), cast(int) len2, residual);
+
 							if (mixin("this." ~ member).visit!order(mixin("data." ~ member), visitor))
 							{
 								return true;
