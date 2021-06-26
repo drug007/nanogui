@@ -16,6 +16,7 @@ alias DefaultVisitor   = DefaultVisitorImpl!(SizeEnabled.yes, TreePathEnabled.ye
 struct Void
 {
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
+	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 }
 
 /// Default implementation of Visitor
@@ -95,5 +96,20 @@ struct DefaultVisitorImpl(
 			() @trusted { (cast(Derived*) &this).enterNode!(order, Data, Model)(data, model); }();
 		}
 	}
-	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
+	void doLeaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		if (engaged)
+		{
+			static if (treePathEnabled == TreePathEnabled.yes)
+			{
+				static if (model.Collapsable)
+					auto currentSize = model.header_size;
+				else
+					auto currentSize = model.size;
+				loc.leaveNode!order(currentSize);
+				loc.leaveNodeCheck!order;
+			}
+			() @trusted { (cast(Derived*) &this).leaveNode!(order, Data, Model)(data, model); }();
+		}
+	}
 }
