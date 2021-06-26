@@ -13,10 +13,16 @@ alias MeasuringVisitor = DefaultVisitorImpl!(SizeEnabled.yes, TreePathEnabled.no
 alias TreePathVisitor  = DefaultVisitorImpl!(SizeEnabled.no,  TreePathEnabled.yes);
 alias DefaultVisitor   = DefaultVisitorImpl!(SizeEnabled.yes, TreePathEnabled.yes);
 
+struct Void
+{
+	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
+}
+
 /// Default implementation of Visitor
 struct DefaultVisitorImpl(
 	SizeEnabled _size_,
 	TreePathEnabled _tree_path_,
+	Derived = Void
 )
 {
 	alias sizeEnabled     = _size_;
@@ -73,6 +79,21 @@ struct DefaultVisitorImpl(
 			}
 		}
 	}
-	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
+	void doEnterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		if (engaged)
+		{
+			static if (treePathEnabled == TreePathEnabled.yes)
+			{
+				static if (model.Collapsable)
+					auto currentSize = model.header_size;
+				else
+					auto currentSize = model.size;
+				loc.enterNode!order(currentSize);
+				scope(exit) loc.enterNodeCheck!order;
+			}
+			() @trusted { (cast(Derived*) &this).enterNode!(order, Data, Model)(data, model); }();
+		}
+	}
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 }

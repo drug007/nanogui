@@ -4,18 +4,20 @@ version(unittest) import unit_threaded : Name;
 
 import auxil.model;
 import auxil.location : SizeType;
-import auxil.default_visitor : DefaultVisitor, TreePathVisitor, MeasuringVisitor, NullVisitor;
+import auxil.default_visitor : DefaultVisitorImpl, SizeEnabled, TreePathEnabled, 
+	TreePathVisitor, MeasuringVisitor, NullVisitor;
 
 @safe private
 struct PrettyPrintingVisitor
 {
 	import std.experimental.allocator.mallocator : Mallocator;
 	import automem.vector : Vector;
+	alias DefaultVisitor = DefaultVisitorImpl!(SizeEnabled.yes,  TreePathEnabled.yes, typeof(this));
+	DefaultVisitor default_visitor;
+	alias default_visitor this;
 
 	Vector!(char, Mallocator) output;
 	private Vector!(char, Mallocator) _indentation;
-	DefaultVisitor default_visitor;
-	alias default_visitor this;
 
 	this(SizeType[2] size) @nogc
 	{
@@ -734,7 +736,7 @@ unittest
 
 struct RelativeMeasurer
 {
-	TreePathVisitor default_visitor;
+	DefaultVisitorImpl!(SizeEnabled.no,  TreePathEnabled.yes, typeof(this)) default_visitor;
 	alias default_visitor this;
 
 	TreePosition[] output;
@@ -1279,6 +1281,7 @@ unittest
 	];
 }
 
+version(none)
 version(unittest) @Name("new_paradigm")
 unittest
 {
