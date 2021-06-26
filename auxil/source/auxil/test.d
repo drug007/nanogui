@@ -33,12 +33,12 @@ struct PrettyPrintingVisitor
 		} ();
 	}
 
-	void beforeChildren() @nogc @trusted
+	void beforeChildren(Order order, Data, Model)(ref const(Data) data, ref Model model) @nogc @trusted
 	{
 		_indentation ~= '\t';
 	}
 
-	void afterChildren() @nogc @trusted
+	void afterChildren(Order order, Data, Model)(ref const(Data) data, ref Model model) @nogc @trusted
 	{
 		if (_indentation.length)
 			_indentation.popBack;
@@ -764,6 +764,9 @@ struct RelativeMeasurer
 	{
 		output ~= TreePosition(loc.current_path.value, loc.y.position);
 	}
+
+	void beforeChildren(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
+	void afterChildren(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 }
 
 struct TreePosition

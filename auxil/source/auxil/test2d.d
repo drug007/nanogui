@@ -182,6 +182,9 @@ struct Visitor2D
 			break;
 		}
 	}
+
+	void beforeChildren(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
+	void afterChildren(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 }
 
 /// test for 2D positioning using text mode only (no coordinates)
