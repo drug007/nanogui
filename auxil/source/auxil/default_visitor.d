@@ -151,11 +151,18 @@ struct DefaultVisitorImpl(
 				return true;
 			}
 		}
+
+		static if (treePathEnabled == TreePathEnabled.yes)
+			loc.intend;
+
 		return false;
 	}
 
 	void doAfterChildren(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
+		static if (treePathEnabled == TreePathEnabled.yes)
+			loc.unintend;
+
 		() @trusted { (cast(Derived*) &this).afterChildren!(order, Data, Model)(data, model); }();
 		static if ((sizeEnabled == SizeEnabled.yes)) if (orientation == Orientation.Horizontal)
 		{
