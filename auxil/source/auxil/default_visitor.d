@@ -169,4 +169,17 @@ struct DefaultVisitorImpl(
 			size[orientation] += size[Orientation.Vertical] + model.Spacing;
 		}
 	}
+
+	auto startValue(Order order)(size_t len)
+	{
+		static if (treePathEnabled == TreePathEnabled.yes)
+			return loc.startValue!order(len);
+		else
+			return 0;
+	}
+
+	auto setPath(int i)
+	{
+		static if (treePathEnabled == TreePathEnabled.yes) loc.setPath(i);
+	}
 }
