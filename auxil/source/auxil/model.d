@@ -984,7 +984,7 @@ private struct PropertyVisitor(string propertyName, Value)
 
 	bool complete()
 	{
-		return completed || default_visitor.complete;
+		return default_visitor.complete || completed;
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
@@ -1033,7 +1033,7 @@ private struct ApplyVisitor(T)
 
 	bool complete()
 	{
-		return completed || default_visitor.complete;
+		return default_visitor.complete || completed;
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
