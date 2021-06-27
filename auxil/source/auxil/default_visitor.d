@@ -8,7 +8,7 @@ import auxil.model : Orientation;
 alias SizeEnabled     = Flag!"SizeEnabled";
 alias TreePathEnabled = Flag!"TreePathEnabled";
 
-private struct Void
+private struct Default
 {
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
@@ -16,80 +16,41 @@ private struct Void
 	void afterChildren(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 }
 
-alias MeasuringVisitor = MeasuringVisitorImpl!Void;
+alias MeasuringVisitor = MeasuringVisitorImpl!Default;
 
-/// Default implementation of Visitor
-struct MeasuringVisitorImpl(
-	Derived = Void,
-	SizeEnabled _size_ = SizeEnabled.yes,
-	TreePathEnabled _tree_path_ = TreePathEnabled.no,
-)
+/// Visitor to measure size of tree nodes
+struct MeasuringVisitorImpl(Derived = Default)
 {
-	alias sizeEnabled     = _size_;
-	alias treePathEnabled = _tree_path_;
+	SizeType[2] size;
 
-	static if (sizeEnabled == SizeEnabled.yes || treePathEnabled == TreePathEnabled.yes)
+	this(SizeType[2] s) @safe @nogc nothrow
 	{
-		SizeType[2] size;
-
-		this(SizeType[2] s) @safe @nogc nothrow
-		{
-			size = s;
-		}
+		size = s;
 	}
 
-	static if (treePathEnabled == TreePathEnabled.yes)
-	{
-		Location loc;
-	}
+	enum treePathEnabled = TreePathEnabled.no;
 
 	Orientation orientation = Orientation.Vertical;
 
 	bool complete() @safe @nogc
 	{
-		static if (treePathEnabled == TreePathEnabled.yes)
-			return loc.checkState;
-		else
-			return false;
+		return false;
 	}
 
 	bool engaged() @safe @nogc nothrow
 	{
-		static if (treePathEnabled == TreePathEnabled.yes)
-			return loc.stateFirstOrRest;
-		else
-			return true;
+		return true;
 	}
 
 	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
-		static if (treePathEnabled == TreePathEnabled.yes)
-		{
-			loc.y.position = 0;
-
-			final switch (this.orientation)
-			{
-				case Orientation.Vertical:
-					static if (model.Collapsable)
-						loc.y.size = model.header_size;
-					else
-						loc.y.size = model.size;
-				break;
-				case Orientation.Horizontal:
-					loc.y.size = size[this.orientation];
-				break;
-			}
-		}
 	}
 
 	void doEnterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		static if (sizeEnabled == SizeEnabled.yes)
-		{
-			model.size = size[orientation] + model.Spacing;
-			static if (model.Collapsable)
-				model.header_size = model.size;
-		}
+		model.size = size[orientation] + model.Spacing;
+		static if (model.Collapsable)
+			model.header_size = model.size;
 
 		version(none) static if (model.Collapsable)
 		{
@@ -101,15 +62,6 @@ struct MeasuringVisitorImpl(
 
 		if (engaged)
 		{
-			static if (treePathEnabled == TreePathEnabled.yes)
-			{
-				static if (model.Collapsable)
-					auto currentSize = model.header_size;
-				else
-					auto currentSize = model.size;
-				loc.enterNode!order(currentSize);
-				scope(exit) loc.enterNodeCheck!order;
-			}
 			() @trusted { (cast(Derived*) &this).enterNode!(order, Data, Model)(data, model); }();
 		}
 	}
@@ -118,15 +70,6 @@ struct MeasuringVisitorImpl(
 	{
 		if (engaged)
 		{
-			static if (treePathEnabled == TreePathEnabled.yes)
-			{
-				static if (model.Collapsable)
-					auto currentSize = model.header_size;
-				else
-					auto currentSize = model.size;
-				loc.leaveNode!order(currentSize);
-				loc.leaveNodeCheck!order;
-			}
 			() @trusted { (cast(Derived*) &this).leaveNode!(order, Data, Model)(data, model); }();
 		}
 	}
@@ -135,35 +78,21 @@ struct MeasuringVisitorImpl(
 	/// but traversing should be continued
 	bool doBeforeChildren(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		static if (sizeEnabled == SizeEnabled.yes) if (orientation == Orientation.Horizontal)
+		if (orientation == Orientation.Horizontal)
 		{
 			size[orientation] -= size[Orientation.Vertical] + model.Spacing;
 		}
+
 		() @trusted { (cast(Derived*) &this).beforeChildren!(order, Data, Model)(data, model); }();
-
-		static if (order == Order.Bubbling && treePathEnabled == TreePathEnabled.yes)
-		{
-			// Edge case if the start path starts from this collapsable exactly
-			// then the childs of the collapsable aren't processed
-			if (loc.path.value.length && loc.current_path.value[] == loc.path.value[])
-			{
-				return true;
-			}
-		}
-
-		static if (treePathEnabled == TreePathEnabled.yes)
-			loc.intend;
 
 		return false;
 	}
 
 	void doAfterChildren(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		static if (treePathEnabled == TreePathEnabled.yes)
-			loc.unintend;
-
 		() @trusted { (cast(Derived*) &this).afterChildren!(order, Data, Model)(data, model); }();
-		static if (sizeEnabled == SizeEnabled.yes) if (orientation == Orientation.Horizontal)
+
+		if (orientation == Orientation.Horizontal)
 		{
 			size[orientation] += size[Orientation.Vertical] + model.Spacing;
 		}
@@ -171,115 +100,80 @@ struct MeasuringVisitorImpl(
 
 	auto startValue(Order order)(size_t len)
 	{
-		static if (treePathEnabled == TreePathEnabled.yes)
-			return loc.startValue!order(len);
-		else
-			return 0;
+		return 0;
 	}
 
 	auto setPath(int i)
 	{
-		static if (treePathEnabled == TreePathEnabled.yes) loc.setPath(i);
 	}
 
 	auto setChildSize(Model, ChildModel)(ref Model model, ref ChildModel child_model, int len, ref float residual)
 	{
-		static if (sizeEnabled == SizeEnabled.yes)
+		final switch(model.orientation)
 		{
-			final switch(model.orientation)
-			{
-				case Orientation.Horizontal:
-					double sf = cast(double)(model.size)/len;
-					SizeType sz = cast(SizeType)sf;
-					residual += sf - sz;
-					if (residual >= 1.0)
-					{
-						residual -= 1;
-						sz += 1;
-					}
-					child_model.size = sz;
-				break;
-				case Orientation.Vertical:
-					model.size += child_model.size;
-				break;
-			}
+			case Orientation.Horizontal:
+				double sf = cast(double)(model.size)/len;
+				SizeType sz = cast(SizeType)sf;
+				residual += sf - sz;
+				if (residual >= 1.0)
+				{
+					residual -= 1;
+					sz += 1;
+				}
+				child_model.size = sz;
+			break;
+			case Orientation.Vertical:
+				model.size += child_model.size;
+			break;
 		}
 	}
 }
 
-/// Default implementation of Visitor
-struct TreePathVisitorImpl(
-	Derived = Void,
-	SizeEnabled _size_ = SizeEnabled.no,
-	TreePathEnabled _tree_path_ = TreePathEnabled.yes
-)
+/// Visitor for traversing tree to do useful job
+struct TreePathVisitorImpl(Derived = Default)
 {
-	alias sizeEnabled     = _size_;
-	alias treePathEnabled = _tree_path_;
+	SizeType[2] size;
 
-	static if (sizeEnabled == SizeEnabled.yes || treePathEnabled == TreePathEnabled.yes)
+	this(SizeType[2] s) @safe @nogc nothrow
 	{
-		SizeType[2] size;
-
-		this(SizeType[2] s) @safe @nogc nothrow
-		{
-			size = s;
-		}
+		size = s;
 	}
 
-	static if (treePathEnabled == TreePathEnabled.yes)
-	{
-		Location loc;
-	}
+	enum treePathEnabled = TreePathEnabled.yes;
 
+	Location loc;
 	Orientation orientation = Orientation.Vertical;
 
 	bool complete() @safe @nogc
 	{
-		static if (treePathEnabled == TreePathEnabled.yes)
-			return loc.checkState;
-		else
-			return false;
+		return loc.checkState;
 	}
 
 	bool engaged() @safe @nogc nothrow
 	{
-		static if (treePathEnabled == TreePathEnabled.yes)
-			return loc.stateFirstOrRest;
-		else
-			return true;
+		return loc.stateFirstOrRest;
 	}
 
 	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
-		static if (treePathEnabled == TreePathEnabled.yes)
-		{
-			loc.y.position = 0;
+		loc.y.position = 0;
 
-			final switch (this.orientation)
-			{
-				case Orientation.Vertical:
-					static if (model.Collapsable)
-						loc.y.size = model.header_size;
-					else
-						loc.y.size = model.size;
-				break;
-				case Orientation.Horizontal:
-					loc.y.size = size[this.orientation];
-				break;
-			}
+		final switch (this.orientation)
+		{
+			case Orientation.Vertical:
+				static if (model.Collapsable)
+					loc.y.size = model.header_size;
+				else
+					loc.y.size = model.size;
+			break;
+			case Orientation.Horizontal:
+				loc.y.size = size[this.orientation];
+			break;
 		}
 	}
 
 	void doEnterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		static if (sizeEnabled == SizeEnabled.yes)
-		{
-			model.size = size[orientation] + model.Spacing;
-			static if (model.Collapsable)
-				model.header_size = model.size;
-		}
-
 		version(none) static if (model.Collapsable)
 		{
 			const old_orientation = visitor.orientation;
@@ -290,15 +184,13 @@ struct TreePathVisitorImpl(
 
 		if (engaged)
 		{
-			static if (treePathEnabled == TreePathEnabled.yes)
-			{
-				static if (model.Collapsable)
-					auto currentSize = model.header_size;
-				else
-					auto currentSize = model.size;
-				loc.enterNode!order(currentSize);
-				scope(exit) loc.enterNodeCheck!order;
-			}
+			static if (model.Collapsable)
+				auto currentSize = model.header_size;
+			else
+				auto currentSize = model.size;
+			loc.enterNode!order(currentSize);
+			scope(exit) loc.enterNodeCheck!order;
+
 			() @trusted { (cast(Derived*) &this).enterNode!(order, Data, Model)(data, model); }();
 		}
 	}
@@ -307,15 +199,13 @@ struct TreePathVisitorImpl(
 	{
 		if (engaged)
 		{
-			static if (treePathEnabled == TreePathEnabled.yes)
-			{
-				static if (model.Collapsable)
-					auto currentSize = model.header_size;
-				else
-					auto currentSize = model.size;
-				loc.leaveNode!order(currentSize);
-				loc.leaveNodeCheck!order;
-			}
+			static if (model.Collapsable)
+				auto currentSize = model.header_size;
+			else
+				auto currentSize = model.size;
+			loc.leaveNode!order(currentSize);
+			loc.leaveNodeCheck!order;
+
 			() @trusted { (cast(Derived*) &this).leaveNode!(order, Data, Model)(data, model); }();
 		}
 	}
@@ -324,74 +214,39 @@ struct TreePathVisitorImpl(
 	/// but traversing should be continued
 	bool doBeforeChildren(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		static if (sizeEnabled == SizeEnabled.yes) if (orientation == Orientation.Horizontal)
-		{
-			size[orientation] -= size[Orientation.Vertical] + model.Spacing;
-		}
 		() @trusted { (cast(Derived*) &this).beforeChildren!(order, Data, Model)(data, model); }();
 
-		static if (order == Order.Bubbling && treePathEnabled == TreePathEnabled.yes)
+		static if (order == Order.Bubbling)
 		{
 			// Edge case if the start path starts from this collapsable exactly
 			// then the childs of the collapsable aren't processed
 			if (loc.path.value.length && loc.current_path.value[] == loc.path.value[])
-			{
 				return true;
-			}
 		}
 
-		static if (treePathEnabled == TreePathEnabled.yes)
-			loc.intend;
+		loc.intend;
 
 		return false;
 	}
 
 	void doAfterChildren(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		static if (treePathEnabled == TreePathEnabled.yes)
-			loc.unintend;
+		loc.unintend;
 
 		() @trusted { (cast(Derived*) &this).afterChildren!(order, Data, Model)(data, model); }();
-		static if (sizeEnabled == SizeEnabled.yes) if (orientation == Orientation.Horizontal)
-		{
-			size[orientation] += size[Orientation.Vertical] + model.Spacing;
-		}
 	}
 
 	auto startValue(Order order)(size_t len)
 	{
-		static if (treePathEnabled == TreePathEnabled.yes)
-			return loc.startValue!order(len);
-		else
-			return 0;
+		return loc.startValue!order(len);
 	}
 
 	auto setPath(int i)
 	{
-		static if (treePathEnabled == TreePathEnabled.yes) loc.setPath(i);
+		loc.setPath(i);
 	}
 
 	auto setChildSize(Model, ChildModel)(ref Model model, ref ChildModel child_model, int len, ref float residual)
 	{
-		static if (sizeEnabled == SizeEnabled.yes)
-		{
-			final switch(model.orientation)
-			{
-				case Orientation.Horizontal:
-					double sf = cast(double)(model.size)/len;
-					SizeType sz = cast(SizeType)sf;
-					residual += sf - sz;
-					if (residual >= 1.0)
-					{
-						residual -= 1;
-						sz += 1;
-					}
-					child_model.size = sz;
-				break;
-				case Orientation.Vertical:
-					model.size += child_model.size;
-				break;
-			}
-		}
 	}
 }
