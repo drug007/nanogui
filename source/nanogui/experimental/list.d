@@ -427,7 +427,7 @@ private struct RenderingVisitor
 
 	bool complete()
 	{
-		return ctx.position.y > finish;
+		return default_visitor.complete || ctx.position.y > finish;
 	}
 
 	void beforeChildren(Order order, Data, Model)(ref const(Data) data, ref Model model)
