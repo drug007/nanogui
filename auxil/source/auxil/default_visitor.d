@@ -185,6 +185,7 @@ struct TreePathVisitorImpl(Derived = Default)
 
 	Location loc;
 	Orientation orientation = Orientation.Vertical;
+	Orientation old_orientation;
 
 	bool complete() @safe @nogc
 	{
@@ -210,22 +211,20 @@ struct TreePathVisitorImpl(Derived = Default)
 
 	void doEnterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		version(none) static if (model.Collapsable)
-		{
-			const old_orientation = visitor.orientation;
-			visitor.orientation  = this.orientation;
-
-			scope(exit) visitor.orientation = old_orientation;
-		}
-
 		if (engaged)
 		{
 			static if (model.Collapsable)
 				auto currentSize = model.header_size;
 			else
 				auto currentSize = model.size;
-			loc.enterNode!order(currentSize);
-			scope(exit) loc.enterNodeCheck!order;
+			loc.enterNode!order(orientation, currentSize);
+			scope(exit) loc.enterNodeCheck!order(orientation);
+
+			static if (model.Collapsable)
+			{
+				old_orientation = orientation;
+				orientation  = model.orientation;
+			}
 
 			() @trusted { (cast(Derived*) &this).enterNode!(order, Data, Model)(data, model); }();
 		}
@@ -243,6 +242,9 @@ struct TreePathVisitorImpl(Derived = Default)
 			loc.leaveNodeCheck!order;
 
 			() @trusted { (cast(Derived*) &this).leaveNode!(order, Data, Model)(data, model); }();
+
+			static if (model.Collapsable)
+				scope(exit) orientation = old_orientation;
 		}
 	}
 
