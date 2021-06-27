@@ -4,7 +4,7 @@ import std.traits : isInstanceOf;
 import taggedalgebraic : TaggedAlgebraic, taget = get;
 import auxil.traits;
 import auxil.location : Location, SizeType;
-import auxil.default_visitor : DefaultVisitorImpl, SizeEnabled, TreePathEnabled;
+import auxil.default_visitor : TreePathVisitorImpl;
 public import auxil.location : Order;
 
 version(unittest) import unit_threaded : Name;
@@ -967,7 +967,9 @@ auto getPropertyByTreePath(string propertyName, Value, Data, Model)(auto ref Dat
 private struct PropertyVisitor(string propertyName, Value)
 {
 	import std.typecons : Nullable;
-	DefaultVisitorImpl!(SizeEnabled.no,  TreePathEnabled.yes, typeof(this)) default_visitor;
+
+	alias TreePathVisitor = TreePathVisitorImpl!(typeof(this));
+	TreePathVisitor default_visitor;
 
 	alias default_visitor this;
 
@@ -1023,7 +1025,7 @@ private struct ApplyVisitor(T)
 {
 	import std.typecons : Nullable;
 
-	DefaultVisitorImpl!(SizeEnabled.no,  TreePathEnabled.yes, typeof(this)) default_visitor;
+	TreePathVisitor!(typeof(this)) default_visitor;
 	alias default_visitor this;
 
 	void delegate(ref const(T) value) dg;

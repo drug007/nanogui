@@ -4,15 +4,14 @@ version(unittest) import unit_threaded : Name;
 
 import auxil.model;
 import auxil.location : SizeType;
-import auxil.default_visitor : DefaultVisitorImpl, SizeEnabled, TreePathEnabled, 
-	TreePathVisitor, MeasuringVisitor;
+import auxil.default_visitor : TreePathVisitorImpl, MeasuringVisitor;
 
 @safe private
 struct PrettyPrintingVisitor
 {
 	import std.experimental.allocator.mallocator : Mallocator;
 	import automem.vector : Vector;
-	alias TreePathVisitor = DefaultVisitorImpl!(SizeEnabled.no,  TreePathEnabled.yes, typeof(this));
+	alias TreePathVisitor = TreePathVisitorImpl!(typeof(this));
 	TreePathVisitor default_visitor;
 	alias default_visitor this;
 
@@ -118,6 +117,11 @@ unittest
 	auto d = StructWithStruct();
 	auto m = makeModel(d);
 	m.visitForward(d, visitor);
+	// measure size
+	{
+		auto mv = MeasuringVisitor([99, 9]);
+		m.visitForward(d, mv);
+	}
 	m.size.should.be == 10;
 	d.d = 0;
 	d.l = 1;
@@ -621,10 +625,20 @@ unittest
 	auto visitor = PrettyPrintingVisitor([99, 14]);
 	visitor.processItem;
 	model.visitForward(data[], visitor);
+	// measure size
+	{
+		auto mv = MeasuringVisitor([99, 14]);
+		model.visitForward(data[], mv);
+	}
 	assert(model.size == visitor.size[visitor.orientation] + model.Spacing);
 
 	model.collapsed = false;
 	visitor.loc.y.destination = visitor.loc.y.destination.max;
+	// measure size
+	{
+		auto mv = MeasuringVisitor([99, 14]);
+		model.visitForward(data[], mv);
+	}
 	model.visitForward(data[], visitor);
 
 	assert(model.size == 4*(visitor.size[visitor.orientation] + model.Spacing));
@@ -763,7 +777,8 @@ unittest
 
 struct RelativeMeasurer
 {
-	DefaultVisitorImpl!(SizeEnabled.no,  TreePathEnabled.yes, typeof(this)) default_visitor;
+	alias TreePathVisitor = TreePathVisitorImpl!(typeof(this));
+	TreePathVisitor default_visitor;
 	alias default_visitor this;
 
 	TreePosition[] output;

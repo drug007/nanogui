@@ -3,7 +3,7 @@ module auxil.test2d;
 version(unittest) import unit_threaded : Name, should, be;
 
 import auxil.model;
-import auxil.default_visitor : DefaultVisitorImpl, SizeEnabled, TreePathEnabled, MeasuringVisitor;
+import auxil.default_visitor : TreePathVisitorImpl, MeasuringVisitor;
 import auxil.location : SizeType, Axis;
 
 struct Pos
@@ -58,7 +58,8 @@ struct Visitor2D
 	import std.experimental.allocator.mallocator : Mallocator;
 	import automem.vector : Vector;
 
-	DefaultVisitorImpl!(SizeEnabled.no,  TreePathEnabled.yes, typeof(this)) default_visitor;
+	alias TreePathVisitor = TreePathVisitorImpl!(typeof(this));
+	TreePathVisitor default_visitor;
 	alias default_visitor this;
 
 	Vector!(char, Mallocator) output;
