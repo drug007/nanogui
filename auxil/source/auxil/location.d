@@ -1,5 +1,6 @@
 module auxil.location;
 
+import auxil.model : Orientation; // FIXME avoid import from this module
 import auxil.treepath;
 
 alias SizeType = int;
@@ -54,23 +55,39 @@ struct Location
 		return false;
 	}
 
-	auto enterNode(Order order)(SizeType header_size)
+	auto enterNode(Order order)(Orientation orientation, SizeType header_size)
 	{
 		static if (order == Order.Sinking)
 		{
-			y.position = y.position + y.change;
-			y.change = header_size;
+			final switch(orientation) with (Orientation)
+			{
+				case Vertical:
+					y.position = y.position + y.change;
+					y.change = header_size;
+				break;
+				case Horizontal:
+					// do nothing?
+				break;
+			}
 		}
 	}
 
-	auto enterNodeCheck(Order order)()
+	auto enterNodeCheck(Order order)(Orientation orientation)
 	{
 		static if (order == Order.Sinking)
 		{
-			if (y.position + y.change > y.destination)
+			final switch(orientation) with (Orientation)
 			{
-				path = current_path;
-				_state = State.finishing;
+				case Vertical:
+					if (y.position + y.change > y.destination)
+					{
+						path = current_path;
+						_state = State.finishing;
+					}
+				break;
+				case Horizontal:
+					// do nothing?
+				break;
 			}
 		}
 	}
