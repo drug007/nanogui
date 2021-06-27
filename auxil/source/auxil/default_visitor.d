@@ -202,7 +202,10 @@ struct TreePathVisitorImpl(Derived = Default)
 		final switch (this.orientation)
 		{
 			case Orientation.Vertical:
-				loc.y.size = model.header_size;
+				static if (Model.Collapsable)
+					loc.y.size = model.header_size;
+				else
+					loc.y.size = model.size;
 			break;
 			case Orientation.Horizontal:
 			break;
