@@ -1057,7 +1057,7 @@ version(unittest)
 			// the window starts from 7th px
 			v.loc.y.destination.should.be == 7;
 
-			// scroll the next 7th px forward
+			// scroll the next 7 px forward
 			visit(model, data, v, 14);
 			// the current element is the first child element
 			v.loc.path.value[].should.be == [0];
@@ -1066,7 +1066,7 @@ version(unittest)
 			// the window starts from 14th px
 			v.loc.y.destination.should.be == 14;
 
-			// scroll the next 7th px forward
+			// scroll the next 7 px forward
 			visit(model, data, v, 21);
 			// the current element is the second child element
 			v.loc.path.value[].should.be == [1];
@@ -1075,7 +1075,7 @@ version(unittest)
 			// the window starts from 21th px
 			v.loc.y.destination.should.be == 21;
 
-			// scroll the next 7th px forward
+			// scroll the next 7 px forward
 			visit(model, data, v, 28);
 			// the current element is the second child element
 			v.loc.path.value[].should.be == [1];
@@ -1084,7 +1084,7 @@ version(unittest)
 			// the window starts from 28th px
 			v.loc.y.destination.should.be == 28;
 
-			// scroll the next 7th px forward
+			// scroll the next 7 px forward
 			visit(model, data, v, 35);
 			// the current element is the third child element
 			v.loc.path.value[].should.be == [2];
@@ -1093,7 +1093,7 @@ version(unittest)
 			// the window starts from 35th px
 			v.loc.y.destination.should.be == 35;
 
-			// scroll 7th px backward
+			// scroll 8 px backward
 			visit(model, data, v, 27);
 			// the current element is the second child element
 			v.loc.path.value[].should.be == [1];
@@ -1102,7 +1102,7 @@ version(unittest)
 			// the window starts from 27th px
 			v.loc.y.destination.should.be == 27;
 
-			// scroll the next 9th px backward
+			// scroll the next 9 px backward
 			visit(model, data, v, 18);
 			// the current element is the first child element
 			v.loc.path.value[].should.be == [0];
@@ -1111,7 +1111,7 @@ version(unittest)
 			// the window starts from 18th px
 			v.loc.y.destination.should.be == 18;
 
-			// scroll the next 6th px backward
+			// scroll the next 6 px backward
 			visit(model, data, v, 12);
 			// the current element is the first child element
 			v.loc.path.value[].should.be == [0];
@@ -1120,7 +1120,7 @@ version(unittest)
 			// the window starts from 12th px
 			v.loc.y.destination.should.be == 12;
 
-			// scroll the next 5th px backward
+			// scroll the next 5 px backward
 			visit(model, data, v, 7);
 			// the current element is the root element
 			v.loc.path.value[].should.be == (int[]).init;
@@ -1131,11 +1131,11 @@ version(unittest)
 
 			// scroll 76 px forward
 			visit(model, data, v, 83);
-			// // the current element is the second child element
-			// v.loc.path.value[].should.be == [4, 0];
-			// // position of the current element is 20 px
-			// v.loc.y.position.should.be == 80;
-			// the window starts from 27th px
+			// the current element is the second child element
+			v.loc.path.value[].should.be == [4, 0];
+			// position of the current element is 80 px
+			v.loc.y.position.should.be == 80;
+			// the window starts from 83th px
 			v.loc.y.destination.should.be == 83;
 
 			visit(model, data, v, 81);
@@ -1151,7 +1151,7 @@ version(unittest)
 			visit(model, data, v, 0);
 			v.loc.path.value[].should.be == (int[]).init;
 			v.loc.y.position.should.be == 0;
-			v.loc.y.destination.should.be ~ 0.0;
+			v.loc.y.destination.should.be == 0;
 		}
 	}
 }
