@@ -66,14 +66,12 @@ struct Visitor2D
 	private Vector!(char, Mallocator) _indentation;
 
 	Vector!(Pos, Mallocator) position;
-	SizeType size;
-
 
 	Axis x, old_x;
 
-	this(SizeType size) @nogc
+	this(SizeType[2] size) @nogc
 	{
-		this.size = size;
+		default_visitor = TreePathVisitor(size);
 	}
 
 	auto processItem(T...)(T msg)
@@ -83,21 +81,6 @@ struct Visitor2D
 			import nogc.conv : text;
 			output ~= text(msg)[];
 		} ();
-	}
-
-	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
-	{
-		x.position = 0;
-		final switch (this.orientation)
-		{
-			case Orientation.Vertical:
-				x.size = size;
-			break;
-			case Orientation.Horizontal:
-				x.size = model.size;
-			break;
-		}
-		default_visitor.enterTree!(order, Data)(data, model);
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
@@ -202,16 +185,23 @@ unittest
 
 	Test[2] data;
 
-	auto visitor = Visitor2D(300);
+	auto visitor = Visitor2D([299, 9]);
 	visitor.orientation = visitor.orientation.Vertical;
 	auto model = makeModel(data);
 	model.collapsed = false;
 	model[0].collapsed = false;
 	model[1].collapsed = false;
 	{
-		auto mv = MeasuringVisitor([300, 9]);
+		auto mv = MeasuringVisitor([299, 9]);
 		model.visitForward(data, mv);
 	}
+
+	model.size.should.be == 90;
+	model.header_size.should.be == 10;
+	model.length.should.be == 2;
+	model[0].size.should.be == 40;
+	model[1].size.should.be == 40;
+
 	visitor.loc.y.destination = visitor.loc.y.destination.max;
 	model.visitForward(data, visitor);
 
@@ -244,8 +234,10 @@ unittest
 
 	model[0].orientation = Orientation.Horizontal;
 	{
-		auto mv = MeasuringVisitor([300, 9]);
+		auto mv = MeasuringVisitor([299, 9]);
 		model.visitForward(data, mv);
+
+		model.size.should.be == 60;
 
 		with(model[0])
 		{
@@ -266,6 +258,7 @@ unittest
 	}
 	visitor.output.clear;
 	visitor.position.clear;
+	visitor.loc.y.position = 0;
 	model.visitForward(data, visitor);
 
 	() @trusted
@@ -311,14 +304,14 @@ unittest
 
 	Wrapper data;
 
-	auto visitor = Visitor2D(300);
+	auto visitor = Visitor2D([299, 9]);
 	visitor.orientation = visitor.orientation.Vertical;
 	auto model = makeModel(data);
 	model.collapsed = false;
 	model.t1.collapsed = false;
 	model.t2.collapsed = false;
 	{
-		auto mv = MeasuringVisitor([300, 9]);
+		auto mv = MeasuringVisitor([299, 9]);
 		model.visitForward(data, mv);
 	}
 	// // visitor.loc.y.destination = visitor.loc.y.destination.max;

@@ -31,6 +31,7 @@ struct MeasuringVisitorImpl(Derived = Default)
 	enum treePathEnabled = TreePathEnabled.no;
 
 	Orientation orientation = Orientation.Vertical;
+	Orientation old_orientation;
 
 	bool complete() @safe @nogc
 	{
@@ -48,16 +49,33 @@ struct MeasuringVisitorImpl(Derived = Default)
 
 	void doEnterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		model.size = size[orientation] + model.Spacing;
-		static if (model.Collapsable)
-			model.header_size = model.size;
-
-		version(none) static if (model.Collapsable)
+		static if (Model.Collapsable)
 		{
-			const old_orientation = visitor.orientation;
-			visitor.orientation  = this.orientation;
+			model.size = size[model.orientation] + model.Spacing;
+			final switch (model.orientation)
+			{
+				case Orientation.Vertical:
+					model.header_size = model.size;
+				break;
+				case Orientation.Horizontal:
+					model.header_size = size[Orientation.Vertical] + model.Spacing;
+				break;
+			}
+			old_orientation = orientation;
+			orientation  = model.orientation;
+		}
+		else
+			model.size = size[orientation] + model.Spacing;
 
-			scope(exit) visitor.orientation = old_orientation;
+		final switch (orientation)
+		{
+			// shrink size of the window
+			case Orientation.Vertical:
+				size[Orientation.Horizontal] -= size[Orientation.Vertical] + model.Spacing;
+			break;
+			case Orientation.Horizontal:
+				// do nothing
+			break;
 		}
 
 		if (engaged)
@@ -72,6 +90,20 @@ struct MeasuringVisitorImpl(Derived = Default)
 		{
 			() @trusted { (cast(Derived*) &this).leaveNode!(order, Data, Model)(data, model); }();
 		}
+
+		final switch (this.orientation)
+		{
+			// restore shrinked size of the window
+			case Orientation.Vertical:
+				size[Orientation.Horizontal] += size[Orientation.Vertical] + model.Spacing;
+			break;
+			case Orientation.Horizontal:
+				// do nothing again
+			break;
+		}
+
+		static if (model.Collapsable)
+			orientation = old_orientation;
 	}
 
 	/// returns true if the current children shouldn't be processed
@@ -123,9 +155,19 @@ struct MeasuringVisitorImpl(Derived = Default)
 				child_model.size = sz;
 			break;
 			case Orientation.Vertical:
-				model.size += child_model.size;
+				model.size += modelSize(child_model, orientation);
 			break;
 		}
+	}
+
+	private auto modelSize(Model)(ref const(Model) model, Orientation orientation)
+	{
+		static if (Model.Collapsable)
+		{
+			if (orientation == model.orientation)
+				return model.size;
+		}
+		return size[orientation] + model.Spacing;
 	}
 }
 
@@ -156,6 +198,14 @@ struct TreePathVisitorImpl(Derived = Default)
 
 	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
+		final switch (this.orientation)
+		{
+			case Orientation.Vertical:
+				loc.y.size = model.header_size;
+			break;
+			case Orientation.Horizontal:
+			break;
+		}
 	}
 
 	void doEnterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
