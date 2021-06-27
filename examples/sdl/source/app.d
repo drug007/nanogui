@@ -18,19 +18,19 @@ uint timer_callback(uint interval, void *param) nothrow
 {
 	import gfm.sdl2;
 
-    SDL_Event event;
-    SDL_UserEvent userevent;
+	SDL_Event event;
+	SDL_UserEvent userevent;
 
-    userevent.type = SDL_USEREVENT;
-    userevent.code = 0;
-    userevent.data1 = null;
-    userevent.data2 = null;
+	userevent.type = SDL_USEREVENT;
+	userevent.code = 0;
+	userevent.data1 = null;
+	userevent.data2 = null;
 
-    event.type = SDL_USEREVENT;
-    event.user = userevent;
+	event.type = SDL_USEREVENT;
+	event.user = userevent;
 
-    SDL_PushEvent(&event);
-    return(interval);
+	SDL_PushEvent(&event);
+	return(interval);
 }
 
 class MyGlCanvas : GLCanvas
