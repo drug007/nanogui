@@ -12,7 +12,7 @@ module nanogui.experimental.treeview;
 
 import nanogui.widget;
 import nanogui.common : MouseButton, Vector2f, Vector2i;
-import nanogui.experimental.utils : Model, TreePathVisitor;
+import nanogui.experimental.utils : Model, TreePathVisitorImpl;
 
 /**
  * Tree view widget.
@@ -239,29 +239,35 @@ private struct RenderingVisitor
 	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath;
 	import auxil.model;
 
-	NanoContext ctx;
-	TreePathVisitor default_visitor;
+	TreePathVisitorImpl!(typeof(this)) default_visitor;
 	alias default_visitor this;
 
+	NanoContext ctx;
 	TreePath selected_item;
 	float finish;
+
+	this(ref NanoContext ctx)
+	{
+		this.ctx = ctx;
+	}
 
 	bool complete()
 	{
 		return ctx.position.y > finish;
 	}
 
-	void beforeChildren()
+	void beforeChildren(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		ctx.indent;
 	}
 
-	void afterChildren()
+	void afterChildren(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		ctx.unindent;
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
+		if (Model.Collapsable)
 	{
 		ctx.save;
 		scope(exit) ctx.restore;
@@ -317,7 +323,8 @@ private struct RenderingVisitor
 		}
 	}
 
-	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
+		if (!Model.Collapsable)
 	{
 		ctx.fontSize(ctx.size.y);
 		ctx.fontFace("sans");
@@ -325,4 +332,6 @@ private struct RenderingVisitor
 		if (drawItem(ctx, cast(int) ctx.size[ctx.orientation], data))
 			selected_item = loc.current_path;
 	}
+
+	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 }

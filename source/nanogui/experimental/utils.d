@@ -7,7 +7,7 @@ public import auxil.sizeindex;
 public import auxil.model;
 public import auxil.traits;
 public import auxil.treepath : TreePath;
-public import auxil.default_visitor : MeasuringVisitor, TreePathVisitor;
+public import auxil.default_visitor : MeasuringVisitor, TreePathVisitorImpl;
 
 private string enumToString(E)(E e) @nogc @safe nothrow
 	if (is(E == enum))
