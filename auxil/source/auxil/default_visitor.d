@@ -156,20 +156,6 @@ struct TreePathVisitorImpl(Derived = Default)
 
 	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
-		loc.y.position = 0;
-
-		final switch (this.orientation)
-		{
-			case Orientation.Vertical:
-				static if (model.Collapsable)
-					loc.y.size = model.header_size;
-				else
-					loc.y.size = model.size;
-			break;
-			case Orientation.Horizontal:
-				loc.y.size = size[this.orientation];
-			break;
-		}
 	}
 
 	void doEnterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)

@@ -1156,6 +1156,130 @@ version(unittest)
 	}
 }
 
+// Test for default TreePathVisitor using
+// the same data like in example/sdl
+version(unittest) @Name("ScrollingTest2")
+unittest
+{
+	struct Test
+	{
+		float f = 7.7;
+		int i = 8;
+		string s = "some text";
+	}
+
+	@("Orientation.Horizontal")
+	struct Test1
+	{
+		int l = 42;
+		string s = "some text";
+	}
+
+	struct Test2
+	{
+		double d = 8.8;
+		long l = 999;
+		Test t;
+		Test1 t1;
+	}
+
+	import taggedalgebraic : TaggedAlgebraic;
+	union Payload
+	{
+		float f;
+		int i;
+		string str;
+		double d;
+		Test t;
+		Test2 t2;
+	}
+	alias Item = TaggedAlgebraic!Payload;
+
+	Item[] data;
+	enum total = 1_000_000;
+	data.reserve(total);
+	foreach(i; 0..total)
+	{
+		import std.conv : text;
+		import std.random : uniform;
+		const x = uniform(0, 6);
+		switch(x)
+		{
+			case 0:
+				float f = cast(float) i;
+				data ~= Item(f);
+			break;
+			case 1:
+				int n = cast(int) i;
+				data ~= Item(n);
+			break;
+			case 2:
+				string str = text("item #", i);
+				data ~= Item(str);
+			break;
+			case 3:
+				double d = cast(double) i;
+				data ~= Item(d);
+			break;
+			case 4:
+				Test t;
+				data ~= Item(t);
+			break;
+			default:
+			case 5:
+				Test2 t2;
+				data ~= Item(t2);
+			break;
+		}
+	}
+
+	auto model = makeModel(data);
+	auto visitor = TreePathVisitorImpl!()();
+
+	model.collapsed = false;
+	{
+		auto mv = MeasuringVisitor([0, 16]);
+		model.visitForward(data, mv);
+	}
+
+	import unit_threaded : should, be;
+	
+	// the element height is 17 px
+
+	// scroll 7 px forward
+	visit(model, data, visitor, 7);
+	// current element is the root one
+	visitor.loc.path.value[].should.be == (int[]).init;
+	// position of the current element is 0 px
+	visitor.loc.y.position.should.be == 0;
+	// the window starts from 7th px
+	visitor.loc.y.destination.should.be == 7;
+
+	// scroll the next 11 px forward
+	visit(model, data, visitor, 18);
+	// the current element is the first child element
+	visitor.loc.path.value[].should.be == [0];
+	// position of the current element is 17 px
+	visitor.loc.y.position.should.be == 17;
+	// the window starts from 18th px
+	visitor.loc.y.destination.should.be == 18;
+
+	// scroll the next 41 px forward
+	visit(model, data, visitor, 59);
+	visitor.loc.path.value[].should.be == [2];
+	visitor.loc.y.position.should.be == 51;
+	visitor.loc.y.destination.should.be == 59;
+
+	// scroll 49 px backward
+	visit(model, data, visitor, 10);
+	// the current element is the second child element
+	visitor.loc.path.value[].should.be == (int[]).init;
+	// position of the current element is 0 px
+	visitor.loc.y.position.should.be == 0;
+	// the window starts from 0th px
+	visitor.loc.y.destination.should.be == 10;
+}
+
 version(unittest) @Name("reverse_dynamic_array")
 unittest
 {
