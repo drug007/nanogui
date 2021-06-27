@@ -387,6 +387,22 @@ struct TaggedAlgebraicModel(alias A)// if (dataHasTaggedAlgebraicModel!(TypeOf!A
 			assert(0); // never reached
 		}
 
+		@property Orientation orientation() const
+		{
+			final switch(value.kind)
+			{
+				foreach (i, FT; value.UnionType.FieldTypes)
+				{
+					case __traits(getMember, value.Kind, value.UnionType.fieldNames[i]):
+						static if (is(typeof(taget!FT(value).orientation) == Orientation))
+							return taget!FT(value).orientation;
+						else
+							return Orientation.Vertical; // FIXME it's a hack, add support for visitor defined orientation
+				}
+			}
+			assert(0); // never reached
+		}
+
 		@property size() const
 		{
 			final switch(value.kind)
