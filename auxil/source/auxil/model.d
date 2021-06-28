@@ -218,6 +218,7 @@ template Model(alias A)
 struct StaticArrayModel(alias A)// if (dataHasStaticArrayModel!(TypeOf!A))
 {
 	enum Collapsable = true;
+	enum DynamicCollapsable = false;
 
 	mixin State!A;
 
@@ -249,6 +250,7 @@ struct RaRModel(alias A)// if (dataHasRandomAccessRangeModel!(TypeOf!A))
 	import std.experimental.allocator.mallocator : Mallocator;
 
 	enum Collapsable = true;
+	enum DynamicCollapsable = false;
 
 	mixin State!A;
 
@@ -290,6 +292,7 @@ struct AssocArrayModel(alias A)// if (dataHasAssociativeArrayModel!(TypeOf!A))
 	import std.experimental.allocator.mallocator : Mallocator;
 
 	enum Collapsable = true;
+	enum DynamicCollapsable = false;
 
 	static assert(dataHasAssociativeArrayModel!(TypeOf!A));
 
@@ -342,6 +345,7 @@ struct TaggedAlgebraicModel(alias A)// if (dataHasTaggedAlgebraicModel!(TypeOf!A
 	import std.traits : Fields;
 	import std.meta : anySatisfy;
 	enum Collapsable = anySatisfy!(isCollapsable, Fields!Payload);
+	enum DynamicCollapsable = true;
 
 	private static struct Payload
 	{
@@ -387,17 +391,18 @@ struct TaggedAlgebraicModel(alias A)// if (dataHasTaggedAlgebraicModel!(TypeOf!A
 			assert(0); // never reached
 		}
 
-		@property Orientation orientation() const
+		/// return if the model is collapsable based on the value it holds
+		@property bool rtCollapsable() const
 		{
 			final switch(value.kind)
 			{
 				foreach (i, FT; value.UnionType.FieldTypes)
 				{
 					case __traits(getMember, value.Kind, value.UnionType.fieldNames[i]):
-						static if (is(typeof(taget!FT(value).orientation) == Orientation))
-							return taget!FT(value).orientation;
-						else
-							return Orientation.Vertical; // FIXME it's a hack, add support for visitor defined orientation
+						static if (is(typeof(taget!FT(value).rtCollapsable) == bool))
+							return taget!FT(value).rtCollapsable;
+						else static if (is(typeof(taget!FT(value).Collapsable) == bool))
+							return taget!FT(value).Collapsable;
 				}
 			}
 			assert(0); // never reached
@@ -490,6 +495,7 @@ template AggregateModel(alias A) // if (dataHasAggregateModel!(TypeOf!A) && !is(
 			alias single_member_model this;
 
 			enum Collapsable = single_member_model.Collapsable;
+			enum DynamicCollapsable = single_member_model.DynamicCollapsable;
 
 			this()(auto ref const(T) data)
 			{
@@ -517,6 +523,7 @@ template AggregateModel(alias A) // if (dataHasAggregateModel!(TypeOf!A) && !is(
 		struct AggregateModel
 		{
 			enum Collapsable = true;
+			enum DynamicCollapsable = false;
 
 			import std.format : format;
 
@@ -559,6 +566,7 @@ struct RenderedAsAggregateModel(alias A)// if (dataHasAggregateModel!(TypeOf!A) 
 	Model!proxy proxy_model;
 
 	enum Collapsable = proxy_model.Collapsable;
+	enum DynamicCollapsable = proxy_model.DynamicCollapsable;
 
 	alias proxy_model this;
 
@@ -586,6 +594,7 @@ struct RenderedAsMemberAggregateModel(alias A)// if (dataHasAggregateModel!Data 
 	Model!(mixin("Data." ~ member_name)) model;
 
 	enum Collapsable = model.Collapsable;
+	enum DynamicCollapsable = model.DynamicCollapsable;
 
 	alias model this;
 
@@ -609,6 +618,7 @@ struct RenderedAsMemberStringAggregateModel(alias A)// if (dataHasAggregateModel
 	Model!(mixin("Data." ~ member_name)) model;
 
 	enum Collapsable = model.Collapsable;
+	enum DynamicCollapsable = model.DynamicCollapsable;
 
 	alias model this;
 
@@ -632,6 +642,7 @@ struct RenderedAsPointeeStringModel(alias A)
 	Model!(typeof(mixin("*Data.init." ~ member_name))) model;
 
 	enum Collapsable = model.Collapsable;
+	enum DynamicCollapsable = model.DynamicCollapsable;
 
 	alias model this;
 
@@ -655,6 +666,7 @@ struct DurationModel(alias A)
 	static assert(is(TypeOf!A : Duration));
 
 	enum Collapsable = false;
+	enum DynamicCollapsable = false;
 
 	alias Proxy = string;
 	static assert(isProcessible!Proxy);
@@ -686,6 +698,7 @@ struct NullableModel(alias A)
 	alias Payload = typeof(Data.get);
 
 	enum Collapsable = true;
+	enum DynamicCollapsable = false;
 
 	enum NulledPayload = __traits(identifier, A) ~ ": null";
 	Model!string  nulled_model = makeModel(NulledPayload);
@@ -756,6 +769,7 @@ struct TimemarkedModel(alias A)
 	}
 
 	enum Collapsable = true;
+	enum DynamicCollapsable = false;
 
 	enum NulledPayload = __traits(identifier, A) ~ ": null";
 	Model!string nulled_model = Model!string(NulledPayload);
@@ -821,6 +835,7 @@ struct ScalarModel(alias A)
 	SizeType size = 0;
 
 	enum Collapsable = false;
+	enum DynamicCollapsable = false;
 
 	alias Data = TypeOf!A;
 	static assert(isProcessible!Data);
