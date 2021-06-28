@@ -2,7 +2,7 @@ module auxil.default_visitor;
 
 import std.typecons : Flag;
 
-import auxil.location : Location, SizeType, Order;
+import auxil.location : Axis, Location, SizeType, Order;
 import auxil.model : Orientation;
 
 alias SizeEnabled     = Flag!"SizeEnabled";
@@ -102,7 +102,7 @@ struct MeasuringVisitorImpl(Derived = Default)
 			break;
 		}
 
-		static if (model.Collapsable)
+		static if (Model.Collapsable)
 			orientation = old_orientation;
 	}
 
@@ -193,6 +193,7 @@ struct TreePathVisitorImpl(Derived = Default)
 	Location loc;
 	Orientation orientation = Orientation.Vertical;
 	Orientation old_orientation;
+	Axis old_x;
 
 	bool complete() @safe @nogc
 	{
@@ -209,13 +210,14 @@ struct TreePathVisitorImpl(Derived = Default)
 		final switch (this.orientation)
 		{
 			case Orientation.Vertical:
+				loc.x.size = size[Orientation.Horizontal] + model.Spacing;
 				static if (Model.Collapsable)
 					loc.y.size = model.header_size;
 				else
 					loc.y.size = model.size;
 			break;
 			case Orientation.Horizontal:
-			break;
+				assert(0, "Not implemented");
 		}
 	}
 
@@ -223,20 +225,51 @@ struct TreePathVisitorImpl(Derived = Default)
 	{
 		if (engaged)
 		{
-			static if (model.Collapsable)
+			old_x = loc.x;
+
+			static if (Model.Collapsable)
 				auto currentSize = model.header_size;
 			else
 				auto currentSize = model.size;
 			loc.enterNode!order(orientation, currentSize);
 			scope(exit) loc.enterNodeCheck!order(orientation);
 
-			static if (model.Collapsable)
+			static if (Model.Collapsable)
 			{
 				old_orientation = orientation;
 				orientation  = model.orientation;
 			}
 
+			static if (!Model.Collapsable)
+			{
+				final switch (orientation)
+				{
+					case Orientation.Vertical:
+					break;
+					case Orientation.Horizontal:
+						loc.x.size = model.size;
+					break;
+				}
+				scope(exit)
+				{
+					final switch (this.orientation)
+					{
+						case Orientation.Vertical:
+						break;
+						case Orientation.Horizontal:
+							loc.x.position += model.size;
+						break;
+					}
+				}
+			}
+
 			() @trusted { (cast(Derived*) &this).enterNode!(order, Data, Model)(data, model); }();
+
+			static if (Model.Collapsable) with(loc)
+			{
+				x.position = x.position + model.header_size;
+				x.size = x.size - model.header_size;
+			}
 		}
 	}
 
@@ -244,17 +277,54 @@ struct TreePathVisitorImpl(Derived = Default)
 	{
 		if (engaged)
 		{
-			static if (model.Collapsable)
+			static if (Model.Collapsable)
 				auto currentSize = model.header_size;
 			else
 				auto currentSize = model.size;
-			loc.leaveNode!order(currentSize);
-			loc.leaveNodeCheck!order;
+			loc.leaveNode!order(orientation, currentSize);
+			loc.leaveNodeCheck!order(orientation);
+
+			static if (!Model.Collapsable)
+			{
+				final switch (orientation)
+				{
+					case Orientation.Vertical:
+					break;
+					case Orientation.Horizontal:
+						loc.x.size = model.size;
+					break;
+				}
+				scope(exit)
+				{
+					final switch (this.orientation)
+					{
+						case Orientation.Vertical:
+						break;
+						case Orientation.Horizontal:
+							loc.x.position += model.size;
+						break;
+					}
+				}
+			}
 
 			() @trusted { (cast(Derived*) &this).leaveNode!(order, Data, Model)(data, model); }();
 
-			static if (model.Collapsable)
-				scope(exit) orientation = old_orientation;
+			static if (Model.Collapsable)
+			{
+				with(loc) final switch (model.orientation)
+				{
+					case Orientation.Vertical:
+						x.position = x.position - model.header_size;
+						x.size = x.size + model.header_size;
+					break;
+					case Orientation.Horizontal:
+						x.position = old_x.position;
+						x.size = old_x.size;
+					break;
+				}
+
+				orientation = old_orientation;
+			}
 		}
 	}
 
