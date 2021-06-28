@@ -19,7 +19,7 @@ struct Location
 	enum State { seeking, first, rest, finishing, }
 	private State _state;
 	TreePath current_path, path;
-	Axis y;
+	Axis x, y;
 
 	@property
 	{
@@ -30,6 +30,7 @@ struct Location
 	{
 		_state = (path.value.length) ? State.seeking : State.rest;
 		y.change = 0;
+		x.change = 0;
 	}
 
 	/// returns true if the processing should be interrupted
@@ -92,7 +93,7 @@ struct Location
 		}
 	}
 
-	auto leaveNode(Order order)(SizeType header_size)
+	auto leaveNode(Order order)(Orientation orientation, SizeType header_size)
 	{
 		static if (order == Order.Bubbling)
 		{
@@ -101,7 +102,7 @@ struct Location
 		}
 	}
 
-	auto leaveNodeCheck(Order order)()
+	auto leaveNodeCheck(Order order)(Orientation orientation)
 	{
 		static if (order == Order.Bubbling)
 		{
