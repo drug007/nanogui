@@ -164,7 +164,14 @@ struct MeasuringVisitorImpl(Derived = Default)
 	{
 		static if (Model.Collapsable)
 		{
-			if (orientation == model.orientation)
+			// if modelSizeIsValid is true the model size is defined by the model
+			// in other case it is defined by the visitor
+			static if (Model.DynamicCollapsable)
+				bool modelSizeIsValid = model.rtCollapsable;
+			else
+				bool modelSizeIsValid = true;
+
+			if (modelSizeIsValid && orientation == model.orientation)
 				return model.size;
 		}
 		return size[orientation] + model.Spacing;
