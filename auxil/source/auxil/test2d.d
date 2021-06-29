@@ -118,15 +118,11 @@ struct Visitor2D
 				case Orientation.Vertical:
 					if (_indentation.length)
 						_indentation.popBack;
-					x.position = x.position - model.header_size;
-					x.size = x.size + model.header_size;
 				break;
 				case Orientation.Horizontal:
 					() @trusted {
 						output ~= "\n";
 					} ();
-					x.position = old_x.position;
-					x.size = old_x.size;
 				break;
 			}
 		}
@@ -136,14 +132,6 @@ struct Visitor2D
 
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		final switch (orientation)
-		{
-			case Orientation.Vertical:
-			break;
-			case Orientation.Horizontal:
-				x.size = model.size;
-			break;
-		}
 		() @trusted {
 			position ~= Pos(loc.x, loc.y);
 		} ();
@@ -156,7 +144,6 @@ struct Visitor2D
 				} ();
 			break;
 			case Orientation.Horizontal:
-				x.position = x.position + model.size;
 			break;
 		}
 	}
@@ -308,19 +295,19 @@ unittest
 		auto mv = MeasuringVisitor([299, 9]);
 		model.visitForward(data, mv);
 	}
-	// // visitor.loc.y.destination = visitor.loc.y.destination.max;
+	visitor.loc.y.destination = visitor.loc.y.destination.max;
 	model.visitForward(data, visitor);
 
 	() @trusted
 	{
 		visitor.position[].should.be == [
-			Pos( 0, 10, 300, 10), 
+			Pos( 0, 0, 300, 10), 
+				Pos(10, 10, 290, 10), 
+					Pos(10, 10, 96, 10), Pos(10+96, 10, 97, 10), Pos(10+96+97, 10, 290-96-97, 10),
 				Pos(10, 20, 290, 10), 
-					Pos(10, 20, 96, 10), Pos(10+96, 20, 97, 10), Pos(10+96+97, 20, 290-96-97, 10),
-				Pos(10, 30, 290, 10), 
+					Pos(20, 30, 280, 10), 
 					Pos(20, 40, 280, 10), 
-					Pos(20, 50, 280, 10), 
-					Pos(20, 60, 280, 10),
+					Pos(20, 50, 280, 10),
 		];
 
 		visitor.output[].should.be == 
