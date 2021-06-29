@@ -181,6 +181,9 @@ struct MeasuringVisitorImpl(Derived = Default)
 /// Visitor for traversing tree to do useful job
 struct TreePathVisitorImpl(Derived = Default)
 {
+	import automem : Vector;
+	import std.experimental.allocator.mallocator : Mallocator;
+
 	SizeType[2] size;
 
 	this(SizeType[2] s) @safe @nogc nothrow
@@ -193,7 +196,7 @@ struct TreePathVisitorImpl(Derived = Default)
 	Location loc;
 	Orientation orientation = Orientation.Vertical;
 	Orientation old_orientation;
-	Axis old_x;
+	Vector!(Axis, Mallocator) old_x;
 
 	bool complete() @safe @nogc
 	{
@@ -225,7 +228,7 @@ struct TreePathVisitorImpl(Derived = Default)
 	{
 		if (engaged)
 		{
-			old_x = loc.x;
+			() @trusted { old_x.put(loc.x); } ();
 
 			static if (Model.Collapsable)
 				auto currentSize = model.header_size;
@@ -265,10 +268,17 @@ struct TreePathVisitorImpl(Derived = Default)
 
 			() @trusted { (cast(Derived*) &this).enterNode!(order, Data, Model)(data, model); }();
 
-			static if (Model.Collapsable) with(loc)
+			static if (Model.Collapsable)
 			{
-				x.position = x.position + model.header_size;
-				x.size = x.size - model.header_size;
+				with(loc) final switch (model.orientation)
+				{
+					case Orientation.Vertical:
+						x.position = x.position + model.header_size;
+						x.size = x.size - model.header_size;
+					break;
+					case Orientation.Horizontal:
+					break;
+				}
 			}
 		}
 	}
@@ -318,13 +328,20 @@ struct TreePathVisitorImpl(Derived = Default)
 						x.size = x.size + model.header_size;
 					break;
 					case Orientation.Horizontal:
-						x.position = old_x.position;
-						x.size = old_x.size;
+						assert(!old_x.empty);
+						() @trusted {
+							x.position = old_x[$-1].position;
+							x.size = old_x[$-1].size;
+						}();
 					break;
 				}
 
 				orientation = old_orientation;
 			}
+			// it's possible that we skip some `doEnterNode` so its call count
+			// is not equal to call count of `doLeaveNode` so we check if old_x
+			// isn't empty
+			() @trusted { if (!old_x.empty) old_x.popBack; } ();
 		}
 	}
 
