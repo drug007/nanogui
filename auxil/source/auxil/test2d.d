@@ -67,8 +67,6 @@ struct Visitor2D
 
 	Vector!(Pos, Mallocator) position;
 
-	Axis x, old_x;
-
 	this(SizeType[2] size) @nogc
 	{
 		default_visitor = TreePathVisitor(size);
@@ -89,10 +87,8 @@ struct Visitor2D
 		{
 			import auxil.traits : hasRenderHeader;
 
-			old_x = x;
-
 			() @trusted {
-				position ~= Pos(x, loc.y);
+				position ~= Pos(loc.x, loc.y);
 			} ();
 
 			final switch (model.orientation)
@@ -102,8 +98,6 @@ struct Visitor2D
 					() @trusted {
 						output ~= "\n";
 						_indentation ~= "\t";
-						x.position = x.position + model.header_size;
-						x.size = x.size - model.header_size;
 					} ();
 				break;
 				case Orientation.Horizontal:
@@ -151,7 +145,7 @@ struct Visitor2D
 			break;
 		}
 		() @trusted {
-			position ~= Pos(x, loc.y);
+			position ~= Pos(loc.x, loc.y);
 		} ();
 		processItem(data);
 		final switch (this.orientation)
