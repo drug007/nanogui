@@ -172,7 +172,7 @@ public:
 		//ctx.mouse -= mPos;
 		//scope(exit) ctx.mouse += mPos;
 
-		auto renderer = RenderingVisitor(ctx);
+		auto renderer = RenderingVisitor(ctx, [cast(SizeType) ctx.size.x, cast(SizeType) mSize.y]);
 		renderer.loc.y.destination = cast(SizeType) (ctx.position.y + size.y);
 		import nanogui.layout : Orientation;
 		renderer.ctx.orientation = Orientation.Vertical;
@@ -238,6 +238,7 @@ private struct RenderingVisitor
 {
 	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath;
 	import auxil.model;
+	import auxil.location : SizeType;
 
 	TreePathVisitorImpl!(typeof(this)) default_visitor;
 	alias default_visitor this;
@@ -245,10 +246,12 @@ private struct RenderingVisitor
 	NanoContext ctx;
 	TreePath selected_item;
 	float finish;
+	Vector2f origin;
 
-	this(ref NanoContext ctx)
+	this(ref NanoContext ctx, SizeType[2] size)
 	{
 		this.ctx = ctx;
+		default_visitor = typeof(default_visitor)(size);
 	}
 
 	bool complete()
@@ -266,11 +269,18 @@ private struct RenderingVisitor
 		ctx.unindent;
 	}
 
+	void enterTree(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		origin = ctx.position;
+	}
+
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 		if (Model.Collapsable)
 	{
-		ctx.save;
-		scope(exit) ctx.restore;
+		ctx.position.x = origin.x + loc.x.position;
+		ctx.position.y = origin.y + loc.y.position;
+		ctx.size[Orientation.Horizontal] = loc.x.size;
+		ctx.size[Orientation.Vertical] = loc.y.size;
 
 		{
 			// background for icon
@@ -326,6 +336,11 @@ private struct RenderingVisitor
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 		if (!Model.Collapsable)
 	{
+		ctx.position.x = origin.x + loc.x.position;
+		ctx.position.y = origin.y + loc.y.position;
+		ctx.size[Orientation.Horizontal] = loc.x.size;
+		ctx.size[Orientation.Vertical] = loc.y.size;
+
 		ctx.fontSize(ctx.size.y);
 		ctx.fontFace("sans");
 		ctx.fillColor(ctx.theme.mTextColor);

@@ -10,6 +10,7 @@ alias TreePathEnabled = Flag!"TreePathEnabled";
 
 private struct Default
 {
+	void enterTree(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void beforeChildren(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
@@ -43,8 +44,9 @@ struct MeasuringVisitorImpl(Derived = Default)
 		return true;
 	}
 
-	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
+	void doEnterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
+		() @trusted { (cast(Derived*) &this).enterTree!(order, Data, Model)(data, model); }();
 	}
 
 	void doEnterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
@@ -208,7 +210,7 @@ struct TreePathVisitorImpl(Derived = Default)
 		return loc.stateFirstOrRest;
 	}
 
-	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
+	void doEnterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
 		final switch (this.orientation)
 		{
@@ -222,6 +224,8 @@ struct TreePathVisitorImpl(Derived = Default)
 			case Orientation.Horizontal:
 				assert(0, "Not implemented");
 		}
+
+		() @trusted { (cast(Derived*) &this).enterTree!(order, Data, Model)(data, model); }();
 	}
 
 	void doEnterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)

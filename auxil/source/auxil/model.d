@@ -1018,6 +1018,8 @@ private struct PropertyVisitor(string propertyName, Value)
 		return default_visitor.complete || completed;
 	}
 
+	void enterTree(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
+
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		static if (is(typeof(mixin("model." ~ propertyName))))
@@ -1185,7 +1187,7 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 	{
 		visitor.loc.resetState;
 	}
-	visitor.enterTree!order(data, model);
+	visitor.doEnterTree!order(data, model);
 	model.visit!order(data, visitor);
 }
 
@@ -1196,7 +1198,7 @@ void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, re
 	{
 		visitor.loc.resetState;
 	}
-	visitor.enterTree!order(data, model);
+	visitor.doEnterTree!order(data, model);
 	model.visit!order(data, visitor);
 }
 

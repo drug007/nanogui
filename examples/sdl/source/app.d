@@ -470,6 +470,7 @@ class MyGui : SdlBackend
 			new TreeView!(float[])(window, "TreeView_2_____", [11f, 22f, 33, 44], null);
 			new TreeView!Test(window, "TreeView_3_____", Test(), null);
 			new TreeView!Test2(window, "TreeView_4_____", Test2(), null);
+			new TreeView!Wrapper(window, "TreeView_5_____", Wrapper(), null);
 
 			auto items = [
 				Item(0.3f),
@@ -507,6 +508,13 @@ struct Test2
 	long l = 999;
 	Test t;
 	Test1 t1;
+}
+
+struct Wrapper
+{
+	@("Orientation.Horizontal")
+	Test t1;
+	Test t2;
 }
 
 import taggedalgebraic : TaggedAlgebraic;
