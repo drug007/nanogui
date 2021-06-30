@@ -57,6 +57,7 @@ struct Visitor2D
 {
 	import std.experimental.allocator.mallocator : Mallocator;
 	import automem.vector : Vector;
+	import nogc.conv : text;
 
 	alias TreePathVisitor = TreePathVisitorImpl!(typeof(this));
 	TreePathVisitor default_visitor;
@@ -72,15 +73,6 @@ struct Visitor2D
 		default_visitor = TreePathVisitor(size);
 	}
 
-	auto processItem(T...)(T msg)
-	{
-		() @trusted {
-			output ~= _indentation[];
-			import nogc.conv : text;
-			output ~= text(msg)[];
-		} ();
-	}
-
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		static if (Model.Collapsable)
@@ -94,16 +86,15 @@ struct Visitor2D
 			final switch (model.orientation)
 			{
 				case Orientation.Vertical:
-					processItem("Caption: ", Data.stringof);
 					() @trusted {
-						output ~= "\n";
+						output ~= _indentation[];
+						output ~= text("Caption: ", Data.stringof, "\n")[];
 						_indentation ~= "\t";
 					} ();
 				break;
 				case Orientation.Horizontal:
 				break;
 			}
-			orientation = model.orientation;
 		}
 		else static if (order == Order.Sinking)
 			processLeaf!(order, Data, Model)(data, model);
@@ -134,8 +125,9 @@ struct Visitor2D
 	{
 		() @trusted {
 			position ~= Pos(loc.x, loc.y);
+			output ~= _indentation[];
+			output ~= text(data)[];
 		} ();
-		processItem(data);
 		final switch (this.orientation)
 		{
 			case Orientation.Vertical:
