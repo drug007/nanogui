@@ -282,6 +282,7 @@ private struct RenderingVisitor
 		ctx.size[Orientation.Horizontal] = loc.x.size;
 		ctx.size[Orientation.Vertical] = loc.y.size;
 
+		if (orientation == Orientation.Vertical)
 		{
 			// background for icon
 			NVGPaint bg = ctx.boxGradient(
@@ -296,9 +297,7 @@ private struct RenderingVisitor
 				ctx.size[ctx.orientation] - 2.0f, ctx.size[ctx.orientation] - 2.0f, 3);
 			ctx.fillPaint(bg);
 			ctx.fill;
-		}
 
-		{
 			// icon
 			ctx.fontSize(ctx.size.y);
 			ctx.fontFace("icons");
@@ -319,9 +318,7 @@ private struct RenderingVisitor
 				selected_item = loc.current_path;
 			ctx.size[axis2] = old; // restore full width
 			ctx.position[ctx.orientation] -= ctx.size[ctx.orientation];
-		}
 
-		{
 			// Caption
 			ctx.position.x += 1.6f * ctx.size.y;
 			scope(exit) ctx.position.x -= 1.6f * ctx.size.y;
@@ -344,8 +341,11 @@ private struct RenderingVisitor
 		ctx.fontSize(ctx.size.y);
 		ctx.fontFace("sans");
 		ctx.fillColor(ctx.theme.mTextColor);
+		ctx.save;
+		ctx.intersectScissor(ctx.position.x, ctx.position.y, ctx.size.x, ctx.size.y);
 		if (drawItem(ctx, cast(int) ctx.size[ctx.orientation], data))
 			selected_item = loc.current_path;
+		ctx.restore;
 	}
 
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
