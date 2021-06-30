@@ -882,7 +882,7 @@ mixin template visitImpl()
 		visitor.doEnterNode!(order, Data)(data, this);
 		scope(exit) visitor.doLeaveNode!(order, Data)(data, this);
 
-		static if (this.Collapsable) if (!this.collapsed)
+		static if (this.Collapsable) if (!this.collapsed || visitor.orientation == Orientation.Horizontal)
 		{
 			if (visitor.doBeforeChildren!(order, Data)(data, this))
 				return false;
