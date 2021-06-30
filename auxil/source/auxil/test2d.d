@@ -73,6 +73,8 @@ struct Visitor2D
 		default_visitor = TreePathVisitor(size);
 	}
 
+	void enterTree(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
+
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		static if (Model.Collapsable)

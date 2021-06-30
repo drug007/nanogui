@@ -317,7 +317,7 @@ public:
 		scope(exit) ctx.mouse += mPos;
 		ctx.translate(mPos.x, mPos.y);
 		ctx.intersectScissor(0, 0, ctx.size.x, mSize.y);
-		auto renderer = RenderingVisitor(ctx);
+		auto renderer = RenderingVisitor(ctx, [cast(SizeType) ctx.size.x, cast(SizeType) mSize.y]);
 		renderer.loc.path = rm.loc.path;
 		renderer.loc.y.position = rm.loc.y.position;
 		renderer.finish = rm.loc.y.destination + size.y;
@@ -412,6 +412,7 @@ private struct RenderingVisitor
 	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath;
 	import auxil.model;
 	import auxil.default_visitor : TreePathVisitorImpl;
+	import auxil.location : SizeType;
 
 	TreePathVisitorImpl!(typeof(this)) default_visitor;
 	alias default_visitor this;
@@ -420,15 +421,18 @@ private struct RenderingVisitor
 	TreePath selected_item;
 	float finish;
 
-	this(ref NanoContext ctx)
+	this(ref NanoContext ctx, SizeType[2] size)
 	{
 		this.ctx = ctx;
+		default_visitor = typeof(default_visitor)(size);
 	}
 
 	bool complete()
 	{
 		return default_visitor.complete || ctx.position.y > finish;
 	}
+
+	void enterTree(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 
 	void beforeChildren(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
