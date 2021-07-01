@@ -89,7 +89,6 @@ private auto drawString(Char)(ref NanoContext ctx, float height, const(Char)[] s
 	}
 	ctx.textAlign(ctx.algn);
 	ctx.text(ctx.position.x, ctx.position.y, str);
-	ctx.position.y += height;
 
 	return inside;
 }

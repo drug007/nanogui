@@ -316,6 +316,7 @@ private struct RenderingVisitor
 			                               Entypo.ICON_CHEVRON_DOWN;
 			if (drawItem(ctx, ctx.size[ctx.orientation], [symb]))
 				selected_item = loc.current_path;
+			ctx.position.y += ctx.size.y;
 			ctx.size[axis2] = old; // restore full width
 			ctx.position[ctx.orientation] -= ctx.size[ctx.orientation];
 
