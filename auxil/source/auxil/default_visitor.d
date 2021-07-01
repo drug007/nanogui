@@ -279,6 +279,10 @@ struct TreePathVisitorImpl(Derived = Default)
 					case Orientation.Vertical:
 						x.position = x.position + model.header_size;
 						x.size = x.size - model.header_size;
+						// debug{{
+						// 	import std;
+						// 	writeln(100, " ", x);
+						// }}
 					break;
 					case Orientation.Horizontal:
 					break;

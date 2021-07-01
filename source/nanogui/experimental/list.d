@@ -313,6 +313,11 @@ public:
 		ctx.position.x = 0;
 		ctx.position.y = rm.loc.y.position - rm.loc.y.destination;
 
+debug{{
+	import std;
+	writeln(ctx.position);
+}}
+
 		ctx.mouse -= mPos;
 		scope(exit) ctx.mouse += mPos;
 		ctx.translate(mPos.x, mPos.y);
@@ -323,6 +328,12 @@ public:
 		renderer.finish = rm.loc.y.destination + size.y;
 		import nanogui.layout : Orientation;
 		renderer.ctx.orientation = Orientation.Vertical;
+debug{{
+	import std;
+	writeln;
+	writeln(renderer.loc.x);
+	writeln(renderer.loc.y);
+}}
 		visit(_model, _data, renderer, rm.loc.y.destination + size.y + 50); // FIXME `+ 50` is dirty hack
 		tree_path = renderer.selected_item;
 
@@ -420,6 +431,7 @@ private struct RenderingVisitor
 	NanoContext ctx;
 	TreePath selected_item;
 	float finish;
+	Vector2f origin;
 
 	this(ref NanoContext ctx, SizeType[2] size)
 	{
@@ -432,8 +444,6 @@ private struct RenderingVisitor
 		return default_visitor.complete || ctx.position.y > finish;
 	}
 
-	void enterTree(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
-
 	void beforeChildren(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		ctx.indent;
@@ -444,20 +454,28 @@ private struct RenderingVisitor
 		ctx.unindent;
 	}
 
+	void enterTree(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		origin = ctx.position;
+		// origin = Vector2f(0, 0);
+	}
+
+	~this()
+	{
+		ctx.position = origin;
+	}
+
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 		if (Model.Collapsable)
 	{
 		ctx.save;
 		scope(exit) ctx.restore;
-		version(none)
-		{
-			ctx.strokeWidth(1.0f);
-			ctx.beginPath;
-			ctx.rect(ctx.position.x + 1.0f, ctx.position.y + 1.0f, ctx.size.x - 2, model.size-2);
-			ctx.strokeColor(Color(255, 0, 0, 255));
-			ctx.stroke;
-		}
+		ctx.position.x = origin.x + loc.x.position;
+		ctx.position.y = origin.y + loc.y.position;
+		ctx.size[Orientation.Horizontal] = loc.x.size;
+		ctx.size[Orientation.Vertical] = loc.y.size;
 
+		if (orientation == Orientation.Vertical)
 		{
 			// background for icon
 			NVGPaint bg = ctx.boxGradient(
@@ -472,9 +490,7 @@ private struct RenderingVisitor
 				ctx.size[ctx.orientation] - 2.0f, ctx.size[ctx.orientation] - 2.0f, 3);
 			ctx.fillPaint(bg);
 			ctx.fill;
-		}
 
-		{
 			// icon
 			ctx.fontSize(ctx.size.y);
 			ctx.fontFace("icons");
@@ -494,35 +510,17 @@ private struct RenderingVisitor
 			                            Entypo.ICON_CHEVRON_DOWN;
 			if (drawItem(ctx, ctx.size[ctx.orientation], symb[]))
 				selected_item = loc.current_path;
+			ctx.position.y += ctx.size.y;
 			ctx.size[axis2] = old; // restore full width
 			ctx.position[ctx.orientation] -= ctx.size[ctx.orientation];
-		}
 
-		{
 			// Caption
-			const shift = 1.6f * ctx.size.y;
-			ctx.position.x += shift;
-			ctx.size.x -= shift;
-			scope(exit)
-			{
-				ctx.position.x -= shift;
-				ctx.size.x += shift;
-			}
+			ctx.position.x += 1.6f * ctx.size.y;
+			scope(exit) ctx.position.x -= 1.6f * ctx.size.y;
 			ctx.fontSize(ctx.size.y);
 			ctx.fontFace("sans");
 			ctx.fillColor(model.enabled ? ctx.theme.mTextColor : ctx.theme.mDisabledTextColor);
-
-			import nanogui.experimental.utils : hasRenderHeader;
-			static if (hasRenderHeader!data)
-			{
-				import auxil.model : FixedAppender;
-				FixedAppender!512 app;
-				data.renderHeader(app);
-				auto header = app[];
-			}
-			else
-				auto header = Data.stringof;
-			if (drawItem(ctx, model.header_size, header))
+			if (drawItem(ctx, ctx.size.y, Data.stringof))
 				selected_item = loc.current_path;
 		}
 	}
@@ -532,18 +530,16 @@ private struct RenderingVisitor
 	{
 		ctx.save;
 		scope(exit) ctx.restore;
-		version(none)
-		{
-			ctx.strokeWidth(1.0f);
-			ctx.beginPath;
-			ctx.rect(ctx.position.x + 1.0f, ctx.position.y + 1.0f, ctx.size.x - 2, model.size - 2);
-			ctx.strokeColor(Color(255, 0, 0, 255));
-			ctx.stroke;
-		}
+		ctx.position.x = origin.x + loc.x.position;
+		ctx.position.y = origin.y + loc.y.position;
+		ctx.size[Orientation.Horizontal] = loc.x.size;
+		ctx.size[Orientation.Vertical] = loc.y.size;
+
 		ctx.fontSize(ctx.size.y);
 		ctx.fontFace("sans");
 		ctx.fillColor(ctx.theme.mTextColor);
-		if (drawItem(ctx, model.size, data))
+		ctx.intersectScissor(ctx.position.x, ctx.position.y, ctx.size.x, ctx.size.y);
+		if (drawItem(ctx, cast(int) ctx.size[ctx.orientation], data))
 			selected_item = loc.current_path;
 	}
 
