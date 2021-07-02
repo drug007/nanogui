@@ -310,30 +310,20 @@ public:
 		ctx.size = Vector2f(size.x, fontSize);
 		if (_model.size > mSize.y)
 			ctx.size.x -= ScrollBarWidth;
-		ctx.position.x = 0;
-		ctx.position.y = rm.loc.y.position - rm.loc.y.destination;
 
-debug{{
-	import std;
-	writeln(ctx.position);
-}}
-
-		ctx.mouse -= mPos;
-		scope(exit) ctx.mouse += mPos;
+		ctx.mouse += Vector2f(rm.loc.x.destination, rm.loc.y.destination) - mPos;
+		scope(exit) ctx.mouse -= Vector2f(rm.loc.x.destination, rm.loc.y.destination) - mPos;
 		ctx.translate(mPos.x, mPos.y);
 		ctx.intersectScissor(0, 0, ctx.size.x, mSize.y);
 		auto renderer = RenderingVisitor(ctx, [cast(SizeType) ctx.size.x, cast(SizeType) mSize.y]);
 		renderer.loc.path = rm.loc.path;
-		renderer.loc.y.position = rm.loc.y.position;
+		renderer.loc.x = rm.loc.x;
+		renderer.loc.y = rm.loc.y;
 		renderer.finish = rm.loc.y.destination + size.y;
 		import nanogui.layout : Orientation;
 		renderer.ctx.orientation = Orientation.Vertical;
-debug{{
-	import std;
-	writeln;
-	writeln(renderer.loc.x);
-	writeln(renderer.loc.y);
-}}
+		ctx.translate(-renderer.loc.x.destination, -renderer.loc.y.destination);
+
 		visit(_model, _data, renderer, rm.loc.y.destination + size.y + 50); // FIXME `+ 50` is dirty hack
 		tree_path = renderer.selected_item;
 
@@ -468,10 +458,8 @@ private struct RenderingVisitor
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 		if (Model.Collapsable)
 	{
-		ctx.save;
-		scope(exit) ctx.restore;
-		ctx.position.x = origin.x + loc.x.position;
-		ctx.position.y = origin.y + loc.y.position;
+		ctx.position.x = loc.x.position;
+		ctx.position.y = loc.y.position;
 		ctx.size[Orientation.Horizontal] = loc.x.size;
 		ctx.size[Orientation.Vertical] = loc.y.size;
 
@@ -522,25 +510,27 @@ private struct RenderingVisitor
 			ctx.fillColor(model.enabled ? ctx.theme.mTextColor : ctx.theme.mDisabledTextColor);
 			if (drawItem(ctx, ctx.size.y, Data.stringof))
 				selected_item = loc.current_path;
+			ctx.position.y += ctx.size.y;
 		}
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 		if (!Model.Collapsable)
 	{
-		ctx.save;
-		scope(exit) ctx.restore;
-		ctx.position.x = origin.x + loc.x.position;
-		ctx.position.y = origin.y + loc.y.position;
+		ctx.position.x = loc.x.position;
+		ctx.position.y = loc.y.position;
 		ctx.size[Orientation.Horizontal] = loc.x.size;
 		ctx.size[Orientation.Vertical] = loc.y.size;
 
 		ctx.fontSize(ctx.size.y);
 		ctx.fontFace("sans");
 		ctx.fillColor(ctx.theme.mTextColor);
+		ctx.save;
+		scope(exit) ctx.restore;
 		ctx.intersectScissor(ctx.position.x, ctx.position.y, ctx.size.x, ctx.size.y);
 		if (drawItem(ctx, cast(int) ctx.size[ctx.orientation], data))
 			selected_item = loc.current_path;
+		ctx.position.y += ctx.size.y;
 	}
 
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
