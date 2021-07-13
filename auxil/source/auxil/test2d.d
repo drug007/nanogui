@@ -314,3 +314,61 @@ unittest
 ";
 	}();
 }
+
+version(unittest) @Name("twoHorizontalAggregate")
+@safe
+unittest
+{
+	static struct Test
+	{
+		float f = 7.7;
+		int i = 8;
+		string s = "some text";
+	}
+
+	struct Test1
+	{
+		double d;
+		short sh;
+		Test t;
+	}
+
+	static struct Wrapper
+	{
+		@("Orientation.Horizontal")
+		Test1 t1;
+		@("Orientation.Horizontal")
+		Test1 t2;
+	}
+
+	Wrapper data;
+
+	auto visitor = Visitor2D([299, 9]);
+	visitor.orientation = visitor.orientation.Vertical;
+	auto model = makeModel(data);
+	model.collapsed = false;
+	model.t1.collapsed = false;
+	model.t2.collapsed = false;
+	{
+		auto mv = MeasuringVisitor([299, 9]);
+		model.visitForward(data, mv);
+	}
+	visitor.loc.y.destination = visitor.loc.y.destination.max;
+	model.visitForward(data, visitor);
+
+	() @trusted
+	{
+// 		visitor.output[].should.be == "Caption: Wrapper
+// 	nan	0	Caption: Test
+// 	nan	0	Caption: Test
+// ";
+
+		visitor.position[].should.be == [
+			Pos(0, 0, 300, 10), 
+				Pos(10, 10, 290, 10), 
+					Pos(10, 10, 96, 10), Pos(106, 10, 97, 10), Pos(203, 10, 97, 10), 
+				Pos(10, 20, 290, 10), 
+					Pos(10, 20, 96, 10), Pos(106, 20, 97, 10), Pos(203, 20, 97, 10)
+		];
+	}();
+}
