@@ -245,6 +245,26 @@ struct TreePathVisitorImpl(Derived = Default)
 			{
 				old_orientation = orientation;
 				orientation  = model.orientation;
+
+				// if (old_orientation != orientation)
+				// 	final switch(orientation)
+				// 	{
+				// 		case Orientation.Horizontal:
+				// 			// assert(0);
+				// 			debug {{
+				// 				import std;
+				// 				writeln(old_orientation, " ", orientation);
+				// 			}}
+				// 		break;
+				// 		case Orientation.Vertical:
+				// 		debug{{
+				// 			import std;
+				// 			writeln(data);
+				// 		}}
+				// 			// loc.enterNode!order(orientation, currentSize);
+				// 			// scope(exit) loc.enterNodeCheck!order(orientation);
+				// 		break;
+				// 	}
 			}
 
 			static if (!Model.Collapsable)
