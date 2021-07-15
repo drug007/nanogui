@@ -198,7 +198,7 @@ struct TreePathVisitorImpl(Derived = Default)
 	Location loc;
 	Orientation orientation = Orientation.Vertical;
 	Orientation old_orientation;
-	Vector!(Axis, Mallocator) old_x, old_x2;
+	Vector!(Axis, Mallocator) old_x;
 
 	bool complete() @safe @nogc
 	{
@@ -232,8 +232,6 @@ struct TreePathVisitorImpl(Derived = Default)
 	{
 		if (engaged)
 		{
-			() @trusted { old_x.put(loc.x); } ();
-
 			static if (Model.Collapsable)
 				auto currentSize = model.header_size;
 			else
@@ -245,26 +243,6 @@ struct TreePathVisitorImpl(Derived = Default)
 			{
 				old_orientation = orientation;
 				orientation  = model.orientation;
-
-				// if (old_orientation != orientation)
-				// 	final switch(orientation)
-				// 	{
-				// 		case Orientation.Horizontal:
-				// 			// assert(0);
-				// 			debug {{
-				// 				import std;
-				// 				writeln(old_orientation, " ", orientation);
-				// 			}}
-				// 		break;
-				// 		case Orientation.Vertical:
-				// 		debug{{
-				// 			import std;
-				// 			writeln(data);
-				// 		}}
-				// 			// loc.enterNode!order(orientation, currentSize);
-				// 			// scope(exit) loc.enterNodeCheck!order(orientation);
-				// 		break;
-				// 	}
 			}
 
 			static if (!Model.Collapsable)
@@ -323,17 +301,17 @@ struct TreePathVisitorImpl(Derived = Default)
 			}
 
 			() @trusted { (cast(Derived*) &this).leaveNode!(order, Data, Model)(data, model); }();
-			// it's possible that we skip some `doEnterNode` so its call count
-			// is not equal to call count of `doLeaveNode` so we check if old_x
-			// isn't empty
-			() @trusted { if (!old_x.empty) old_x.popBack; } ();
 		}
 	}
 
 	/// returns true if the current children shouldn't be processed
 	/// but traversing should be continued
 	bool doBeforeChildren(Order order, Data, Model)(ref const(Data) data, ref Model model)
+		if (Model.Collapsable)
 	{
+		if (old_orientation == Orientation.Vertical)
+			() @trusted { old_x.put(loc.x); } ();
+
 		() @trusted { (cast(Derived*) &this).beforeChildren!(order, Data, Model)(data, model); }();
 
 		static if (order == Order.Bubbling)
@@ -346,18 +324,14 @@ struct TreePathVisitorImpl(Derived = Default)
 
 		loc.intend;
 
-		static if (Model.Collapsable)
+		with(loc) final switch (model.orientation)
 		{
-			with(loc) final switch (model.orientation)
-			{
-				case Orientation.Vertical:
-					() @trusted { old_x2.put(x); } ();
-					x.position = x.position + model.header_size;
-					x.size = x.size - model.header_size;
-				break;
-				case Orientation.Horizontal:
-				break;
-			}
+			case Orientation.Vertical:
+				x.position = x.position + model.header_size;
+				x.size = x.size - model.header_size;
+			break;
+			case Orientation.Horizontal:
+			break;
 		}
 
 		return false;
@@ -368,25 +342,14 @@ struct TreePathVisitorImpl(Derived = Default)
 	{
 		loc.unintend;
 
-		with(loc) final switch (model.orientation)
-		{
-			case Orientation.Vertical:
-				if (!old_x2.empty)
-				{
-					x = old_x2[$-1];
-					() @trusted { old_x2.popBack; } ();
-				}
-			break;
-			case Orientation.Horizontal:
-				assert(!old_x.empty);
-				() @trusted {
-					x.position = old_x[$-1].position;
-					x.size = old_x[$-1].size;
-				}();
-			break;
-		}
-
 		orientation = old_orientation;
+
+
+		// it's possible that we skip some `doEnterNode` so its call count
+		// is not equal to call count of `doLeaveNode` so we check if old_x
+		// isn't empty
+		if (old_orientation == Orientation.Vertical && old_x.length)
+			() @trusted { loc.x = old_x[$-1]; old_x.popBack; } ();
 
 		() @trusted { (cast(Derived*) &this).afterChildren!(order, Data, Model)(data, model); }();
 	}
