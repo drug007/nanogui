@@ -364,31 +364,29 @@ struct TreePathVisitorImpl(Derived = Default)
 	}
 
 	void doAfterChildren(Order order, Data, Model)(ref const(Data) data, ref Model model)
+		if (Model.Collapsable)
 	{
 		loc.unintend;
 
-		static if (Model.Collapsable)
+		with(loc) final switch (model.orientation)
 		{
-			with(loc) final switch (model.orientation)
-			{
-				case Orientation.Vertical:
-					if (!old_x2.empty)
-					{
-						x = old_x2[$-1];
-						() @trusted { old_x2.popBack; } ();
-					}
-				break;
-				case Orientation.Horizontal:
-					assert(!old_x.empty);
-					() @trusted {
-						x.position = old_x[$-1].position;
-						x.size = old_x[$-1].size;
-					}();
-				break;
-			}
-
-			orientation = old_orientation;
+			case Orientation.Vertical:
+				if (!old_x2.empty)
+				{
+					x = old_x2[$-1];
+					() @trusted { old_x2.popBack; } ();
+				}
+			break;
+			case Orientation.Horizontal:
+				assert(!old_x.empty);
+				() @trusted {
+					x.position = old_x[$-1].position;
+					x.size = old_x[$-1].size;
+				}();
+			break;
 		}
+
+		orientation = old_orientation;
 
 		() @trusted { (cast(Derived*) &this).afterChildren!(order, Data, Model)(data, model); }();
 	}
