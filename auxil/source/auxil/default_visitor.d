@@ -357,6 +357,16 @@ struct TreePathVisitorImpl(Derived = Default)
 	{
 		loc.unintend;
 
+		with(loc) final switch (model.orientation)
+		{
+			case Orientation.Vertical:
+				x.position = x.position - model.header_size;
+				x.size = x.size + model.header_size;
+			break;
+			case Orientation.Horizontal:
+			break;
+		}
+
 		() @trusted { (cast(Derived*) &this).afterChildren!(order, Data, Model)(data, model); }();
 	}
 
