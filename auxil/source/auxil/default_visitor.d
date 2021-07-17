@@ -329,16 +329,22 @@ struct TreePathVisitorImpl(Derived = Default)
 		{
 			static if (order == Order.Bubbling) with(loc)
 			{
-				y.position = y.position + y.change;
-				static if (Model.Collapsable)
-					y.change = -model.header_size;
-				else
-					y.change = -model.size;
-
-				if (y.position <= y.destination)
+				final switch(orientation)
 				{
-					_state = State.finishing;
-					path = current_path;
+					case Orientation.Vertical:
+						y.position = y.position + y.change;
+						static if (Model.Collapsable)
+							y.change = -model.header_size;
+						else
+							y.change = -model.size;
+
+						if (y.position <= y.destination)
+						{
+							_state = State.finishing;
+							path = current_path;
+						}
+					case Orientation.Horizontal:
+					break;
 				}
 			}
 
