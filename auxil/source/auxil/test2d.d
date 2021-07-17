@@ -57,14 +57,10 @@ struct Visitor2D
 {
 	import std.experimental.allocator.mallocator : Mallocator;
 	import automem.vector : Vector;
-	import nogc.conv : text;
 
 	alias TreePathVisitor = TreePathVisitorImpl!(typeof(this));
 	TreePathVisitor default_visitor;
 	alias default_visitor this;
-
-	Vector!(char, Mallocator) output;
-	private Vector!(char, Mallocator) _indentation;
 
 	Vector!(Pos, Mallocator) position;
 
@@ -77,52 +73,15 @@ struct Visitor2D
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		static if (Model.Collapsable)
+		static if (Model.Collapsable || order == Order.Sinking)
 		{
-			import auxil.traits : hasRenderHeader;
-
 			() @trusted {
 				position ~= Pos(loc.x, loc.y);
 			} ();
-
-			final switch (model.orientation)
-			{
-				case Orientation.Vertical:
-					() @trusted {
-						output ~= _indentation[];
-						output ~= text("Caption: ", Data.stringof, "\n")[];
-						_indentation ~= "\t";
-					} ();
-				break;
-				case Orientation.Horizontal:
-				break;
-			}
 		}
-		else static if (order == Order.Sinking)
-			processLeaf!(order, Data, Model)(data, model);
 	}
 
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
-
-	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
-	{
-		() @trusted {
-			position ~= Pos(loc.x, loc.y);
-			output ~= _indentation[];
-			output ~= text(data)[];
-		} ();
-		final switch (this.orientation)
-		{
-			case Orientation.Vertical:
-				() @trusted {
-					output ~= "\n";
-				} ();
-			break;
-			case Orientation.Horizontal:
-			break;
-		}
-	}
-
 	void beforeChildren(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void afterChildren(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 }
@@ -174,18 +133,6 @@ unittest
 					Pos(20, 70, 280, 10), 
 					Pos(20, 80, 280, 10),
 		];
-
-		version(none) visitor.output[].should.be == 
-"Caption: Test[2]
-	Caption: Test
-		7.700000
-		8
-		some text
-	Caption: Test
-		7.700000
-		8
-		some text
-";
 	}();
 
 	model[0].orientation = Orientation.Horizontal;
@@ -212,7 +159,6 @@ unittest
 			s.size.should.be == 10;
 		}
 	}
-	visitor.output.clear;
 	visitor.position.clear;
 	visitor.loc.y.position = 0;
 	model.visitForward(data, visitor);
@@ -228,15 +174,6 @@ unittest
 					Pos(20, 40, 280, 10), 
 					Pos(20, 50, 280, 10),
 		];
-
-		version(none) visitor.output[].should.be == 
-"Caption: Test[2]
-	7.700000	8	some text
-	Caption: Test
-		7.700000
-		8
-		some text
-";
 	}();
 }
 
@@ -284,15 +221,6 @@ unittest
 					Pos(20, 40, 280, 10), 
 					Pos(20, 50, 280, 10),
 		];
-
-		version(none) visitor.output[].should.be == 
-"Caption: Wrapper
-	7.700000	8	some text
-	Caption: Test
-		7.700000
-		8
-		some text
-";
 	}();
 }
 
@@ -339,11 +267,6 @@ unittest
 
 	() @trusted
 	{
-// 		visitor.output[].should.be == "Caption: Wrapper
-// 	nan	0	Caption: Test
-// 	nan	0	Caption: Test
-// ";
-
 		visitor.position[].should.be == [
 			Pos(0, 0, 300, 10), 
 				Pos(10, 10, 290, 10), 
