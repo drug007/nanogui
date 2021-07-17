@@ -235,6 +235,13 @@ struct TreePathVisitorImpl(Derived = Default)
 
 	void doEnterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
+		static if (Model.Collapsable) if (!engaged) 
+		{
+			() @trusted {
+				stateStack.put(State(loc.x, orientation));
+			} ();
+		}
+
 		if (engaged)
 		{
 			static if (Model.Collapsable)
@@ -282,24 +289,19 @@ struct TreePathVisitorImpl(Derived = Default)
 
 	void doLeaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
+		static if (Model.Collapsable)
+		{
+			orientation = stateStack[$-1].orientation;
+
+			if (orientation == Orientation.Vertical)
+				loc.x = stateStack[$-1].x;
+			() @trusted { stateStack.popBack; } ();
+		}
+
 		if (engaged)
 		{
 			static if (Model.Collapsable)
-			{
-				// it's possible that we skip some `doEnterNode` so its call count
-				// is not equal to call count of `doLeaveNode` so we check if the 
-				// state stack isn't empty
-				if (stateStack.length)
-				{
-					orientation = stateStack[$-1].orientation;
-
-					if (orientation == Orientation.Vertical)
-						loc.x = stateStack[$-1].x;
-					() @trusted { stateStack.popBack; } ();
-				}
-
 				auto currentSize = model.header_size;
-			}
 			else
 				auto currentSize = model.size;
 
