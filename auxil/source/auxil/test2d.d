@@ -276,3 +276,62 @@ unittest
 		];
 	}();
 }
+
+version(unittest) @Name("MixedLayoutN0")
+@safe
+unittest
+{
+	static struct Test
+	{
+		float f = 7.7;
+		int i = 8;
+		string s = "some text";
+	}
+
+	static struct Test1
+	{
+		double d;
+		@("Orientation.Vertical")
+		Test t;
+		short sh;
+	}
+
+	static struct Test2
+	{
+		double d = 9.98;
+		@("Orientation.Horizontal")
+		Test1 t1;
+		string str = "cool";
+	}
+
+	Test2 data;
+
+	auto visitor = Visitor2D([299, 9]);
+	visitor.orientation = visitor.orientation.Vertical;
+	auto model = makeModel(data);
+	model.collapsed = false;
+	model.t1.collapsed = false;
+	model.t1.t.collapsed = false;
+	{
+		auto mv = MeasuringVisitor([299, 9]);
+		model.visitForward(data, mv);
+	}
+	visitor.loc.y.destination = visitor.loc.y.destination.max;
+	model.visitForward(data, visitor);
+
+	() @trusted
+	{
+		visitor.position[].should.be == [
+			Pos(0, 0, 300, 10),     /* Test2 (Header) */
+				Pos(10, 10, 290, 10),  /* Test2.d */
+				Pos(10, 20, 290, 10),  /* Test2.t1 (Header) */
+					// Test1.d           Test1.t (Header)                      Test1.sh
+					Pos(10, 20, 96, 10), Pos(106, 20, 96, 10), 
+					                        Pos(116, 30, 86, 10), /* Test.f */
+					                        Pos(116, 40, 86, 10), /* Test.i */
+					                        Pos(116, 50, 86, 10), /* Test.s */
+					                                                           Pos(203, 20, 97, 10), 
+				Pos(10, 60, 290, 10),  /* Test2.str */
+		];
+	}();
+}
