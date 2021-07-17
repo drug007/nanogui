@@ -17,7 +17,7 @@ struct Location
 {
 @nogc:
 	enum State { seeking, first, rest, finishing, }
-	private State _state;
+	State _state;
 	TreePath current_path, path;
 	Axis x, y;
 
@@ -54,64 +54,6 @@ struct Location
 			}
 		}
 		return false;
-	}
-
-	auto enterNode(Order order)(Orientation orientation, SizeType header_size)
-	{
-		static if (order == Order.Sinking)
-		{
-			final switch(orientation) with (Orientation)
-			{
-				case Vertical:
-					y.position = y.position + y.change;
-					y.change = header_size;
-				break;
-				case Horizontal:
-					// do nothing?
-				break;
-			}
-		}
-	}
-
-	auto enterNodeCheck(Order order)(Orientation orientation)
-	{
-		static if (order == Order.Sinking)
-		{
-			final switch(orientation) with (Orientation)
-			{
-				case Vertical:
-					if (y.position + y.change > y.destination)
-					{
-						path = current_path;
-						_state = State.finishing;
-					}
-				break;
-				case Horizontal:
-					// do nothing?
-				break;
-			}
-		}
-	}
-
-	auto leaveNode(Order order)(Orientation orientation, SizeType header_size)
-	{
-		static if (order == Order.Bubbling)
-		{
-			y.position = y.position + y.change;
-			y.change = -header_size;
-		}
-	}
-
-	auto leaveNodeCheck(Order order)(Orientation orientation)
-	{
-		static if (order == Order.Bubbling)
-		{
-			if (y.position <= y.destination)
-			{
-				_state = State.finishing;
-				path = current_path;
-			}
-		}
 	}
 
 	void intend()

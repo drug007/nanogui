@@ -244,12 +244,39 @@ struct TreePathVisitorImpl(Derived = Default)
 
 		if (engaged)
 		{
-			static if (Model.Collapsable)
-				auto currentSize = model.header_size;
-			else
-				auto currentSize = model.size;
-			loc.enterNode!order(orientation, currentSize);
-			scope(exit) loc.enterNodeCheck!order(orientation);
+			static if (order == Order.Sinking) with(loc)
+			{
+				final switch(orientation)
+				{
+					case Orientation.Vertical:
+						y.position = y.position + y.change;
+						static if (Model.Collapsable)
+							y.change = model.header_size;
+						else
+							y.change = model.size;
+					break;
+					case Orientation.Horizontal:
+						// do nothing?
+					break;
+				}
+
+				scope(exit)
+				{
+					final switch(orientation)
+					{
+						case Orientation.Vertical:
+							if (y.position + y.change > y.destination)
+							{
+								path = current_path;
+								_state = State.finishing;
+							}
+						break;
+						case Orientation.Horizontal:
+							// do nothing?
+						break;
+					}
+				}
+			}
 
 			static if (Model.Collapsable)
 			{
@@ -300,13 +327,20 @@ struct TreePathVisitorImpl(Derived = Default)
 
 		if (engaged)
 		{
-			static if (Model.Collapsable)
-				auto currentSize = model.header_size;
-			else
-				auto currentSize = model.size;
+			static if (order == Order.Bubbling) with(loc)
+			{
+				y.position = y.position + y.change;
+				static if (Model.Collapsable)
+					y.change = -model.header_size;
+				else
+					y.change = -model.size;
 
-			loc.leaveNode!order(orientation, currentSize);
-			loc.leaveNodeCheck!order(orientation);
+				if (y.position <= y.destination)
+				{
+					_state = State.finishing;
+					path = current_path;
+				}
+			}
 
 			static if (!Model.Collapsable)
 			{
