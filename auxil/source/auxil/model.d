@@ -888,25 +888,6 @@ mixin template visitImpl()
 				return false;
 			scope(exit) visitor.doAfterChildren!(order, Data)(data, this);
 
-			static if (this.Collapsable && visitor.treePathEnabled)
-			{
-				auto y = visitor.loc.y;
-				auto x = visitor.loc.x;
-				scope(exit)
-				{
-					if (visitor.orientation == Orientation.Horizontal)
-					{
-						visitor.loc.y = y;
-						// visitor.loc.y.position += visitor.loc.y.change;
-						// visitor.loc.y.change = this.header_size;
-						// // // loc.enterNode!order(orientation, currentSize);
-						// // // scope(exit) loc.enterNodeCheck!order(orientation);
-					}
-					else
-						visitor.loc.x = x;
-				}
-			}
-
 			const len = getLength!(Data, data);
 			static if (is(typeof(model.length)))
 				assert(len == model.length);
