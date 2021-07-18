@@ -197,7 +197,7 @@ struct TreePathVisitorImpl(Derived = Default)
 
 	struct State
 	{
-		Axis x;
+		Axis x, y;
 		Orientation orientation;
 	}
 
@@ -238,7 +238,7 @@ struct TreePathVisitorImpl(Derived = Default)
 		static if (Model.Collapsable) if (!engaged) 
 		{
 			() @trusted {
-				stateStack.put(State(loc.x, orientation));
+				stateStack.put(State(loc.x, loc.y, orientation));
 			} ();
 		}
 
@@ -256,7 +256,11 @@ struct TreePathVisitorImpl(Derived = Default)
 							y.change = model.size;
 					break;
 					case Orientation.Horizontal:
-						// do nothing?
+						x.position = x.position + x.change;
+						static if (Model.Collapsable)
+							x.change = model.header_size;
+						else
+							x.change = model.size;
 					break;
 				}
 
@@ -272,7 +276,11 @@ struct TreePathVisitorImpl(Derived = Default)
 							}
 						break;
 						case Orientation.Horizontal:
-							// do nothing?
+							version(none) if (x.position + x.change > x.destination)
+							{
+								path = current_path;
+								_state = State.finishing;
+							}
 						break;
 					}
 				}
@@ -281,7 +289,7 @@ struct TreePathVisitorImpl(Derived = Default)
 			static if (Model.Collapsable)
 			{
 				() @trusted {
-					stateStack.put(State(loc.x, orientation));
+					stateStack.put(State(loc.x, loc.y, orientation));
 				} ();
 
 				orientation  = model.orientation;
@@ -322,6 +330,8 @@ struct TreePathVisitorImpl(Derived = Default)
 
 			if (orientation == Orientation.Vertical)
 				loc.x = stateStack[$-1].x;
+			if (orientation == Orientation.Horizontal)
+				loc.y = stateStack[$-1].y;
 			() @trusted { stateStack.popBack; } ();
 		}
 
@@ -343,7 +353,19 @@ struct TreePathVisitorImpl(Derived = Default)
 							_state = State.finishing;
 							path = current_path;
 						}
+					break;
 					case Orientation.Horizontal:
+						x.position = x.position + x.change;
+						static if (Model.Collapsable)
+							x.change = -model.header_size;
+						else
+							x.change = -model.size;
+
+						version(none) if (x.position <= x.destination)
+						{
+							_state = State.finishing;
+							path = current_path;
+						}
 					break;
 				}
 			}
