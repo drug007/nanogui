@@ -268,7 +268,7 @@ unittest
 	() @trusted
 	{
 		visitor.position[].should.be == [
-			Pos(0, 0, 300, 10), 
+			Pos(0, 0, 300, 590), 
 				Pos(10, 10, 290, 10), 
 					Pos(10, 10, 96, 10), Pos(106, 10, 97, 10), Pos(203, 10, 97, 10), 
 				Pos(10, 20, 290, 10), 

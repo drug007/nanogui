@@ -289,6 +289,19 @@ struct TreePathVisitorImpl(Derived = Default)
 			static if (Model.Collapsable)
 			{
 				() @trusted {
+					debug{{
+						import std;
+						if (model.orientation == Orientation.Vertical)
+						{
+							writeln(model.orientation, " ", loc.y.change, " ", loc.y.size, " ", model.size);
+							loc.y.size = model.size;
+						}
+						else
+						{
+							writeln(model.orientation, " ", loc.x.change, " ", loc.x.size, " ", model.size);
+							loc.x.size = model.size;
+						}
+					}}
 					stateStack.put(State(loc.x, loc.y, orientation));
 				} ();
 
@@ -391,6 +404,16 @@ struct TreePathVisitorImpl(Derived = Default)
 	bool doBeforeChildren(Order order, Data, Model)(ref const(Data) data, ref Model model)
 		if (Model.Collapsable)
 	{
+		// set proper current size for children
+		if (model.orientation == Orientation.Vertical)
+		{
+			loc.y.size = loc.y.change;
+		}
+		else
+		{
+			loc.x.size = loc.y.change;
+		}
+
 		() @trusted { (cast(Derived*) &this).beforeChildren!(order, Data, Model)(data, model); }();
 
 		static if (order == Order.Bubbling)
