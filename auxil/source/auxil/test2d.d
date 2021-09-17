@@ -3,6 +3,7 @@ module auxil.test2d;
 version(unittest) import unit_threaded : Name, should, be;
 
 import std.experimental.allocator.mallocator : Mallocator;
+import std.experimental.allocator : make;
 import automem.vector : Vector, vector;
 
 import auxil.model;
@@ -19,6 +20,21 @@ struct State
 	alias Children = Vector!(State*, Mallocator);
 	Children children;
 	string name;
+	Orientation orientation;
+
+	enum IgnoreField {
+		none        = 0,
+		name        = 1,
+		Xpos        = 2, 
+		Xsize       = 4, 
+		Ypos        = 8, 
+		Ysize       = 16, 
+		children    = 32,
+		orientation = 64,
+		all         = none | name | Xpos | Xsize | Ypos | Ysize | children | orientation,
+	}
+
+	static ubyte ignoreField;
 
 	this(string name, ref Axis x, ref Axis y, Children children) @nogc
 	{
@@ -56,20 +72,38 @@ struct State
 		this.children = children.map!"&a".vector!Mallocator;
 	}
 
+	this(string name, Orientation o, ref Axis x, ref Axis y, Children children = Children()) @nogc
+	{
+		this(name, x, y, children);
+		this.orientation = o;
+	}
+
+	this(string name, Orientation o, SizeType x, SizeType y, SizeType w, SizeType h, Children children = Children()) @nogc
+	{
+		this(name, x, y, w, h, children);
+		this.orientation = o;
+	}
+
 	auto opEquals(ref const(State) other) const
 	{
+		if (ignoreField == IgnoreField.all)
+			return true;
+
 		if (name != other.name)
-			return false;
+			return false || (ignoreField & IgnoreField.name);
 		if (x.position != other.x.position)
-			return false;
+			return false || (ignoreField & IgnoreField.Xpos);
 		if (x.size != other.x.size)
-			return false;
+			return false || (ignoreField & IgnoreField.Xsize);
 		if (y.position != other.y.position)
-			return false;
+			return false || (ignoreField & IgnoreField.Ypos);
 		if (y.size != other.y.size)
-			return false;
+			return false || (ignoreField & IgnoreField.Ysize);
 		if (() @trusted { return !children[].map!"*a".equal(other.children[].map!"*a"); } ())
-			return false;
+			return false || (ignoreField & IgnoreField.children);
+		if (orientation != other.orientation)
+			return false || (ignoreField & IgnoreField.orientation);
+
 		return true;
 	}
 
@@ -80,8 +114,17 @@ struct State
 		import std.algorithm : copy;
 		import std.conv : text;
 
+		string O;
+		() @trusted {
+			if (children.length)
+			{
+				O = orientation == Orientation.Horizontal ? "H, " : "V, ";
+			}
+		} ();
+
 		text(ThisType.stringof, "(`", 
 			name, "`, ",
+			O,
 			x.position, ", ",
 			y.position, ", ",
 			x.size, ", ",
@@ -107,9 +150,11 @@ struct State
 
 auto state(Args...)(Args args)
 {
-	import std.experimental.allocator : make;
 	return Mallocator.instance.make!State(args);
 }
+
+private enum H = Orientation.Horizontal;
+private enum V = Orientation.Vertical;
 
 @safe private
 struct Visitor2D
@@ -141,7 +186,7 @@ struct Visitor2D
 		static if (Model.Collapsable || order == Order.Sinking)
 		{
 			() @trusted {
-				auto v = new State(Data.stringof, loc.x, loc.y);
+				auto v = Mallocator.instance.make!State(Data.stringof, orientation, loc.x, loc.y);
 				if (position !is null)
 				{
 					position.children ~= v;
@@ -303,15 +348,16 @@ unittest
 
 	() @trusted
 	{
+		version(none) State.ignoreField |= State.IgnoreField.Xpos;
 		(*visitor.position).should.be ==
-			State("Wrapper", 0, 0, 300, 10, vector!Mallocator([ 
-				state("Test", 10, 10, 290, 10, vector!Mallocator([
-					state("float", 10, 10, 96, 10), state("int", 10+96, 10, 97, 10), state("string", 10+96+97, 10, 290-96-97, 10),
+			State("Wrapper", V, 0, 0, 300, 10, vector!Mallocator([ 
+				state("Test", H, 10, 10, 290, 10, vector!Mallocator([
+					state("float", H, 10, 10, 96, 10), state("int", H, 10+96, 10, 97, 10), state("string", H, 10+96+97, 10, 290-96-97, 10),
 				])), 
-				state("Test", 10, 20, 290, 10, vector!Mallocator([ 
-					state("float", 20, 30, 280, 10), 
-					state("int", 20, 40, 280, 10), 
-					state("string", 20, 50, 280, 10),
+				state("Test", V, 10, 20, 290, 10, vector!Mallocator([ 
+					state("float", V, 20, 30, 280, 10), 
+					state("int", V, 20, 40, 280, 10), 
+					state("string", V, 20, 50, 280, 10),
 				])),
 		]));
 	}();
