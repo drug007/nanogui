@@ -2,23 +2,35 @@ module auxil.test2d;
 
 version(unittest) import unit_threaded : Name, should, be;
 
+import std.experimental.allocator.mallocator : Mallocator;
+import automem.vector : Vector, vector;
+
 import auxil.model;
 import auxil.default_visitor : TreePathVisitorImpl, MeasuringVisitor;
 import auxil.location : SizeType, Axis;
 
-struct Pos
+/// Entity state
+struct State
 {
-	Axis x, y;
-	Pos[] children;
+	import std.algorithm : equal, map;
 
-	this(ref Axis x, ref Axis y)
+	@safe:
+	Axis x, y;
+	alias Children = Vector!(State*, Mallocator);
+	Children children;
+	string name;
+
+	this(string name, ref Axis x, ref Axis y, Children children) @nogc
 	{
+		this.name = name;
 		this.x = x;
 		this.y = y;
+		this.children = children;
 	}
 
-	this(SizeType x, SizeType y, SizeType w, SizeType h, Pos[] children = null)
+	this(string name, SizeType x, SizeType y, SizeType w, SizeType h, Children children) @nogc
 	{
+		this.name = name;
 		this.x.position = x;
 		this.y.position = y;
 		this.x.size = w;
@@ -26,8 +38,28 @@ struct Pos
 		this.children = children;
 	}
 
-	auto opEquals(ref const(Pos) other) const
+	this(string name, ref Axis x, ref Axis y, State[] children = null) @nogc @system
 	{
+		this.name = name;
+		this.x = x;
+		this.y = y;
+		this.children = children.map!"&a".vector!Mallocator;
+	}
+
+	this(string name, SizeType x, SizeType y, SizeType w, SizeType h, State[] children = null) @nogc @system
+	{
+		this.name = name;
+		this.x.position = x;
+		this.y.position = y;
+		this.x.size = w;
+		this.y.size = h;
+		this.children = children.map!"&a".vector!Mallocator;
+	}
+
+	auto opEquals(ref const(State) other) const
+	{
+		if (name != other.name)
+			return false;
 		if (x.position != other.x.position)
 			return false;
 		if (x.size != other.x.size)
@@ -36,35 +68,47 @@ struct Pos
 			return false;
 		if (y.size != other.y.size)
 			return false;
+		if (() @trusted { return !children[].map!"*a".equal(other.children[].map!"*a"); } ())
+			return false;
 		return true;
 	}
+
+	alias ThisType = typeof(this);
 
 	void toString(W)(ref W w) const
 	{
 		import std.algorithm : copy;
 		import std.conv : text;
 
-		text("Pos(", 
+		text(ThisType.stringof, "(`", 
+			name, "`, ",
 			x.position, ", ",
 			y.position, ", ",
 			x.size, ", ",
 			y.size,
 		).copy(w);
 
-		if (children.length)
-		{
-			", [ ".copy(w);
-			auto child = children;
-			child[0].toString(w);
-			foreach(ref ch; child[1..$])
+		() @trusted {
+			if (children.length)
 			{
-				", ".copy(w);
-				ch.toString(w);
+				", [ ".copy(w);
+				children[0].toString(w);
+				foreach(i; 1..children.length)
+				{
+					", ".copy(w);
+					children[i].toString(w);
+				}
+				" ]".copy(w);
 			}
-			" ]".copy(w);
-		}
+		} ();
 		w.put(')');
 	}
+}
+
+auto state(Args...)(Args args)
+{
+	import std.experimental.allocator : make;
+	return Mallocator.instance.make!State(args);
 }
 
 @safe private
@@ -74,11 +118,20 @@ struct Visitor2D
 	TreePathVisitor default_visitor;
 	alias default_visitor this;
 
-	Pos position;
+	State* position;
+	Vector!(State*, Mallocator) pos_stack;
 
-	this(SizeType[2] size) @nogc
+	this(SizeType[2] size) @nogc nothrow
 	{
 		default_visitor = TreePathVisitor(size);
+	}
+
+	private void printPrefix()
+	{
+		enum prefix = "\t";
+		import std;
+		foreach(_; 0..pos_stack.length)
+			write(prefix);
 	}
 
 	void enterTree(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
@@ -88,12 +141,35 @@ struct Visitor2D
 		static if (Model.Collapsable || order == Order.Sinking)
 		{
 			() @trusted {
-				position = Pos(loc.x, loc.y);
+				auto v = new State(Data.stringof, loc.x, loc.y);
+				if (position !is null)
+				{
+					position.children ~= v;
+					pos_stack ~= position;
+				}
+				position = v;
+				
+{
+	import std;
+	printPrefix;
+	writeln(*position);
+}
 			} ();
 		}
 	}
 
-	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
+	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		() @trusted {
+			if (!pos_stack.empty)
+			{
+				position = position.init;
+				position = pos_stack[$-1];
+				pos_stack.popBack;
+			}
+		} ();
+	}
+
 	void beforeChildren(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void afterChildren(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 }
@@ -134,19 +210,19 @@ unittest
 
 	() @trusted
 	{
-		visitor.position.should.be ==
-			Pos( 0, 0, 300, 10, [
-				Pos(10, 10, 290, 10, [ 
-					Pos(20, 20, 280, 10), 
-					Pos(20, 30, 280, 10), 
-					Pos(20, 40, 280, 10),
-				]),
-				Pos(10, 50, 290, 10, [
-					Pos(20, 60, 280, 10), 
-					Pos(20, 70, 280, 10), 
-					Pos(20, 80, 280, 10),
-				]),
-			]);
+		(*visitor.position).should.be ==
+			State("Test[2]", 0, 0, 300, 10, vector!Mallocator([
+				state("Test", 10, 10, 290, 10, vector!Mallocator([ 
+					state("float", 20, 20, 280, 10), 
+					state("int", 20, 30, 280, 10), 
+					state("string", 20, 40, 280, 10),
+				])),
+				state("Test", 10, 50, 290, 10, vector!Mallocator([
+					state("float", 20, 60, 280, 10), 
+					state("int", 20, 70, 280, 10), 
+					state("string", 20, 80, 280, 10),
+				])),
+			]));
 	}();
 
 	model[0].orientation = Orientation.Horizontal;
@@ -178,17 +254,17 @@ unittest
 
 	() @trusted
 	{
-		visitor.position.should.be ==
-			Pos( 0, 0, 300, 10, [
-				Pos(10, 10, 290, 10, [ 
-					Pos(10, 10, 96, 10,), Pos(10+96, 10, 97, 10), Pos(10+96+97, 10, 290-96-97, 10),
-				]),
-				Pos(10, 20, 290, 10, [
-					Pos(20, 30, 280, 10), 
-					Pos(20, 40, 280, 10), 
-					Pos(20, 50, 280, 10),
-				]), 
-			]);
+		(*visitor.position).should.be ==
+			State("", 0, 0, 300, 10, vector!Mallocator([
+				state("", 10, 10, 290, 10, vector!Mallocator([ 
+					state("", 10, 10, 96, 10,), state("", 10+96, 10, 97, 10), state("", 10+96+97, 10, 290-96-97, 10),
+				])),
+				state("", 10, 20, 290, 10, vector!Mallocator([
+					state("", 20, 30, 280, 10), 
+					state("", 20, 40, 280, 10), 
+					state("", 20, 50, 280, 10),
+				])), 
+			]));
 	}();
 }
 
@@ -227,17 +303,17 @@ unittest
 
 	() @trusted
 	{
-		visitor.position.should.be ==
-			Pos( 0, 0, 300, 10, [ 
-				Pos(10, 10, 290, 10, [
-					Pos(10, 10, 96, 10), Pos(10+96, 10, 97, 10), Pos(10+96+97, 10, 290-96-97, 10),
-				]), 
-				Pos(10, 20, 290, 10, [ 
-					Pos(20, 30, 280, 10), 
-					Pos(20, 40, 280, 10), 
-					Pos(20, 50, 280, 10),
-				]),
-		]);
+		(*visitor.position).should.be ==
+			State("Wrapper", 0, 0, 300, 10, vector!Mallocator([ 
+				state("Test", 10, 10, 290, 10, vector!Mallocator([
+					state("float", 10, 10, 96, 10), state("int", 10+96, 10, 97, 10), state("string", 10+96+97, 10, 290-96-97, 10),
+				])), 
+				state("Test", 10, 20, 290, 10, vector!Mallocator([ 
+					state("float", 20, 30, 280, 10), 
+					state("int", 20, 40, 280, 10), 
+					state("string", 20, 50, 280, 10),
+				])),
+		]));
 	}();
 }
 
@@ -284,15 +360,15 @@ unittest
 
 	() @trusted
 	{
-		visitor.position.should.be ==
-			Pos(0, 0, 300, 590, [
-				Pos(10, 10, 290, 10, [ 
-					Pos(10, 10, 96, 10), Pos(106, 10, 97, 10), Pos(203, 10, 97, 10), 
-				]),
-				Pos(10, 20, 290, 10, [ 
-					Pos(10, 20, 96, 10), Pos(106, 20, 97, 10), Pos(203, 20, 97, 10)
-				]),
-		]);
+		(*visitor.position).should.be ==
+			State("Wrapper", 0, 0, 300, 590, vector!Mallocator([
+				state("Test1", 10, 10, 290, 10, vector!Mallocator([ 
+					state("double", 10, 10, 96, 10), state("short", 106, 10, 97, 10), state("Test", 203, 10, 97, 10), 
+				])),
+				state("Test1", 10, 20, 290, 10, vector!Mallocator([ 
+					state("double", 10, 20, 96, 10), state("short", 106, 20, 97, 10), state("Test", 203, 20, 97, 10)
+				])),
+		]));
 	}();
 }
 
@@ -340,19 +416,19 @@ unittest
 
 	() @trusted
 	{
-		visitor.position.should.be ==
-			Pos(0, 0, 300, 10, [     /* Test2 (Header) */
-				Pos(10, 10, 290, 10),  /* Test2.d */
-				Pos(10, 20, 290, 10, [  /* Test2.t1 (Header) */
+		(*visitor.position).should.be ==
+			State("Test2", 0, 0, 300, 10, vector!Mallocator([     /* Test2 (Header) */
+				state("double", 10, 10, 290, 10),  /* Test2.d */
+				state("Test1", 10, 20, 290, 10, vector!Mallocator([  /* Test2.t1 (Header) */
 					// Test1.d           Test1.t (Header)                      Test1.sh
-					Pos(10, 20, 96, 10), Pos(106, 20, 96, 10, [ 
-					                        Pos(116, 30, 86, 10), /* Test.f */
-					                        Pos(116, 40, 86, 10), /* Test.i */
-					                        Pos(116, 50, 86, 10), /* Test.s */
-										]),
-					                                                           Pos(203, 20, 97, 10), 
-				]),
-				Pos(10, 60, 290, 10),  /* Test2.str */
-		]);
+					state("double", 10, 20, 96, 10), state("Test", 106, 20, 96, 10, vector!Mallocator([ 
+					                        state("float", 116, 30, 86, 10), /* Test.f */
+					                        state("int", 116, 40, 86, 10), /* Test.i */
+					                        state("string", 116, 50, 86, 10), /* Test.s */
+										])),
+					                                                           state("short", 203, 20, 97, 10), 
+				])),
+				state("string", 10, 60, 290, 10),  /* Test2.str */
+		]));
 	}();
 }

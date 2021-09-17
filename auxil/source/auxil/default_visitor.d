@@ -289,19 +289,19 @@ struct TreePathVisitorImpl(Derived = Default)
 			static if (Model.Collapsable)
 			{
 				() @trusted {
-					debug{{
-						import std;
-						if (model.orientation == Orientation.Vertical)
-						{
-							writeln(model.orientation, " ", loc.y.change, " ", loc.y.size, " ", model.size);
-							loc.y.size = model.size;
-						}
-						else
-						{
-							writeln(model.orientation, " ", loc.x.change, " ", loc.x.size, " ", model.size);
-							loc.x.size = model.size;
-						}
-					}}
+					// debug{{
+					// 	import std;
+					// 	if (model.orientation == Orientation.Vertical)
+					// 	{
+					// 		writeln(model.orientation, " ", loc.y.change, " ", loc.y.size, " ", model.size);
+					// 		loc.y.size = model.size;
+					// 	}
+					// 	else
+					// 	{
+					// 		writeln(model.orientation, " ", loc.x.change, " ", loc.x.size, " ", model.size);
+					// 		loc.x.size = model.size;
+					// 	}
+					// }}
 					stateStack.put(State(loc.x, loc.y, orientation));
 				} ();
 
