@@ -35,6 +35,19 @@ extern(C++) class Base
 		sink(ThisType.stringof);
 		sink("()");
 	}
+
+	string toString() const
+	{
+		import std.array : appender;
+		import std.exception : assumeUnique;
+
+		char[] buffer;
+		auto a = appender(buffer);
+		auto dg = (in char[] data) { a.put(data); };
+		toString(dg);
+
+		return assumeUnique(a.data);
+	}
 }
 
 extern(C++) class Leaf : Base
@@ -77,9 +90,16 @@ extern(C++) class Leaf : Base
 			y.size, ")"
 		).copy(sink);
 	}
+	alias toString = Base.toString;
 
-	bool opEquals(ref const(Leaf) other) const
+	bool opEquals(const(Leaf) other) const
 	{
+
+{
+	import std;
+	writeln(90);
+	writeln(x.position, " ", other.x.position);
+}
 		if (ignoreField == IgnoreField.all)
 			return true;
 
@@ -184,10 +204,11 @@ extern(C++) class Node : Leaf
 		} ();
 		sink(")");
 	}
+	alias toString = Base.toString;
 
 	alias opEquals = Leaf.opEquals;
 
-	bool opEquals(ref const(Node) other) const
+	bool opEquals(const(Node) other) const
 	{
 		if (!super.opEquals(other))
 			return false;
@@ -196,6 +217,11 @@ extern(C++) class Node : Leaf
 			return false || (ignoreField & IgnoreField.children);
 		if (orientation != other.orientation)
 			return false || (ignoreField & IgnoreField.orientation);
+
+{
+	import std;
+	writeln(100);
+}
 
 		return true;
 	}
@@ -561,18 +587,19 @@ unittest
 	{
 		import std;
 		visitor.current.writeln;
-		version(all) Base.ignoreField |= Base.IgnoreField.Xpos;
-		visitor.current.should.be ==
-			node("Wrapper", V, 0, 0, 300, 10, vector!Mallocator([ 
-				cast(Leaf) node("Test", H, 10, 10, 290, 10, vector!Mallocator([
+		// version(all) Base.ignoreField |= Base.IgnoreField.Xpos;
+		writeln(cast(Node) visitor.current);
+		assert((cast(Node)visitor.current).opEquals( 
+			node("Wrapper", V, 0, 0, 300, 10, vector!(Mallocator, Leaf)([ 
+				node("Test", H, 10, 10, 290, 10, vector!(Mallocator, Leaf)([
 					leaf("float", 10, 10, 96, 10), leaf("int", 10+96, 10, 97, 10), leaf("string", 10+96+97, 10, 290-96-97, 10),
 				])), 
-				cast(Leaf) node("Test", V, 10, 20, 290, 10, vector!Mallocator([ 
-					leaf("float", 20, 30, 280, 10), 
-					leaf("int", 20, 40, 280, 10), 
-					leaf("string", 20, 50, 280, 10),
-				])),
-		]));
+				// node("Test", V, 10, 20, 290, 10, vector!(Mallocator, Leaf)([ 
+				// 	leaf("float", 20, 30, 280, 10), 
+				// 	leaf("int", 20, 40, 280, 10), 
+				// 	leaf("string", 20, 50, 280, 10),
+				// ])),
+		]))));
 
 		// version(all) State.ignoreField |= State.IgnoreField.Xpos;
 		// (*visitor.position).should.be ==
