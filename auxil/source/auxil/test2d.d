@@ -10,7 +10,34 @@ import auxil.model;
 import auxil.default_visitor : TreePathVisitorImpl, MeasuringVisitor;
 import auxil.location : SizeType, Axis;
 
-extern(C++) class Leaf
+extern(C++) class Base
+{
+	extern(D):
+
+	enum IgnoreField {
+		none        = 0,
+		name        = 1,
+		Xpos        = 2, 
+		Xsize       = 4, 
+		Ypos        = 8, 
+		Ysize       = 16, 
+		children    = 32,
+		orientation = 64,
+		all         = none | name | Xpos | Xsize | Ypos | Ysize | children | orientation,
+	}
+
+	static ubyte ignoreField;
+
+	alias ThisType = typeof(this);
+
+	void toString(void delegate(in char[]) sink) const
+	{
+		sink(ThisType.stringof);
+		sink("()");
+	}
+}
+
+extern(C++) class Leaf : Base
 {
 	extern(D):
 	@safe:
@@ -37,7 +64,7 @@ extern(C++) class Leaf
 
 	alias ThisType = typeof(this);
 
-	void toString(void delegate(in char[]) sink) @trusted const
+	override void toString(void delegate(in char[]) sink) @trusted const
 	{
 		import std.algorithm : copy;
 		import std.conv : text;
@@ -50,10 +77,36 @@ extern(C++) class Leaf
 			y.size, ")"
 		).copy(sink);
 	}
+
+	bool opEquals(ref const(Leaf) other) const
+	{
+		if (ignoreField == IgnoreField.all)
+			return true;
+
+		if (name != other.name)
+			return false || (ignoreField & IgnoreField.name);
+		if (x.position != other.x.position)
+			return false || (ignoreField & IgnoreField.Xpos);
+		if (x.size != other.x.size)
+			return false || (ignoreField & IgnoreField.Xsize);
+		if (y.position != other.y.position)
+			return false || (ignoreField & IgnoreField.Ypos);
+		if (y.size != other.y.size)
+			return false || (ignoreField & IgnoreField.Ysize);
+
+		return true;
+	}
+}
+
+auto leaf(Args...)(Args args)
+{
+	return Mallocator.instance.make!Leaf(args);
 }
 
 extern(C++) class Node : Leaf
 {
+	import std.algorithm : equal, map;
+
 	extern(D):
 	@safe:
 
@@ -76,6 +129,13 @@ extern(C++) class Node : Leaf
 	this(string name, Orientation o, ref Axis x, ref Axis y, Children children = Children()) @nogc
 	{
 		super(name, x, y);
+		this.orientation = o;
+		this.children = children;
+	}
+
+	this(string name, Orientation o, SizeType x, SizeType y, SizeType w, SizeType h, Children children = Children()) @nogc
+	{
+		this(name, x, y, w, h);
 		this.orientation = o;
 		this.children = children;
 	}
@@ -124,6 +184,26 @@ extern(C++) class Node : Leaf
 		} ();
 		sink(")");
 	}
+
+	alias opEquals = Leaf.opEquals;
+
+	bool opEquals(ref const(Node) other) const
+	{
+		if (!super.opEquals(other))
+			return false;
+
+		if (() @trusted { return !children[].equal(other.children[]); } ())
+			return false || (ignoreField & IgnoreField.children);
+		if (orientation != other.orientation)
+			return false || (ignoreField & IgnoreField.orientation);
+
+		return true;
+	}
+}
+
+auto node(Args...)(Args args)
+{
+	return Mallocator.instance.make!Node(args);
 }
 
 /// Entity state
@@ -481,18 +561,31 @@ unittest
 	{
 		import std;
 		visitor.current.writeln;
-		version(none) State.ignoreField |= State.IgnoreField.Xpos;
-		(*visitor.position).should.be ==
-			State("Wrapper", V, 0, 0, 300, 10, vector!Mallocator([ 
-				state("Test", H, 10, 10, 290, 10, vector!Mallocator([
-					state("float", H, 10, 10, 96, 10), state("int", H, 10+96, 10, 97, 10), state("string", H, 10+96+97, 10, 290-96-97, 10),
+		version(all) Base.ignoreField |= Base.IgnoreField.Xpos;
+		visitor.current.should.be ==
+			node("Wrapper", V, 0, 0, 300, 10, vector!Mallocator([ 
+				cast(Leaf) node("Test", H, 10, 10, 290, 10, vector!Mallocator([
+					leaf("float", 10, 10, 96, 10), leaf("int", 10+96, 10, 97, 10), leaf("string", 10+96+97, 10, 290-96-97, 10),
 				])), 
-				state("Test", V, 10, 20, 290, 10, vector!Mallocator([ 
-					state("float", V, 20, 30, 280, 10), 
-					state("int", V, 20, 40, 280, 10), 
-					state("string", V, 20, 50, 280, 10),
+				cast(Leaf) node("Test", V, 10, 20, 290, 10, vector!Mallocator([ 
+					leaf("float", 20, 30, 280, 10), 
+					leaf("int", 20, 40, 280, 10), 
+					leaf("string", 20, 50, 280, 10),
 				])),
 		]));
+
+		// version(all) State.ignoreField |= State.IgnoreField.Xpos;
+		// (*visitor.position).should.be ==
+		// 	State("Wrapper", V, 0, 0, 300, 10, vector!Mallocator([ 
+		// 		state("Test", H, 10, 10, 290, 10, vector!Mallocator([
+		// 			state("float", H, 10, 10, 96, 10), state("int", H, 10+96, 10, 97, 10), state("string", H, 10+96+97, 10, 290-96-97, 10),
+		// 		])), 
+		// 		state("Test", V, 10, 20, 290, 10, vector!Mallocator([ 
+		// 			state("float", V, 20, 30, 280, 10), 
+		// 			state("int", V, 20, 40, 280, 10), 
+		// 			state("string", V, 20, 50, 280, 10),
+		// 		])),
+		// ]));
 	}();
 }
 
