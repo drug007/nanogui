@@ -10,6 +10,122 @@ import auxil.model;
 import auxil.default_visitor : TreePathVisitorImpl, MeasuringVisitor;
 import auxil.location : SizeType, Axis;
 
+extern(C++) class Leaf
+{
+	extern(D):
+	@safe:
+	string name;
+	Axis x, y;
+
+	this(string name, ref Axis x, ref Axis y) @nogc
+	{
+		this.name = name;
+		this.x = x;
+		this.y = y;
+	}
+
+	this(string name, SizeType x, SizeType y, SizeType w, SizeType h) @nogc
+	{
+		this.name = name;
+		this.x.position = x;
+		this.y.position = y;
+		this.x.size = w;
+		this.y.size = h;
+	}
+
+	void addChild(Leaf l) {}
+
+	alias ThisType = typeof(this);
+
+	void toString(void delegate(in char[]) sink) @trusted const
+	{
+		import std.algorithm : copy;
+		import std.conv : text;
+
+		text(ThisType.stringof, "(`", 
+			name, "`, ",
+			x.position, ", ",
+			y.position, ", ",
+			x.size, ", ",
+			y.size, ")"
+		).copy(sink);
+	}
+}
+
+extern(C++) class Node : Leaf
+{
+	extern(D):
+	@safe:
+
+	alias Children = Vector!(Leaf, Mallocator);
+	Children children;
+	Orientation orientation;
+
+	this(string name, ref Axis x, ref Axis y, Children children) @nogc
+	{
+		super(name, x, y);
+		this.children = children;
+	}
+
+	this(string name, SizeType x, SizeType y, SizeType w, SizeType h, Children children = Children()) @nogc
+	{
+		super(name, x, y, w, h);
+		this.children = children;
+	}
+
+	this(string name, Orientation o, ref Axis x, ref Axis y, Children children = Children()) @nogc
+	{
+		super(name, x, y);
+		this.orientation = o;
+		this.children = children;
+	}
+
+	override void addChild(Leaf l) @trusted
+	{
+		children ~= l;
+	}
+
+	alias ThisType = typeof(this);
+
+	override void toString(void delegate(in char[]) sink) @trusted const
+	{
+		import std.algorithm : copy;
+		import std.conv : text;
+
+		string O;
+		() @trusted {
+			if (children.length)
+			{
+				O = orientation == Orientation.Horizontal ? "H, " : "V, ";
+			}
+		} ();
+
+		sink(text(ThisType.stringof, "(`", 
+			name, "`, ",
+			O,
+			x.position, ", ",
+			y.position, ", ",
+			x.size, ", ",
+			y.size,
+		));
+
+		() @trusted {
+			if (children.length)
+			{
+				sink(", [ ");
+				children[0].toString(sink);
+				foreach(i; 1..children.length)
+				{
+					sink(", ");
+					children[i].toString(sink);
+				}
+				sink(" ]");
+			}
+		} ();
+		sink(")");
+	}
+}
+
 /// Entity state
 struct State
 {
@@ -165,6 +281,8 @@ struct Visitor2D
 
 	State* position;
 	Vector!(State*, Mallocator) pos_stack;
+	Leaf current;
+	Vector!(Leaf, Mallocator) node_stack;
 
 	this(SizeType[2] size) @nogc nothrow
 	{
@@ -193,6 +311,14 @@ struct Visitor2D
 					pos_stack ~= position;
 				}
 				position = v;
+
+				auto n = new Node(Data.stringof, orientation, loc.x, loc.y);
+				if (current !is null)
+				{
+					current.addChild(n);
+					node_stack ~= current;
+				}
+				current = n;
 				
 {
 	import std;
@@ -208,9 +334,14 @@ struct Visitor2D
 		() @trusted {
 			if (!pos_stack.empty)
 			{
-				position = position.init;
 				position = pos_stack[$-1];
 				pos_stack.popBack;
+			}
+
+			if (!node_stack.empty)
+			{
+				current = node_stack[$-1];
+				node_stack.popBack;
 			}
 		} ();
 	}
@@ -348,6 +479,8 @@ unittest
 
 	() @trusted
 	{
+		import std;
+		visitor.current.writeln;
 		version(none) State.ignoreField |= State.IgnoreField.Xpos;
 		(*visitor.position).should.be ==
 			State("Wrapper", V, 0, 0, 300, 10, vector!Mallocator([ 
