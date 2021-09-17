@@ -9,6 +9,7 @@ import auxil.location : SizeType, Axis;
 struct Pos
 {
 	Axis x, y;
+	Pos[] children;
 
 	this(ref Axis x, ref Axis y)
 	{
@@ -16,12 +17,13 @@ struct Pos
 		this.y = y;
 	}
 
-	this(SizeType x, SizeType y, SizeType w, SizeType h)
+	this(SizeType x, SizeType y, SizeType w, SizeType h, Pos[] children = null)
 	{
 		this.x.position = x;
 		this.y.position = y;
 		this.x.size = w;
 		this.y.size = h;
+		this.children = children;
 	}
 
 	auto opEquals(ref const(Pos) other) const
@@ -46,23 +48,33 @@ struct Pos
 			x.position, ", ",
 			y.position, ", ",
 			x.size, ", ",
-			y.size, 
-		")"
+			y.size,
 		).copy(w);
+
+		if (children.length)
+		{
+			", [ ".copy(w);
+			auto child = children;
+			child[0].toString(w);
+			foreach(ref ch; child[1..$])
+			{
+				", ".copy(w);
+				ch.toString(w);
+			}
+			" ]".copy(w);
+		}
+		w.put(')');
 	}
 }
 
 @safe private
 struct Visitor2D
 {
-	import std.experimental.allocator.mallocator : Mallocator;
-	import automem.vector : Vector;
-
 	alias TreePathVisitor = TreePathVisitorImpl!(typeof(this));
 	TreePathVisitor default_visitor;
 	alias default_visitor this;
 
-	Vector!(Pos, Mallocator) position;
+	Pos position;
 
 	this(SizeType[2] size) @nogc
 	{
@@ -76,7 +88,7 @@ struct Visitor2D
 		static if (Model.Collapsable || order == Order.Sinking)
 		{
 			() @trusted {
-				position ~= Pos(loc.x, loc.y);
+				position = Pos(loc.x, loc.y);
 			} ();
 		}
 	}
@@ -122,17 +134,19 @@ unittest
 
 	() @trusted
 	{
-		visitor.position[].should.be == [
-			Pos( 0, 0, 300, 10), 
-				Pos(10, 10, 290, 10), 
+		visitor.position.should.be ==
+			Pos( 0, 0, 300, 10, [
+				Pos(10, 10, 290, 10, [ 
 					Pos(20, 20, 280, 10), 
 					Pos(20, 30, 280, 10), 
 					Pos(20, 40, 280, 10),
-				Pos(10, 50, 290, 10), 
+				]),
+				Pos(10, 50, 290, 10, [
 					Pos(20, 60, 280, 10), 
 					Pos(20, 70, 280, 10), 
 					Pos(20, 80, 280, 10),
-		];
+				]),
+			]);
 	}();
 
 	model[0].orientation = Orientation.Horizontal;
@@ -159,21 +173,22 @@ unittest
 			s.size.should.be == 10;
 		}
 	}
-	visitor.position.clear;
 	visitor.loc.y.position = 0;
 	model.visitForward(data, visitor);
 
 	() @trusted
 	{
-		visitor.position[].should.be == [
-			Pos( 0, 0, 300, 10), 
-				Pos(10, 10, 290, 10), 
-					Pos(10, 10, 96, 10), Pos(10+96, 10, 97, 10), Pos(10+96+97, 10, 290-96-97, 10),
-				Pos(10, 20, 290, 10), 
+		visitor.position.should.be ==
+			Pos( 0, 0, 300, 10, [
+				Pos(10, 10, 290, 10, [ 
+					Pos(10, 10, 96, 10,), Pos(10+96, 10, 97, 10), Pos(10+96+97, 10, 290-96-97, 10),
+				]),
+				Pos(10, 20, 290, 10, [
 					Pos(20, 30, 280, 10), 
 					Pos(20, 40, 280, 10), 
 					Pos(20, 50, 280, 10),
-		];
+				]), 
+			]);
 	}();
 }
 
@@ -212,15 +227,17 @@ unittest
 
 	() @trusted
 	{
-		visitor.position[].should.be == [
-			Pos( 0, 0, 300, 10), 
-				Pos(10, 10, 290, 10), 
+		visitor.position.should.be ==
+			Pos( 0, 0, 300, 10, [ 
+				Pos(10, 10, 290, 10, [
 					Pos(10, 10, 96, 10), Pos(10+96, 10, 97, 10), Pos(10+96+97, 10, 290-96-97, 10),
-				Pos(10, 20, 290, 10), 
+				]), 
+				Pos(10, 20, 290, 10, [ 
 					Pos(20, 30, 280, 10), 
 					Pos(20, 40, 280, 10), 
 					Pos(20, 50, 280, 10),
-		];
+				]),
+		]);
 	}();
 }
 
@@ -267,13 +284,15 @@ unittest
 
 	() @trusted
 	{
-		visitor.position[].should.be == [
-			Pos(0, 0, 300, 590), 
-				Pos(10, 10, 290, 10), 
+		visitor.position.should.be ==
+			Pos(0, 0, 300, 590, [
+				Pos(10, 10, 290, 10, [ 
 					Pos(10, 10, 96, 10), Pos(106, 10, 97, 10), Pos(203, 10, 97, 10), 
-				Pos(10, 20, 290, 10), 
+				]),
+				Pos(10, 20, 290, 10, [ 
 					Pos(10, 20, 96, 10), Pos(106, 20, 97, 10), Pos(203, 20, 97, 10)
-		];
+				]),
+		]);
 	}();
 }
 
@@ -321,17 +340,19 @@ unittest
 
 	() @trusted
 	{
-		visitor.position[].should.be == [
-			Pos(0, 0, 300, 10),     /* Test2 (Header) */
+		visitor.position.should.be ==
+			Pos(0, 0, 300, 10, [     /* Test2 (Header) */
 				Pos(10, 10, 290, 10),  /* Test2.d */
-				Pos(10, 20, 290, 10),  /* Test2.t1 (Header) */
+				Pos(10, 20, 290, 10, [  /* Test2.t1 (Header) */
 					// Test1.d           Test1.t (Header)                      Test1.sh
-					Pos(10, 20, 96, 10), Pos(106, 20, 96, 10), 
+					Pos(10, 20, 96, 10), Pos(106, 20, 96, 10, [ 
 					                        Pos(116, 30, 86, 10), /* Test.f */
 					                        Pos(116, 40, 86, 10), /* Test.i */
 					                        Pos(116, 50, 86, 10), /* Test.s */
+										]),
 					                                                           Pos(203, 20, 97, 10), 
+				]),
 				Pos(10, 60, 290, 10),  /* Test2.str */
-		];
+		]);
 	}();
 }
