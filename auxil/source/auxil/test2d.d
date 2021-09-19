@@ -1,6 +1,6 @@
 module auxil.test2d;
 
-version(unittest) import unit_threaded : Name, should, be;
+version(unittest) import unit_threaded : Name, should, be, shouldBeTrue;
 
 import std.experimental.allocator.mallocator : Mallocator;
 import std.experimental.allocator : make;
@@ -228,6 +228,47 @@ extern(C++) class Node : Leaf
 auto node(Args...)(Args args)
 {
 	return Mallocator.instance.make!Node(args);
+}
+
+enum CompareBy {
+	none        = 0,
+	name        = 1,
+	Xpos        = 2, 
+	Xsize       = 4, 
+	Ypos        = 8, 
+	Ysize       = 16, 
+	children    = 32,
+	orientation = 64,
+	allFields   = none | name | Xpos | Xsize | Ypos | Ysize | children | orientation,
+}
+
+bool compare(Node lhs, Node rhs, ubyte flags = CompareBy.allFields)
+{
+	import std.algorithm : all;
+	import std.range : zip;
+
+	if (lhs is null || rhs is null)
+		return false;
+
+	if (flags == CompareBy.none)
+		return true;
+
+	if ((flags & CompareBy.name)  && lhs.name != rhs.name)
+		return false;
+	if ((flags & CompareBy.Xpos)  && lhs.x.position != rhs.x.position)
+		return false;
+	if ((flags & CompareBy.Xsize) && lhs.x.size != rhs.x.size)
+		return false;
+	if ((flags & CompareBy.Ypos)  && lhs.y.position != rhs.y.position)
+		return false;
+	if ((flags & CompareBy.Ysize) && lhs.y.size != rhs.y.size)
+		return false;
+	if ((flags & CompareBy.children) && () @trusted { return !lhs.children[].zip(rhs.children[]).all!(a=>compare(a[0], a[1])); } ())
+		return false;
+	if ((flags & CompareBy.orientation) && lhs.orientation != rhs.orientation)
+		return false;
+
+	return true;
 }
 
 /// Entity state
@@ -583,12 +624,7 @@ unittest
 
 	() @trusted
 	{
-		import std;
-		visitor.current.writeln;
-		// version(all) Base.ignoreField |= Base.IgnoreField.Xpos;
-		writeln(cast(Node) visitor.current);
-		assert(visitor.current.opEquals( 
-			node("Wrapper", V, 0, 0, 300, 10, vector!(Mallocator, Node)([ 
+		auto etalon = node("Wrapper", V, 0, 0, 300, 10, vector!(Mallocator, Node)([ 
 				node("Test", H, 10, 10, 290, 10, vector!(Mallocator, Node)([
 					node("float", 10, 10, 96, 10), node("int", 10+96, 10, 97, 10), node("string", 10+96+97, 10, 290-96-97, 10),
 				])), 
@@ -597,20 +633,10 @@ unittest
 					node("int", 20, 40, 280, 10), 
 					node("string", 20, 50, 280, 10),
 				])),
-		]))));
+		]));
 
-		// version(all) State.ignoreField |= State.IgnoreField.Xpos;
-		// (*visitor.position).should.be ==
-		// 	State("Wrapper", V, 0, 0, 300, 10, vector!Mallocator([ 
-		// 		state("Test", H, 10, 10, 290, 10, vector!Mallocator([
-		// 			state("float", H, 10, 10, 96, 10), state("int", H, 10+96, 10, 97, 10), state("string", H, 10+96+97, 10, 290-96-97, 10),
-		// 		])), 
-		// 		state("Test", V, 10, 20, 290, 10, vector!Mallocator([ 
-		// 			state("float", V, 20, 30, 280, 10), 
-		// 			state("int", V, 20, 40, 280, 10), 
-		// 			state("string", V, 20, 50, 280, 10),
-		// 		])),
-		// ]));
+		const byAllFieldsButXpos = CompareBy.allFields & !CompareBy.Xpos;
+		compare(visitor.current, etalon, byAllFieldsButXpos).shouldBeTrue;
 	}();
 }
 
