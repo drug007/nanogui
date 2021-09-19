@@ -10,121 +10,15 @@ import auxil.model;
 import auxil.default_visitor : TreePathVisitorImpl, MeasuringVisitor;
 import auxil.location : SizeType, Axis;
 
-extern(C++) class Base
-{
-	extern(D):
-
-	enum IgnoreField {
-		none        = 0,
-		name        = 1,
-		Xpos        = 2, 
-		Xsize       = 4, 
-		Ypos        = 8, 
-		Ysize       = 16, 
-		children    = 32,
-		orientation = 64,
-		all         = none | name | Xpos | Xsize | Ypos | Ysize | children | orientation,
-	}
-
-	static ubyte ignoreField;
-
-	alias ThisType = typeof(this);
-
-	void toString(void delegate(in char[]) sink) const
-	{
-		sink(ThisType.stringof);
-		sink("()");
-	}
-
-	string toString() const
-	{
-		import std.array : appender;
-		import std.exception : assumeUnique;
-
-		auto a = appender!(char[]);
-		toString((in char[] data) { a.put(data); });
-
-		return assumeUnique(a.data);
-	}
-}
-
-extern(C++) class Leaf : Base
-{
-	extern(D):
-	@safe:
-	string name;
-	Axis x, y;
-
-	this(string name, ref Axis x, ref Axis y) @nogc
-	{
-		this.name = name;
-		this.x = x;
-		this.y = y;
-	}
-
-	this(string name, SizeType x, SizeType y, SizeType w, SizeType h) @nogc
-	{
-		this.name = name;
-		this.x.position = x;
-		this.y.position = y;
-		this.x.size = w;
-		this.y.size = h;
-	}
-
-	alias ThisType = typeof(this);
-
-	override void toString(void delegate(in char[]) sink) @trusted const
-	{
-		import std.algorithm : copy;
-		import std.conv : text;
-
-		text(ThisType.stringof, "(`", 
-			name, "`, ",
-			x.position, ", ",
-			y.position, ", ",
-			x.size, ", ",
-			y.size, ")"
-		).copy(sink);
-	}
-
-	bool opEquals(Base other)
-	{
-		Leaf o;
-		() @trusted { o = cast(Leaf) other; } ();
-		if (o)
-		{
-			if (ignoreField == IgnoreField.all)
-				return true;
-
-			if (name != o.name)
-				return false || (ignoreField & IgnoreField.name);
-			if (x.position != o.x.position)
-				return false || (ignoreField & IgnoreField.Xpos);
-			if (x.size != o.x.size)
-				return false || (ignoreField & IgnoreField.Xsize);
-			if (y.position != o.y.position)
-				return false || (ignoreField & IgnoreField.Ypos);
-			if (y.size != o.y.size)
-				return false || (ignoreField & IgnoreField.Ysize);
-
-			return true;
-		}
-
-		return false;
-	}
-}
-
-auto leaf(Args...)(Args args)
-{
-	return Mallocator.instance.make!Leaf(args);
-}
-
-extern(C++) class Node : Leaf
+extern(C++) class Node
 {
 	import std.algorithm : equal, map;
 
 	extern(D):
 	@safe:
+
+	string name;
+	Axis x, y;
 
 	alias Children = Vector!(Node, Mallocator);
 	Children children;
@@ -132,26 +26,38 @@ extern(C++) class Node : Leaf
 
 	this(string name, ref Axis x, ref Axis y, Children children) @nogc
 	{
-		super(name, x, y);
+		this.name = name;
+		this.x = x;
+		this.y = y;
 		this.children = children;
 	}
 
 	this(string name, SizeType x, SizeType y, SizeType w, SizeType h, Children children = Children()) @nogc
 	{
-		super(name, x, y, w, h);
+		this.name = name;
+		this.x.position = x;
+		this.y.position = y;
+		this.x.size = w;
+		this.y.size = h;
 		this.children = children;
 	}
 
 	this(string name, Orientation o, ref Axis x, ref Axis y, Children children = Children()) @nogc
 	{
-		super(name, x, y);
+		this.name = name;
+		this.x = x;
+		this.y = y;
 		this.orientation = o;
 		this.children = children;
 	}
 
 	this(string name, Orientation o, SizeType x, SizeType y, SizeType w, SizeType h, Children children = Children()) @nogc
 	{
-		this(name, x, y, w, h);
+		this.name = name;
+		this.x.position = x;
+		this.y.position = y;
+		this.x.size = w;
+		this.y.size = h;
 		this.orientation = o;
 		this.children = children;
 	}
@@ -163,7 +69,7 @@ extern(C++) class Node : Leaf
 
 	alias ThisType = typeof(this);
 
-	override void toString(void delegate(in char[]) sink) @trusted const
+	void toString(void delegate(in char[]) sink) @trusted const
 	{
 		import std.algorithm : copy;
 		import std.conv : text;
@@ -199,29 +105,6 @@ extern(C++) class Node : Leaf
 			}
 		} ();
 		sink(")");
-	}
-
-	override bool opEquals(Base other)
-	{
-		Leaf o;
-		() @trusted { o = cast(Leaf) other; } ();
-		if (o)
-		{
-			if (!super.opEquals(o))
-				return false;
-		}
-		Node node;
-		() @trusted { node = cast(Node) other; } ();
-		if (node)
-		{
-			if (() @trusted { return !children[].equal(node.children[]); } ())
-				return false || (ignoreField & IgnoreField.children);
-			if (orientation != node.orientation)
-				return false || (ignoreField & IgnoreField.orientation);
-
-			return true;
-		}
-		return false;
 	}
 }
 
