@@ -125,31 +125,141 @@ enum CompareBy {
 	allFields   = none | name | Xpos | Xsize | Ypos | Ysize | children | orientation,
 }
 
-bool compare(Node lhs, Node rhs, ubyte flags = CompareBy.allFields)
+struct Comparator
+{
+	import auxil.treepath : TreePath;
+
+	TreePath path, current;
+	bool bResult;
+	string sResult;
+
+	bool compare(Node lhs, Node rhs, ubyte flags = CompareBy.allFields)
+	{
+		import std.algorithm : all;
+		import std.range : zip;
+		import std.format : format;
+
+		if (!compareField(this, lhs, rhs, flags))
+			return false;
+
+		if (lhs.children.length != rhs.children.length)
+		{
+			bResult = false;
+			sResult = "Different children count";
+			return bResult;
+		}
+
+		static struct Record
+		{
+			size_t idx, total;
+			Node test, etalon;
+		}
+
+		Record[] stack;
+		stack ~= Record(0, 1, lhs, rhs);
+		current.put(0);
+		while(stack.length)
+		{
+			auto i = cast(int) stack[$-1].idx;
+			current.back = i;
+
+			if (!compareField(this, lhs, rhs, flags))
+				return false;
+
+			if (lhs.children.length)
+			{
+				i = 0;
+				stack ~= Record(i, lhs.children.length, lhs, rhs);
+				current.put(i);
+			}
+
+			if (i < stack[$-1].total)
+			{
+				lhs = stack[$-1].test.children[i];
+				rhs = stack[$-1].etalon.children[i];
+				stack[$-1].idx++;
+			}
+			else
+			{
+				lhs = stack[$-1].test;
+				rhs = stack[$-1].etalon;
+				stack = stack[0..$-1];
+			}
+		}
+
+		return true;
+	}
+}
+
+bool compareField(ref Comparator cmpr, Node lhs, Node rhs, ubyte flags = CompareBy.allFields)
 {
 	import std.algorithm : all;
 	import std.range : zip;
+	import std.format : format;
 
 	if (lhs is null || rhs is null)
-		return false;
+	{
+		cmpr.bResult = false;
+		cmpr.sResult = "At least one of instances is null";
+		cmpr.path = cmpr.current;
+		return cmpr.bResult;
+	}
 
 	if (flags == CompareBy.none)
-		return true;
+	{
+		cmpr.bResult = true;
+		cmpr.sResult = "None of fields enabled for comparing";
+		cmpr.path = cmpr.current;
+		return cmpr.bResult;
+	}
 
 	if ((flags & CompareBy.name)  && lhs.name != rhs.name)
-		return false;
+	{
+		cmpr.bResult = false;
+		cmpr.sResult = format("test   has name: %s\netalon has name: %s", lhs.name, rhs.name);
+		cmpr.path = cmpr.current;
+		return cmpr.bResult;
+	}
+
 	if ((flags & CompareBy.Xpos)  && lhs.x.position != rhs.x.position)
-		return false;
+	{
+		cmpr.bResult = false;
+		cmpr.sResult = format("test   has x.position: %s\netalon has x.position: %s", lhs.x.position, rhs.x.position);
+		cmpr.path = cmpr.current;
+		return cmpr.bResult;
+	}
+
 	if ((flags & CompareBy.Xsize) && lhs.x.size != rhs.x.size)
-		return false;
+	{
+		cmpr.bResult = false;
+		cmpr.sResult = format("test   has x.size: %s\netalon has x.size: %s", lhs.x.size, rhs.x.size);
+		cmpr.path = cmpr.current;
+		return cmpr.bResult;
+	}
+
 	if ((flags & CompareBy.Ypos)  && lhs.y.position != rhs.y.position)
-		return false;
+	{
+		cmpr.bResult = false;
+		cmpr.sResult = format("test   has y.position: %s\netalon has y.position: %s", lhs.y.position, rhs.y.position);
+		cmpr.path = cmpr.current;
+		return cmpr.bResult;
+	}
+
 	if ((flags & CompareBy.Ysize) && lhs.y.size != rhs.y.size)
-		return false;
-	if ((flags & CompareBy.children) && () @trusted { return !lhs.children[].zip(rhs.children[]).all!(a=>compare(a[0], a[1])); } ())
-		return false;
+	{
+		cmpr.bResult = false;
+		cmpr.sResult = format("test   has y.size: %s\netalon has y.size: %s", lhs.y.size, rhs.y.size);
+		cmpr.path = cmpr.current;
+		return cmpr.bResult;
+	}
+
 	if ((flags & CompareBy.orientation) && lhs.orientation != rhs.orientation)
-		return false;
+	{
+		cmpr.bResult = false;
+		cmpr.sResult = format("test   has orientation: %s\netalon has orientation: %s", lhs.orientation, rhs.orientation);
+		cmpr.path = cmpr.current;
+		return cmpr.bResult;
+	}
 
 	return true;
 }
@@ -507,6 +617,7 @@ unittest
 
 	() @trusted
 	{
+		Comparator cmpr;
 		auto etalon = node("Wrapper", V, 0, 0, 300, 10, vector!(Mallocator, Node)([ 
 				node("Test", H, 10, 10, 290, 10, vector!(Mallocator, Node)([
 					node("float", 10, 10, 96, 10), node("int", 10+96, 10, 97, 10), node("string", 10+96+97, 10, 290-96-97, 10),
@@ -518,8 +629,12 @@ unittest
 				])),
 		]));
 
-		const byAllFieldsButXpos = CompareBy.allFields & !CompareBy.Xpos;
-		compare(visitor.current, etalon, byAllFieldsButXpos).shouldBeTrue;
+		const ubyte byAllFieldsButXpos = CompareBy.allFields;// & !CompareBy.Xpos;
+		cmpr.compare(visitor.current, etalon, byAllFieldsButXpos);
+		import std;
+		writeln(cmpr.sResult);
+		writeln(cmpr.path);
+		cmpr.bResult.shouldBeTrue;
 	}();
 }
 
