@@ -41,10 +41,8 @@ extern(C++) class Base
 		import std.array : appender;
 		import std.exception : assumeUnique;
 
-		char[] buffer;
-		auto a = appender(buffer);
-		auto dg = (in char[] data) { a.put(data); };
-		toString(dg);
+		auto a = appender!(char[]);
+		toString((in char[] data) { a.put(data); });
 
 		return assumeUnique(a.data);
 	}
@@ -73,8 +71,6 @@ extern(C++) class Leaf : Base
 		this.y.size = h;
 	}
 
-	void addChild(Leaf l) {}
-
 	alias ThisType = typeof(this);
 
 	override void toString(void delegate(in char[]) sink) @trusted const
@@ -90,31 +86,31 @@ extern(C++) class Leaf : Base
 			y.size, ")"
 		).copy(sink);
 	}
-	alias toString = Base.toString;
 
-	bool opEquals(const(Leaf) other) const
+	bool opEquals(Base other)
 	{
+		Leaf o;
+		() @trusted { o = cast(Leaf) other; } ();
+		if (o)
+		{
+			if (ignoreField == IgnoreField.all)
+				return true;
 
-{
-	import std;
-	writeln(90);
-	writeln(x.position, " ", other.x.position);
-}
-		if (ignoreField == IgnoreField.all)
+			if (name != o.name)
+				return false || (ignoreField & IgnoreField.name);
+			if (x.position != o.x.position)
+				return false || (ignoreField & IgnoreField.Xpos);
+			if (x.size != o.x.size)
+				return false || (ignoreField & IgnoreField.Xsize);
+			if (y.position != o.y.position)
+				return false || (ignoreField & IgnoreField.Ypos);
+			if (y.size != o.y.size)
+				return false || (ignoreField & IgnoreField.Ysize);
+
 			return true;
+		}
 
-		if (name != other.name)
-			return false || (ignoreField & IgnoreField.name);
-		if (x.position != other.x.position)
-			return false || (ignoreField & IgnoreField.Xpos);
-		if (x.size != other.x.size)
-			return false || (ignoreField & IgnoreField.Xsize);
-		if (y.position != other.y.position)
-			return false || (ignoreField & IgnoreField.Ypos);
-		if (y.size != other.y.size)
-			return false || (ignoreField & IgnoreField.Ysize);
-
-		return true;
+		return false;
 	}
 }
 
@@ -130,7 +126,7 @@ extern(C++) class Node : Leaf
 	extern(D):
 	@safe:
 
-	alias Children = Vector!(Leaf, Mallocator);
+	alias Children = Vector!(Node, Mallocator);
 	Children children;
 	Orientation orientation;
 
@@ -160,9 +156,9 @@ extern(C++) class Node : Leaf
 		this.children = children;
 	}
 
-	override void addChild(Leaf l) @trusted
+	void addChild(Node n) @trusted
 	{
-		children ~= l;
+		children ~= n;
 	}
 
 	alias ThisType = typeof(this);
@@ -204,26 +200,28 @@ extern(C++) class Node : Leaf
 		} ();
 		sink(")");
 	}
-	alias toString = Base.toString;
 
-	alias opEquals = Leaf.opEquals;
-
-	bool opEquals(const(Node) other) const
+	override bool opEquals(Base other)
 	{
-		if (!super.opEquals(other))
-			return false;
+		Leaf o;
+		() @trusted { o = cast(Leaf) other; } ();
+		if (o)
+		{
+			if (!super.opEquals(o))
+				return false;
+		}
+		Node node;
+		() @trusted { node = cast(Node) other; } ();
+		if (node)
+		{
+			if (() @trusted { return !children[].equal(node.children[]); } ())
+				return false || (ignoreField & IgnoreField.children);
+			if (orientation != node.orientation)
+				return false || (ignoreField & IgnoreField.orientation);
 
-		if (() @trusted { return !children[].equal(other.children[]); } ())
-			return false || (ignoreField & IgnoreField.children);
-		if (orientation != other.orientation)
-			return false || (ignoreField & IgnoreField.orientation);
-
-{
-	import std;
-	writeln(100);
-}
-
-		return true;
+			return true;
+		}
+		return false;
 	}
 }
 
@@ -387,8 +385,8 @@ struct Visitor2D
 
 	State* position;
 	Vector!(State*, Mallocator) pos_stack;
-	Leaf current;
-	Vector!(Leaf, Mallocator) node_stack;
+	Node current;
+	Vector!(Node, Mallocator) node_stack;
 
 	this(SizeType[2] size) @nogc nothrow
 	{
@@ -589,16 +587,16 @@ unittest
 		visitor.current.writeln;
 		// version(all) Base.ignoreField |= Base.IgnoreField.Xpos;
 		writeln(cast(Node) visitor.current);
-		assert((cast(Node)visitor.current).opEquals( 
-			node("Wrapper", V, 0, 0, 300, 10, vector!(Mallocator, Leaf)([ 
-				node("Test", H, 10, 10, 290, 10, vector!(Mallocator, Leaf)([
-					leaf("float", 10, 10, 96, 10), leaf("int", 10+96, 10, 97, 10), leaf("string", 10+96+97, 10, 290-96-97, 10),
+		assert(visitor.current.opEquals( 
+			node("Wrapper", V, 0, 0, 300, 10, vector!(Mallocator, Node)([ 
+				node("Test", H, 10, 10, 290, 10, vector!(Mallocator, Node)([
+					node("float", 10, 10, 96, 10), node("int", 10+96, 10, 97, 10), node("string", 10+96+97, 10, 290-96-97, 10),
 				])), 
-				// node("Test", V, 10, 20, 290, 10, vector!(Mallocator, Leaf)([ 
-				// 	leaf("float", 20, 30, 280, 10), 
-				// 	leaf("int", 20, 40, 280, 10), 
-				// 	leaf("string", 20, 50, 280, 10),
-				// ])),
+				node("Test", V, 10, 20, 290, 10, vector!(Mallocator, Node)([ 
+					node("float", 20, 30, 280, 10), 
+					node("int", 20, 40, 280, 10), 
+					node("string", 20, 50, 280, 10),
+				])),
 		]))));
 
 		// version(all) State.ignoreField |= State.IgnoreField.Xpos;
