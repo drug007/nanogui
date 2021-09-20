@@ -125,6 +125,73 @@ enum CompareBy {
 	allFields   = none | name | Xpos | Xsize | Ypos | Ysize | children | orientation,
 }
 
+struct Record
+{
+	size_t idx, total;
+	Node test, etalon;
+}
+
+struct StateStack
+{
+	import std.exception : enforce;
+
+	@safe:
+
+	Record[] stack;
+
+	void push(size_t total, Node test, Node etalon)
+	{
+		stack ~= Record(0, total, test, etalon);
+	}
+
+	void pop()
+	{
+		enforce(!empty);
+		stack = stack[0..$-1];
+	}
+
+	auto test()
+	{
+		enforce(!empty);
+		return stack[$-1].test.children[idx];
+	}
+
+	auto etalon()
+	{
+		enforce(!empty);
+		return stack[$-1].etalon.children[idx];
+	}
+
+	auto idx() const
+	{
+		enforce(!empty);
+		return stack[$-1].idx;
+	}
+
+	auto total() const
+	{
+		enforce(!empty);
+		return stack[$-1].total;
+	}
+
+	bool empty() const
+	{
+		return stack.length == 0;
+	}
+
+	bool inProgress() const
+	{
+		enforce(!empty);
+		return stack[$-1].idx < stack[$-1].total;
+	}
+
+	void nextNode()
+	{
+		enforce(inProgress);
+		stack[$-1].idx++;
+	}
+}
+
 struct Comparator
 {
 	import auxil.treepath : TreePath;
@@ -138,6 +205,8 @@ struct Comparator
 		import std.algorithm : all;
 		import std.range : zip;
 		import std.format : format;
+		import std.typecons : scoped;
+		import std.experimental.logger : logf, LogLevel;
 
 		if (!compareField(this, lhs, rhs, flags))
 			return false;
@@ -149,41 +218,55 @@ struct Comparator
 			return bResult;
 		}
 
-		static struct Record
-		{
-			size_t idx, total;
-			Node test, etalon;
-		}
-
-		Record[] stack;
-		stack ~= Record(0, 1, lhs, rhs);
+		StateStack s;
+		auto testRoot   = scoped!Node("testRoot",   0, 0, 0, 0);
+		auto etalonRoot = scoped!Node("etalonRoot", 0, 0, 0, 0);
+		testRoot.children ~= lhs;
+		etalonRoot.children ~= rhs;
+		s.push(1, testRoot, etalonRoot);
+		logf(LogLevel.trace, true, "%s\t%s", lhs.name, rhs.name);
 		current.put(0);
-		while(stack.length)
+		while(s.inProgress)
 		{
-			auto i = cast(int) stack[$-1].idx;
-			current.back = i;
+			logf(LogLevel.trace, true, "%s\t%s\t%s %s", s.test.name, current, s.idx, s.total);
+			current.back = cast(int) s.idx;
+
+			lhs = s.test;
+			rhs = s.etalon;
 
 			if (!compareField(this, lhs, rhs, flags))
 				return false;
 
 			if (lhs.children.length)
 			{
-				i = 0;
-				stack ~= Record(i, lhs.children.length, lhs, rhs);
-				current.put(i);
+				s.push(lhs.children.length, lhs, rhs);
+				current.put(cast(int)s.idx);
+				continue;
 			}
 
-			if (i < stack[$-1].total)
 			{
-				lhs = stack[$-1].test.children[i];
-				rhs = stack[$-1].etalon.children[i];
-				stack[$-1].idx++;
+				s.nextNode;
+				current.back = cast(int) s.idx;
 			}
-			else
+			while(!s.inProgress)
 			{
-				lhs = stack[$-1].test;
-				rhs = stack[$-1].etalon;
-				stack = stack[0..$-1];
+				if (s.stack.length < 2)
+				{
+					if (s.inProgress)
+					{
+						s.nextNode;
+						current.back = cast(int) s.idx;
+					}
+					break;
+				}
+				s.pop;
+				current.popBack;
+				assert(!s.empty);
+				assert(s.inProgress);
+				{
+					s.nextNode;
+					current.back = cast(int) s.idx;
+				}
 			}
 		}
 
@@ -209,7 +292,6 @@ bool compareField(ref Comparator cmpr, Node lhs, Node rhs, ubyte flags = Compare
 	{
 		cmpr.bResult = true;
 		cmpr.sResult = "None of fields enabled for comparing";
-		cmpr.path = cmpr.current;
 		return cmpr.bResult;
 	}
 
