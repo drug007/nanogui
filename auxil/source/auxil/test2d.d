@@ -11,149 +11,6 @@ import auxil.default_visitor : TreePathVisitorImpl, MeasuringVisitor;
 import auxil.location : SizeType, Axis;
 import auxil.node : node, Node;
 
-/// Entity state
-struct State
-{
-	import std.algorithm : equal, map;
-
-	@safe:
-	Axis x, y;
-	alias Children = Vector!(State*, Mallocator);
-	Children children;
-	string name;
-	Orientation orientation;
-
-	enum IgnoreField {
-		none        = 0,
-		name        = 1,
-		Xpos        = 2, 
-		Xsize       = 4, 
-		Ypos        = 8, 
-		Ysize       = 16, 
-		children    = 32,
-		orientation = 64,
-		all         = none | name | Xpos | Xsize | Ypos | Ysize | children | orientation,
-	}
-
-	static ubyte ignoreField;
-
-	this(string name, ref Axis x, ref Axis y, Children children) @nogc
-	{
-		this.name = name;
-		this.x = x;
-		this.y = y;
-		this.children = children;
-	}
-
-	this(string name, SizeType x, SizeType y, SizeType w, SizeType h, Children children) @nogc
-	{
-		this.name = name;
-		this.x.position = x;
-		this.y.position = y;
-		this.x.size = w;
-		this.y.size = h;
-		this.children = children;
-	}
-
-	this(string name, ref Axis x, ref Axis y, State[] children = null) @nogc @system
-	{
-		this.name = name;
-		this.x = x;
-		this.y = y;
-		this.children = children.map!"&a".vector!Mallocator;
-	}
-
-	this(string name, SizeType x, SizeType y, SizeType w, SizeType h, State[] children = null) @nogc @system
-	{
-		this.name = name;
-		this.x.position = x;
-		this.y.position = y;
-		this.x.size = w;
-		this.y.size = h;
-		this.children = children.map!"&a".vector!Mallocator;
-	}
-
-	this(string name, Orientation o, ref Axis x, ref Axis y, Children children = Children()) @nogc
-	{
-		this(name, x, y, children);
-		this.orientation = o;
-	}
-
-	this(string name, Orientation o, SizeType x, SizeType y, SizeType w, SizeType h, Children children = Children()) @nogc
-	{
-		this(name, x, y, w, h, children);
-		this.orientation = o;
-	}
-
-	auto opEquals(ref const(State) other) const
-	{
-		if (ignoreField == IgnoreField.all)
-			return true;
-
-		if (name != other.name)
-			return false || (ignoreField & IgnoreField.name);
-		if (x.position != other.x.position)
-			return false || (ignoreField & IgnoreField.Xpos);
-		if (x.size != other.x.size)
-			return false || (ignoreField & IgnoreField.Xsize);
-		if (y.position != other.y.position)
-			return false || (ignoreField & IgnoreField.Ypos);
-		if (y.size != other.y.size)
-			return false || (ignoreField & IgnoreField.Ysize);
-		if (() @trusted { return !children[].map!"*a".equal(other.children[].map!"*a"); } ())
-			return false || (ignoreField & IgnoreField.children);
-		if (orientation != other.orientation)
-			return false || (ignoreField & IgnoreField.orientation);
-
-		return true;
-	}
-
-	alias ThisType = typeof(this);
-
-	void toString(W)(ref W w) const
-	{
-		import std.algorithm : copy;
-		import std.conv : text;
-
-		string O;
-		() @trusted {
-			if (children.length)
-			{
-				O = orientation == Orientation.Horizontal ? "H, " : "V, ";
-			}
-		} ();
-
-		text(ThisType.stringof, "(`", 
-			name, "`, ",
-			O,
-			x.position, ", ",
-			y.position, ", ",
-			x.size, ", ",
-			y.size,
-		).copy(w);
-
-		() @trusted {
-			if (children.length)
-			{
-				", [ ".copy(w);
-				children[0].toString(w);
-				foreach(i; 1..children.length)
-				{
-					", ".copy(w);
-					children[i].toString(w);
-				}
-				" ]".copy(w);
-			}
-		} ();
-		w.put(')');
-	}
-}
-
-auto state(Args...)(Args args)
-{
-	return Mallocator.instance.make!State(args);
-}
-
 private enum H = Orientation.Horizontal;
 private enum V = Orientation.Vertical;
 
@@ -166,8 +23,6 @@ struct Visitor2D
 	TreePathVisitor default_visitor;
 	alias default_visitor this;
 
-	State* position;
-	Vector!(State*, Mallocator) pos_stack;
 	Node current;
 	Vector!(Node, Mallocator) node_stack;
 
@@ -180,7 +35,7 @@ struct Visitor2D
 	{
 		enum prefix = "\t";
 		import std;
-		foreach(_; 0..pos_stack.length)
+		foreach(_; 0..node_stack.length)
 			write(prefix);
 	}
 
@@ -191,14 +46,6 @@ struct Visitor2D
 		static if (Model.Collapsable || order == Order.Sinking)
 		{
 			() @trusted {
-				auto v = Mallocator.instance.make!State(Data.stringof, orientation, loc.x, loc.y);
-				if (position !is null)
-				{
-					position.children ~= v;
-					pos_stack ~= position;
-				}
-				position = v;
-
 				auto n = new Node(Data.stringof, orientation, loc.x, loc.y);
 				if (current !is null)
 				{
@@ -206,12 +53,6 @@ struct Visitor2D
 					node_stack ~= current;
 				}
 				current = n;
-				
-{
-	import std;
-	printPrefix;
-	writeln(*position);
-}
 			} ();
 		}
 	}
@@ -219,12 +60,6 @@ struct Visitor2D
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		() @trusted {
-			if (!pos_stack.empty)
-			{
-				position = pos_stack[$-1];
-				pos_stack.popBack;
-			}
-
 			if (!node_stack.empty)
 			{
 				current = node_stack[$-1];
@@ -273,19 +108,28 @@ unittest
 
 	() @trusted
 	{
-		(*visitor.position).should.be ==
-			State("Test[2]", 0, 0, 300, 10, vector!Mallocator([
-				state("Test", 10, 10, 290, 10, vector!Mallocator([ 
-					state("float", 20, 20, 280, 10), 
-					state("int", 20, 30, 280, 10), 
-					state("string", 20, 40, 280, 10),
+		import auxil.comparator : Comparator, CompareBy;
+		Comparator cmpr;
+		auto etalon =
+			node("Test[2]", 0, 0, 300, 10, vector!(Mallocator, Node)([
+				node("Test", 10, 10, 290, 10, vector!(Mallocator, Node)([ 
+					node("float", 20, 20, 280, 10), 
+					node("int", 20, 30, 280, 10), 
+					node("string", 20, 40, 280, 10),
 				])),
-				state("Test", 10, 50, 290, 10, vector!Mallocator([
-					state("float", 20, 60, 280, 10), 
-					state("int", 20, 70, 280, 10), 
-					state("string", 20, 80, 280, 10),
+				node("Test", 10, 50, 290, 10, vector!(Mallocator, Node)([
+					node("float", 20, 60, 280, 10), 
+					node("int", 20, 70, 280, 10), 
+					node("string", 20, 80, 280, 10),
 				])),
 			]));
+
+		const ubyte byAllFieldsButXpos = CompareBy.allFields;
+		cmpr.compare(visitor.current, etalon, byAllFieldsButXpos);
+		import std;
+		writeln(cmpr.sResult);
+		writeln(cmpr.path);
+		cmpr.bResult.shouldBeTrue;
 	}();
 
 	model[0].orientation = Orientation.Horizontal;
@@ -317,17 +161,26 @@ unittest
 
 	() @trusted
 	{
-		(*visitor.position).should.be ==
-			State("", 0, 0, 300, 10, vector!Mallocator([
-				state("", 10, 10, 290, 10, vector!Mallocator([ 
-					state("", 10, 10, 96, 10,), state("", 10+96, 10, 97, 10), state("", 10+96+97, 10, 290-96-97, 10),
+		import auxil.comparator : Comparator, CompareBy;
+		Comparator cmpr;
+		auto etalon =
+			node("Test[2]", 0, 0, 300, 10, vector!(Mallocator, Node)([
+				node("Test", 10, 10, 290, 10, vector!(Mallocator, Node)([ 
+					node("float", 10, 10, 96, 10,), node("int", 10+96, 10, 97, 10), node("string", 10+96+97, 10, 290-96-97, 10),
 				])),
-				state("", 10, 20, 290, 10, vector!Mallocator([
-					state("", 20, 30, 280, 10), 
-					state("", 20, 40, 280, 10), 
-					state("", 20, 50, 280, 10),
+				node("Test", 10, 20, 290, 10, vector!(Mallocator, Node)([
+					node("float", 20, 30, 280, 10), 
+					node("int", 20, 40, 280, 10), 
+					node("string", 20, 50, 280, 10),
 				])), 
 			]));
+
+		const ubyte byAllFieldsButXpos = CompareBy.allFields;
+		cmpr.compare(visitor.current, etalon, byAllFieldsButXpos);
+		import std;
+		writeln(cmpr.sResult);
+		writeln(cmpr.path);
+		cmpr.bResult.shouldBeTrue;
 	}();
 }
 
@@ -431,15 +284,25 @@ unittest
 
 	() @trusted
 	{
-		(*visitor.position).should.be ==
-			State("Wrapper", 0, 0, 300, 590, vector!Mallocator([
-				state("Test1", 10, 10, 290, 10, vector!Mallocator([ 
-					state("double", 10, 10, 96, 10), state("short", 106, 10, 97, 10), state("Test", 203, 10, 97, 10), 
+		import auxil.comparator : Comparator, CompareBy;
+		Comparator cmpr;
+
+		auto etalon =
+			node("Wrapper", 0, 0, 300, 590, vector!(Mallocator, Node)([
+				node("Test1", 10, 10, 290, 10, vector!(Mallocator, Node)([ 
+					node("double", 10, 10, 96, 10), node("short", 106, 10, 97, 10), node("Test", 203, 10, 97, 10), 
 				])),
-				state("Test1", 10, 20, 290, 10, vector!Mallocator([ 
-					state("double", 10, 20, 96, 10), state("short", 106, 20, 97, 10), state("Test", 203, 20, 97, 10)
+				node("Test1", 10, 20, 290, 10, vector!(Mallocator, Node)([ 
+					node("double", 10, 20, 96, 10), node("short", 106, 20, 97, 10), node("Test", 203, 20, 97, 10)
 				])),
 		]));
+
+		const ubyte byAllFieldsButXpos = CompareBy.allFields;
+		cmpr.compare(visitor.current, etalon, byAllFieldsButXpos);
+		import std;
+		writeln(cmpr.sResult);
+		writeln(cmpr.path);
+		cmpr.bResult.shouldBeTrue;
 	}();
 }
 
@@ -487,19 +350,29 @@ unittest
 
 	() @trusted
 	{
-		(*visitor.position).should.be ==
-			State("Test2", 0, 0, 300, 10, vector!Mallocator([     /* Test2 (Header) */
-				state("double", 10, 10, 290, 10),  /* Test2.d */
-				state("Test1", 10, 20, 290, 10, vector!Mallocator([  /* Test2.t1 (Header) */
+		import auxil.comparator : Comparator, CompareBy;
+		Comparator cmpr;
+
+		auto etalon =
+			node("Test2", 0, 0, 300, 10, vector!(Mallocator, Node)([     /* Test2 (Header) */
+				node("double", 10, 10, 290, 10),  /* Test2.d */
+				node("Test1", 10, 20, 290, 10, vector!(Mallocator, Node)([  /* Test2.t1 (Header) */
 					// Test1.d           Test1.t (Header)                      Test1.sh
-					state("double", 10, 20, 96, 10), state("Test", 106, 20, 96, 10, vector!Mallocator([ 
-					                        state("float", 116, 30, 86, 10), /* Test.f */
-					                        state("int", 116, 40, 86, 10), /* Test.i */
-					                        state("string", 116, 50, 86, 10), /* Test.s */
+					node("double", 10, 20, 96, 10), node("Test", 106, 20, 96, 10, vector!(Mallocator, Node)([ 
+					                        node("float", 116, 30, 86, 10), /* Test.f */
+					                        node("int", 116, 40, 86, 10), /* Test.i */
+					                        node("string", 116, 50, 86, 10), /* Test.s */
 										])),
-					                                                           state("short", 203, 20, 97, 10), 
+					                                                           node("short", 203, 20, 97, 10), 
 				])),
-				state("string", 10, 60, 290, 10),  /* Test2.str */
+				node("string", 10, 60, 290, 10),  /* Test2.str */
 		]));
+
+		const ubyte byAllFieldsButXpos = CompareBy.allFields;
+		cmpr.compare(visitor.current, etalon, byAllFieldsButXpos);
+		import std;
+		writeln(cmpr.sResult);
+		writeln(cmpr.path);
+		cmpr.bResult.shouldBeTrue;
 	}();
 }
