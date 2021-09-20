@@ -288,16 +288,16 @@ unittest
 		Comparator cmpr;
 
 		auto etalon =
-			node("Wrapper", 0, 0, 300, 590, vector!(Mallocator, Node)([
-				node("Test1", 10, 10, 290, 10, vector!(Mallocator, Node)([ 
-					node("double", 10, 10, 96, 10), node("short", 106, 10, 97, 10), node("Test", 203, 10, 97, 10), 
+			node("Wrapper", V, 0, 0, 300, 590, vector!(Mallocator, Node)([
+				node("Test1", H, 10, 10, 290, 10, vector!(Mallocator, Node)([ 
+					node("double", 10, 10, 96, 10), node("short", 106, 10, 97, 10), node("Test", V, 203, 10, 97, 10), 
 				])),
-				node("Test1", 10, 20, 290, 10, vector!(Mallocator, Node)([ 
-					node("double", 10, 20, 96, 10), node("short", 106, 20, 97, 10), node("Test", 203, 20, 97, 10)
+				node("Test1", H, 10, 20, 290, 10, vector!(Mallocator, Node)([ 
+					node("double", 10, 20, 96, 10), node("short", 106, 20, 97, 10), node("Test", V, 203, 20, 97, 10)
 				])),
 		]));
 
-		const ubyte byAllFieldsButXpos = CompareBy.allFields;
+		const ubyte byAllFieldsButXpos = CompareBy.allFields & ~CompareBy.Ysize & ~CompareBy.Xpos;
 		cmpr.compare(visitor.current, etalon, byAllFieldsButXpos);
 		import std;
 		writeln(cmpr.sResult);

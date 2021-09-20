@@ -152,7 +152,8 @@ struct Comparator
 			}
 		}
 
-		return true;
+		bResult = true;
+		return bResult;
 	}
 
 	bool compareField(Node lhs, Node rhs, ubyte flags = CompareBy.allFields)
@@ -171,7 +172,7 @@ struct Comparator
 		if (flags == CompareBy.none)
 		{
 			bResult = true;
-			sResult = "None of fields enabled for comparing";
+			sResult = "None of fields is enabled for comparing";
 			return bResult;
 		}
 
