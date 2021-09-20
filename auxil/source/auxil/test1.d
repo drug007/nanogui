@@ -1,4 +1,4 @@
-module auxil.test;
+module auxil.test1;
 
 version(unittest) import unit_threaded : Name;
 

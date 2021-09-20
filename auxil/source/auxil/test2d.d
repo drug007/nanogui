@@ -9,7 +9,7 @@ import automem.vector : Vector, vector;
 import auxil.model;
 import auxil.default_visitor : TreePathVisitorImpl, MeasuringVisitor;
 import auxil.location : SizeType, Axis;
-import auxil.node : node, Node;
+import auxil.test.node : node, Node;
 
 private enum H = Orientation.Horizontal;
 private enum V = Orientation.Vertical;
@@ -17,7 +17,7 @@ private enum V = Orientation.Vertical;
 @safe private
 struct Visitor2D
 {
-	import auxil.node : Node;
+	import auxil.test.node : Node;
 
 	alias TreePathVisitor = TreePathVisitorImpl!(typeof(this));
 	TreePathVisitor default_visitor;
@@ -108,7 +108,7 @@ unittest
 
 	() @trusted
 	{
-		import auxil.comparator : Comparator, CompareBy;
+		import auxil.test.comparator : Comparator, CompareBy;
 		Comparator cmpr;
 		auto etalon =
 			node("Test[2]", 0, 0, 300, 10, vector!(Mallocator, Node)([
@@ -161,7 +161,7 @@ unittest
 
 	() @trusted
 	{
-		import auxil.comparator : Comparator, CompareBy;
+		import auxil.test.comparator : Comparator, CompareBy;
 		Comparator cmpr;
 		auto etalon =
 			node("Test[2]", 0, 0, 300, 10, vector!(Mallocator, Node)([
@@ -219,7 +219,7 @@ unittest
 
 	() @trusted
 	{
-		import auxil.comparator : Comparator, CompareBy;
+		import auxil.test.comparator : Comparator, CompareBy;
 		Comparator cmpr;
 		auto etalon = node("Wrapper", V, 0, 0, 300, 10, vector!(Mallocator, Node)([ 
 				node("Test", H, 10, 10, 290, 10, vector!(Mallocator, Node)([
@@ -284,7 +284,7 @@ unittest
 
 	() @trusted
 	{
-		import auxil.comparator : Comparator, CompareBy;
+		import auxil.test.comparator : Comparator, CompareBy;
 		Comparator cmpr;
 
 		auto etalon =
@@ -350,22 +350,22 @@ unittest
 
 	() @trusted
 	{
-		import auxil.comparator : Comparator, CompareBy;
+		import auxil.test.comparator : Comparator, CompareBy;
 		Comparator cmpr;
 
 		auto etalon =
-			node("Test2", 0, 0, 300, 10, vector!(Mallocator, Node)([     /* Test2 (Header) */
-				node("double", 10, 10, 290, 10),  /* Test2.d */
-				node("Test1", 10, 20, 290, 10, vector!(Mallocator, Node)([  /* Test2.t1 (Header) */
+			node("Test2", V, 0, 0, 300, 10, vector!(Mallocator, Node)([     /* Test2 (Header) */
+				node("double", V, 10, 10, 290, 10),  /* Test2.d */
+				node("Test1", H, 10, 20, 290, 10, vector!(Mallocator, Node)([  /* Test2.t1 (Header) */
 					// Test1.d           Test1.t (Header)                      Test1.sh
-					node("double", 10, 20, 96, 10), node("Test", 106, 20, 96, 10, vector!(Mallocator, Node)([ 
+					node("double", H, 10, 20, 96, 10), node("Test", V, 106, 20, 96, 10, vector!(Mallocator, Node)([ 
 					                        node("float", 116, 30, 86, 10), /* Test.f */
 					                        node("int", 116, 40, 86, 10), /* Test.i */
 					                        node("string", 116, 50, 86, 10), /* Test.s */
 										])),
 					                                                           node("short", 203, 20, 97, 10), 
 				])),
-				node("string", 10, 60, 290, 10),  /* Test2.str */
+				node("string", V, 10, 60, 290, 10),  /* Test2.str */
 		]));
 
 		const ubyte byAllFieldsButXpos = CompareBy.allFields;

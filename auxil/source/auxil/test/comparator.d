@@ -1,6 +1,6 @@
-module auxil.comparator;
+module auxil.test.comparator;
 
-import auxil.node : Node;
+import auxil.test.node : Node;
 
 enum CompareBy {
 	none        = 0,

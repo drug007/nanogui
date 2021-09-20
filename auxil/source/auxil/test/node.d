@@ -1,4 +1,4 @@
-module auxil.node;
+module auxil.test.node;
 
 import std.experimental.allocator.mallocator : Mallocator;
 import automem.vector : Vector;

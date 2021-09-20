@@ -4,6 +4,6 @@ mixin runTestsMain!(
 	"auxil.sizeindex",
 	"auxil.model",
 	"auxil.traits",
-	"auxil.test",
+	"auxil.test1",
 	"auxil.test2d",
 );
