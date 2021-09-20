@@ -134,20 +134,29 @@ struct Record
 struct StateStack
 {
 	import std.exception : enforce;
+	import auxil.treepath : TreePath;
 
 	@safe:
 
 	Record[] stack;
+	TreePath path;
+
+	this(size_t total, Node test, Node etalon)
+	{
+		push(total, test, etalon);
+	}
 
 	void push(size_t total, Node test, Node etalon)
 	{
 		stack ~= Record(0, total, test, etalon);
+		path.put(cast(int) idx);
 	}
 
 	void pop()
 	{
 		enforce(!empty);
 		stack = stack[0..$-1];
+		path.popBack;
 	}
 
 	auto test()
@@ -189,6 +198,7 @@ struct StateStack
 	{
 		enforce(inProgress);
 		stack[$-1].idx++;
+		path.back = cast(int) idx;
 	}
 }
 
@@ -196,14 +206,14 @@ struct Comparator
 {
 	import auxil.treepath : TreePath;
 
-	TreePath path, current;
+	TreePath path;
 	bool bResult;
 	string sResult;
 
 	bool compare(Node lhs, Node rhs, ubyte flags = CompareBy.allFields)
 	{
 		import std.algorithm : all;
-		import std.range : zip;
+		import std.range : repeat, zip;
 		import std.format : format;
 		import std.typecons : scoped;
 		import std.experimental.logger : logf, LogLevel;
@@ -218,55 +228,38 @@ struct Comparator
 			return bResult;
 		}
 
-		StateStack s;
 		auto testRoot   = scoped!Node("testRoot",   0, 0, 0, 0);
 		auto etalonRoot = scoped!Node("etalonRoot", 0, 0, 0, 0);
 		testRoot.children ~= lhs;
 		etalonRoot.children ~= rhs;
-		s.push(1, testRoot, etalonRoot);
-		logf(LogLevel.trace, true, "%s\t%s", lhs.name, rhs.name);
-		current.put(0);
+		auto s = StateStack(1, testRoot, etalonRoot);
 		while(s.inProgress)
 		{
-			logf(LogLevel.trace, true, "%s\t%s\t%s %s", s.test.name, current, s.idx, s.total);
-			current.back = cast(int) s.idx;
+			logf(LogLevel.trace, true, "%s%s\t%s", ' '.repeat(s.stack.length), s.test.name, s.path);
 
 			lhs = s.test;
 			rhs = s.etalon;
 
 			if (!compareField(this, lhs, rhs, flags))
+			{
+				import std.algorithm : move;
+				path = move(s.path);
 				return false;
+			}
 
 			if (lhs.children.length)
 			{
 				s.push(lhs.children.length, lhs, rhs);
-				current.put(cast(int)s.idx);
 				continue;
 			}
 
+			s.nextNode;
+			while(!s.inProgress && s.stack.length > 1)
 			{
-				s.nextNode;
-				current.back = cast(int) s.idx;
-			}
-			while(!s.inProgress)
-			{
-				if (s.stack.length < 2)
-				{
-					if (s.inProgress)
-					{
-						s.nextNode;
-						current.back = cast(int) s.idx;
-					}
-					break;
-				}
 				s.pop;
-				current.popBack;
 				assert(!s.empty);
 				assert(s.inProgress);
-				{
-					s.nextNode;
-					current.back = cast(int) s.idx;
-				}
+				s.nextNode;
 			}
 		}
 
@@ -284,7 +277,6 @@ bool compareField(ref Comparator cmpr, Node lhs, Node rhs, ubyte flags = Compare
 	{
 		cmpr.bResult = false;
 		cmpr.sResult = "At least one of instances is null";
-		cmpr.path = cmpr.current;
 		return cmpr.bResult;
 	}
 
@@ -299,7 +291,6 @@ bool compareField(ref Comparator cmpr, Node lhs, Node rhs, ubyte flags = Compare
 	{
 		cmpr.bResult = false;
 		cmpr.sResult = format("test   has name: %s\netalon has name: %s", lhs.name, rhs.name);
-		cmpr.path = cmpr.current;
 		return cmpr.bResult;
 	}
 
@@ -307,7 +298,6 @@ bool compareField(ref Comparator cmpr, Node lhs, Node rhs, ubyte flags = Compare
 	{
 		cmpr.bResult = false;
 		cmpr.sResult = format("test   has x.position: %s\netalon has x.position: %s", lhs.x.position, rhs.x.position);
-		cmpr.path = cmpr.current;
 		return cmpr.bResult;
 	}
 
@@ -315,7 +305,6 @@ bool compareField(ref Comparator cmpr, Node lhs, Node rhs, ubyte flags = Compare
 	{
 		cmpr.bResult = false;
 		cmpr.sResult = format("test   has x.size: %s\netalon has x.size: %s", lhs.x.size, rhs.x.size);
-		cmpr.path = cmpr.current;
 		return cmpr.bResult;
 	}
 
@@ -323,7 +312,6 @@ bool compareField(ref Comparator cmpr, Node lhs, Node rhs, ubyte flags = Compare
 	{
 		cmpr.bResult = false;
 		cmpr.sResult = format("test   has y.position: %s\netalon has y.position: %s", lhs.y.position, rhs.y.position);
-		cmpr.path = cmpr.current;
 		return cmpr.bResult;
 	}
 
@@ -331,7 +319,6 @@ bool compareField(ref Comparator cmpr, Node lhs, Node rhs, ubyte flags = Compare
 	{
 		cmpr.bResult = false;
 		cmpr.sResult = format("test   has y.size: %s\netalon has y.size: %s", lhs.y.size, rhs.y.size);
-		cmpr.path = cmpr.current;
 		return cmpr.bResult;
 	}
 
@@ -339,7 +326,6 @@ bool compareField(ref Comparator cmpr, Node lhs, Node rhs, ubyte flags = Compare
 	{
 		cmpr.bResult = false;
 		cmpr.sResult = format("test   has orientation: %s\netalon has orientation: %s", lhs.orientation, rhs.orientation);
-		cmpr.path = cmpr.current;
 		return cmpr.bResult;
 	}
 
