@@ -218,7 +218,7 @@ struct Comparator
 		import std.typecons : scoped;
 		import std.experimental.logger : logf, LogLevel;
 
-		if (!compareField(this, lhs, rhs, flags))
+		if (!compareField(lhs, rhs, flags))
 			return false;
 
 		if (lhs.children.length != rhs.children.length)
@@ -235,12 +235,12 @@ struct Comparator
 		auto s = StateStack(1, testRoot, etalonRoot);
 		while(s.inProgress)
 		{
-			logf(LogLevel.trace, true, "%s%s\t%s", ' '.repeat(s.stack.length), s.test.name, s.path);
+			logf(LogLevel.trace, true, "%s %s%s", s.path, ' '.repeat(s.stack.length), s.test.name);
 
 			lhs = s.test;
 			rhs = s.etalon;
 
-			if (!compareField(this, lhs, rhs, flags))
+			if (!compareField(lhs, rhs, flags))
 			{
 				import std.algorithm : move;
 				path = move(s.path);
@@ -265,71 +265,71 @@ struct Comparator
 
 		return true;
 	}
-}
 
-bool compareField(ref Comparator cmpr, Node lhs, Node rhs, ubyte flags = CompareBy.allFields)
-{
-	import std.algorithm : all;
-	import std.range : zip;
-	import std.format : format;
-
-	if (lhs is null || rhs is null)
+	bool compareField(Node lhs, Node rhs, ubyte flags = CompareBy.allFields)
 	{
-		cmpr.bResult = false;
-		cmpr.sResult = "At least one of instances is null";
-		return cmpr.bResult;
-	}
+		import std.algorithm : all;
+		import std.range : zip;
+		import std.format : format;
 
-	if (flags == CompareBy.none)
-	{
-		cmpr.bResult = true;
-		cmpr.sResult = "None of fields enabled for comparing";
-		return cmpr.bResult;
-	}
+		if (lhs is null || rhs is null)
+		{
+			bResult = false;
+			sResult = "At least one of instances is null";
+			return bResult;
+		}
 
-	if ((flags & CompareBy.name)  && lhs.name != rhs.name)
-	{
-		cmpr.bResult = false;
-		cmpr.sResult = format("test   has name: %s\netalon has name: %s", lhs.name, rhs.name);
-		return cmpr.bResult;
-	}
+		if (flags == CompareBy.none)
+		{
+			bResult = true;
+			sResult = "None of fields enabled for comparing";
+			return bResult;
+		}
 
-	if ((flags & CompareBy.Xpos)  && lhs.x.position != rhs.x.position)
-	{
-		cmpr.bResult = false;
-		cmpr.sResult = format("test   has x.position: %s\netalon has x.position: %s", lhs.x.position, rhs.x.position);
-		return cmpr.bResult;
-	}
+		if ((flags & CompareBy.name)  && lhs.name != rhs.name)
+		{
+			bResult = false;
+			sResult = format("test   has name: %s\netalon has name: %s", lhs.name, rhs.name);
+			return bResult;
+		}
 
-	if ((flags & CompareBy.Xsize) && lhs.x.size != rhs.x.size)
-	{
-		cmpr.bResult = false;
-		cmpr.sResult = format("test   has x.size: %s\netalon has x.size: %s", lhs.x.size, rhs.x.size);
-		return cmpr.bResult;
-	}
+		if ((flags & CompareBy.Xpos)  && lhs.x.position != rhs.x.position)
+		{
+			bResult = false;
+			sResult = format("test   has x.position: %s\netalon has x.position: %s", lhs.x.position, rhs.x.position);
+			return bResult;
+		}
 
-	if ((flags & CompareBy.Ypos)  && lhs.y.position != rhs.y.position)
-	{
-		cmpr.bResult = false;
-		cmpr.sResult = format("test   has y.position: %s\netalon has y.position: %s", lhs.y.position, rhs.y.position);
-		return cmpr.bResult;
-	}
+		if ((flags & CompareBy.Xsize) && lhs.x.size != rhs.x.size)
+		{
+			bResult = false;
+			sResult = format("test   has x.size: %s\netalon has x.size: %s", lhs.x.size, rhs.x.size);
+			return bResult;
+		}
 
-	if ((flags & CompareBy.Ysize) && lhs.y.size != rhs.y.size)
-	{
-		cmpr.bResult = false;
-		cmpr.sResult = format("test   has y.size: %s\netalon has y.size: %s", lhs.y.size, rhs.y.size);
-		return cmpr.bResult;
-	}
+		if ((flags & CompareBy.Ypos)  && lhs.y.position != rhs.y.position)
+		{
+			bResult = false;
+			sResult = format("test   has y.position: %s\netalon has y.position: %s", lhs.y.position, rhs.y.position);
+			return bResult;
+		}
 
-	if ((flags & CompareBy.orientation) && lhs.orientation != rhs.orientation)
-	{
-		cmpr.bResult = false;
-		cmpr.sResult = format("test   has orientation: %s\netalon has orientation: %s", lhs.orientation, rhs.orientation);
-		return cmpr.bResult;
-	}
+		if ((flags & CompareBy.Ysize) && lhs.y.size != rhs.y.size)
+		{
+			bResult = false;
+			sResult = format("test   has y.size: %s\netalon has y.size: %s", lhs.y.size, rhs.y.size);
+			return bResult;
+		}
 
-	return true;
+		if ((flags & CompareBy.orientation) && lhs.orientation != rhs.orientation)
+		{
+			bResult = false;
+			sResult = format("test   has orientation: %s\netalon has orientation: %s", lhs.orientation, rhs.orientation);
+			return bResult;
+		}
+
+		return true;
+	}
 }
 
 /// Entity state
