@@ -152,7 +152,9 @@ struct Comparator
 		if (lhs.children.length != rhs.children.length)
 		{
 			bResult = false;
-			sResult = "Different children count";
+			sResult = format("Different children count: test (%s, %s) vs etalon (%s, %s)", 
+				lhs.name, lhs.children.length, rhs.name, rhs.children.length);
+			path.put(0);
 			return bResult;
 		}
 

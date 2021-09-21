@@ -58,6 +58,18 @@ extern(C++) class Node
 		this.children = children;
 	}
 
+	this(string name, Orientation o, SizeType x, SizeType y, SizeType w, SizeType h, Node[] children) @nogc
+	{
+		this.name = name;
+		this.x.position = x;
+		this.y.position = y;
+		this.x.size = w;
+		this.y.size = h;
+		this.orientation = o;
+		this.children = children;
+		this.children = Children(children);
+	}
+
 	void addChild(Node n) @trusted
 	{
 		children ~= n;
