@@ -111,13 +111,13 @@ unittest
 		import auxil.test.comparator : Comparator, CompareBy;
 		Comparator cmpr;
 		auto etalon =
-			node("Test[2]", 0, 0, 300, 10, vector!(Mallocator, Node)([
-				node("Test", 10, 10, 290, 10, vector!(Mallocator, Node)([ 
+			node("Test[2]", V, 0, 0, 300, 10, vector!(Mallocator, Node)([
+				node("Test", V, 10, 10, 290, 10, vector!(Mallocator, Node)([ 
 					node("float", 20, 20, 280, 10), 
 					node("int", 20, 30, 280, 10), 
 					node("string", 20, 40, 280, 10),
 				])),
-				node("Test", 10, 50, 290, 10, vector!(Mallocator, Node)([
+				node("Test", V, 10, 50, 290, 10, vector!(Mallocator, Node)([
 					node("float", 20, 60, 280, 10), 
 					node("int", 20, 70, 280, 10), 
 					node("string", 20, 80, 280, 10),
@@ -163,11 +163,11 @@ unittest
 		import auxil.test.comparator : Comparator, CompareBy;
 		Comparator cmpr;
 		auto etalon =
-			node("Test[2]", 0, 0, 300, 10, vector!(Mallocator, Node)([
-				node("Test", 10, 10, 290, 10, vector!(Mallocator, Node)([ 
+			node("Test[2]", V, 0, 0, 300, 10, vector!(Mallocator, Node)([
+				node("Test", V, 10, 10, 290, 10, vector!(Mallocator, Node)([ 
 					node("float", 10, 10, 96, 10,), node("int", 10+96, 10, 97, 10), node("string", 10+96+97, 10, 290-96-97, 10),
 				])),
-				node("Test", 10, 20, 290, 10, vector!(Mallocator, Node)([
+				node("Test", V, 10, 20, 290, 10, vector!(Mallocator, Node)([
 					node("float", 20, 30, 280, 10), 
 					node("int", 20, 40, 280, 10), 
 					node("string", 20, 50, 280, 10),
