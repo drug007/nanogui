@@ -180,12 +180,40 @@ struct MeasuringVisitorImpl(Derived = Default)
 	}
 }
 
-/// Visitor for traversing tree to do useful job
-struct TreePathVisitorImpl(Derived = Default)
+struct State
+{
+	Axis x, y;
+	Orientation orientation;
+}
+
+struct StateStack
 {
 	import automem : Vector;
 	import std.experimental.allocator.mallocator : Mallocator;
 
+	Vector!(State, Mallocator) stack;
+
+	auto put(State s) @trusted @nogc
+	{
+		import std.algorithm : move;
+		stack.put(move(s));
+	}
+
+	ref back() @nogc return
+	{
+		return stack[$-1];
+	}
+
+	void popBack() @nogc @trusted
+	{
+		assert(!stack.empty);
+		stack.popBack;
+	}
+}
+
+/// Visitor for traversing tree to do useful job
+struct TreePathVisitorImpl(Derived = Default)
+{
 	SizeType[2] size;
 
 	this(SizeType[2] s) @safe @nogc nothrow
@@ -195,15 +223,9 @@ struct TreePathVisitorImpl(Derived = Default)
 
 	enum treePathEnabled = TreePathEnabled.yes;
 
-	struct State
-	{
-		Axis x, y;
-		Orientation orientation;
-	}
-
 	Location loc;
 	Orientation orientation = Orientation.Vertical;
-	Vector!(State, Mallocator) stateStack;
+	StateStack stateStack;
 
 	bool complete() @safe @nogc
 	{
@@ -235,117 +257,98 @@ struct TreePathVisitorImpl(Derived = Default)
 
 	void doEnterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		static if (Model.Collapsable) if (!engaged) 
+		if (!engaged) 
 		{
-			() @trusted {
+			static if (Model.Collapsable) 
 				stateStack.put(State(loc.x, loc.y, orientation));
-			} ();
+			return;
 		}
 
-		if (engaged)
+		static if (order == Order.Sinking) with(loc)
 		{
-			static if (order == Order.Sinking) with(loc)
+			final switch(orientation)
+			{
+				case Orientation.Vertical:
+					y.position = y.position + y.change;
+					static if (Model.Collapsable)
+						y.change = model.header_size;
+					else
+						y.change = model.size;
+				break;
+				case Orientation.Horizontal:
+					x.position = x.position + x.change;
+					static if (Model.Collapsable)
+						x.change = model.header_size;
+					else
+						x.change = model.size;
+				break;
+			}
+
+			scope(exit)
 			{
 				final switch(orientation)
 				{
 					case Orientation.Vertical:
-						y.position = y.position + y.change;
-						static if (Model.Collapsable)
-							y.change = model.header_size;
-						else
-							y.change = model.size;
+						if (y.position + y.change > y.destination)
+						{
+							path = current_path;
+							_state = State.finishing;
+						}
 					break;
 					case Orientation.Horizontal:
-						x.position = x.position + x.change;
-						static if (Model.Collapsable)
-							x.change = model.header_size;
-						else
-							x.change = model.size;
+						version(none) if (x.position + x.change > x.destination)
+						{
+							path = current_path;
+							_state = State.finishing;
+						}
 					break;
 				}
-
-				scope(exit)
-				{
-					final switch(orientation)
-					{
-						case Orientation.Vertical:
-							if (y.position + y.change > y.destination)
-							{
-								path = current_path;
-								_state = State.finishing;
-							}
-						break;
-						case Orientation.Horizontal:
-							version(none) if (x.position + x.change > x.destination)
-							{
-								path = current_path;
-								_state = State.finishing;
-							}
-						break;
-					}
-				}
 			}
+		}
 
-			static if (Model.Collapsable)
+		static if (Model.Collapsable)
+		{
+			stateStack.put(State(loc.x, loc.y, orientation));
+
+			orientation  = model.orientation;
+		}
+		else // static if (!Model.Collapsable)
+		{
+			final switch (orientation)
 			{
-				() @trusted {
-					// debug{{
-					// 	import std;
-					// 	if (model.orientation == Orientation.Vertical)
-					// 	{
-					// 		writeln(model.orientation, " ", loc.y.change, " ", loc.y.size, " ", model.size);
-					// 		loc.y.size = model.size;
-					// 	}
-					// 	else
-					// 	{
-					// 		writeln(model.orientation, " ", loc.x.change, " ", loc.x.size, " ", model.size);
-					// 		loc.x.size = model.size;
-					// 	}
-					// }}
-					stateStack.put(State(loc.x, loc.y, orientation));
-				} ();
-
-				orientation  = model.orientation;
+				case Orientation.Vertical:
+				break;
+				case Orientation.Horizontal:
+					loc.x.size = model.size;
+				break;
 			}
-
-			static if (!Model.Collapsable)
+			scope(exit)
 			{
-				final switch (orientation)
+				final switch (this.orientation)
 				{
 					case Orientation.Vertical:
 					break;
 					case Orientation.Horizontal:
-						loc.x.size = model.size;
+						loc.x.position += model.size;
 					break;
 				}
-				scope(exit)
-				{
-					final switch (this.orientation)
-					{
-						case Orientation.Vertical:
-						break;
-						case Orientation.Horizontal:
-							loc.x.position += model.size;
-						break;
-					}
-				}
 			}
-
-			() @trusted { (cast(Derived*) &this).enterNode!(order, Data, Model)(data, model); }();
 		}
+
+		() @trusted { (cast(Derived*) &this).enterNode!(order, Data, Model)(data, model); }();
 	}
 
 	void doLeaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		static if (Model.Collapsable)
 		{
-			orientation = stateStack[$-1].orientation;
+			orientation = stateStack.back.orientation;
 
 			if (orientation == Orientation.Vertical)
-				loc.x = stateStack[$-1].x;
+				loc.x = stateStack.back.x;
 			if (orientation == Orientation.Horizontal)
-				loc.y = stateStack[$-1].y;
-			() @trusted { stateStack.popBack; } ();
+				loc.y = stateStack.back.y;
+			stateStack.popBack;
 		}
 
 		if (engaged)
