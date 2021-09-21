@@ -2,16 +2,49 @@ module auxil.test.comparator;
 
 import auxil.test.node : Node;
 
-enum CompareBy {
-	none        = 0,
-	name        = 1,
-	Xpos        = 2, 
-	Xsize       = 4, 
-	Ypos        = 8, 
-	Ysize       = 16, 
-	children    = 32,
-	orientation = 64,
-	allFields   = none | name | Xpos | Xsize | Ypos | Ysize | children | orientation,
+/// Defines what predicates are used to check the equality
+struct CompareBy
+{
+	import std.bitmanip : bitfields;
+
+	union
+	{
+		mixin(bitfields!(
+			bool, "name",        1,
+			bool, "Xpos",        1,
+			bool, "Xsize",       1,
+			bool, "Ypos",        1,
+			bool, "Ysize",       1,
+			bool, "children",    1,
+			bool, "orientation", 1,
+			uint, "", 1,
+		));
+		ubyte allBits;
+	}
+
+	void setAll()
+	{
+		static foreach(i; 0..this.tupleof.length)
+			this.tupleof[i] = true;
+	}
+
+	void clearAll()
+	{
+		static foreach(i; 0..this.tupleof.length)
+			this.tupleof[i] = false;
+	}
+
+	bool none() const
+	{
+		return allBits == 0;
+	}
+
+	static auto allFields()
+	{
+		CompareBy compareBy;
+		compareBy.setAll;
+		return compareBy;
+	}
 }
 
 struct Record
@@ -99,7 +132,7 @@ struct Comparator
 	bool bResult;
 	string sResult;
 
-	bool compare(Node lhs, Node rhs, ubyte flags = CompareBy.allFields)
+	bool compare(Node lhs, Node rhs, CompareBy compareBy = CompareBy.allFields)
 	{
 		import std.algorithm : all;
 		import std.range : repeat, zip;
@@ -107,7 +140,7 @@ struct Comparator
 		import std.typecons : scoped;
 		import std.experimental.logger : logf, LogLevel;
 
-		if (!compareField(lhs, rhs, flags))
+		if (!compareField(lhs, rhs, compareBy))
 			return false;
 
 		if (lhs.children.length != rhs.children.length)
@@ -129,7 +162,7 @@ struct Comparator
 			lhs = s.test;
 			rhs = s.etalon;
 
-			if (!compareField(lhs, rhs, flags))
+			if (!compareField(lhs, rhs, compareBy))
 			{
 				import std.algorithm : move;
 				path = move(s.path);
@@ -156,7 +189,7 @@ struct Comparator
 		return bResult;
 	}
 
-	bool compareField(Node lhs, Node rhs, ubyte flags = CompareBy.allFields)
+	bool compareField(Node lhs, Node rhs, CompareBy compareBy = CompareBy.allFields)
 	{
 		import std.algorithm : all;
 		import std.range : zip;
@@ -169,49 +202,49 @@ struct Comparator
 			return bResult;
 		}
 
-		if (flags == CompareBy.none)
+		if (compareBy.none)
 		{
 			bResult = true;
 			sResult = "None of fields is enabled for comparing";
 			return bResult;
 		}
 
-		if ((flags & CompareBy.name)  && lhs.name != rhs.name)
+		if (compareBy.name  && lhs.name != rhs.name)
 		{
 			bResult = false;
 			sResult = format("test   has name: %s\netalon has name: %s", lhs.name, rhs.name);
 			return bResult;
 		}
 
-		if ((flags & CompareBy.Xpos)  && lhs.x.position != rhs.x.position)
+		if (compareBy.Xpos  && lhs.x.position != rhs.x.position)
 		{
 			bResult = false;
 			sResult = format("test   has x.position: %s\netalon has x.position: %s", lhs.x.position, rhs.x.position);
 			return bResult;
 		}
 
-		if ((flags & CompareBy.Xsize) && lhs.x.size != rhs.x.size)
+		if (compareBy.Xsize && lhs.x.size != rhs.x.size)
 		{
 			bResult = false;
 			sResult = format("test   has x.size: %s\netalon has x.size: %s", lhs.x.size, rhs.x.size);
 			return bResult;
 		}
 
-		if ((flags & CompareBy.Ypos)  && lhs.y.position != rhs.y.position)
+		if (compareBy.Ypos  && lhs.y.position != rhs.y.position)
 		{
 			bResult = false;
 			sResult = format("test   has y.position: %s\netalon has y.position: %s", lhs.y.position, rhs.y.position);
 			return bResult;
 		}
 
-		if ((flags & CompareBy.Ysize) && lhs.y.size != rhs.y.size)
+		if (compareBy.Ysize && lhs.y.size != rhs.y.size)
 		{
 			bResult = false;
 			sResult = format("test   has y.size: %s\netalon has y.size: %s", lhs.y.size, rhs.y.size);
 			return bResult;
 		}
 
-		if ((flags & CompareBy.orientation) && lhs.orientation != rhs.orientation)
+		if (compareBy.orientation && lhs.orientation != rhs.orientation)
 		{
 			bResult = false;
 			sResult = format("test   has orientation: %s\netalon has orientation: %s", lhs.orientation, rhs.orientation);

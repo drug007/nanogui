@@ -124,8 +124,7 @@ unittest
 				])),
 			]));
 
-		const ubyte byAllFieldsButXpos = CompareBy.allFields;
-		cmpr.compare(visitor.current, etalon, byAllFieldsButXpos);
+		cmpr.compare(visitor.current, etalon, CompareBy.allFields);
 		import std;
 		writeln(cmpr.sResult);
 		writeln(cmpr.path);
@@ -175,8 +174,7 @@ unittest
 				])), 
 			]));
 
-		const ubyte byAllFieldsButXpos = CompareBy.allFields;
-		cmpr.compare(visitor.current, etalon, byAllFieldsButXpos);
+		cmpr.compare(visitor.current, etalon, CompareBy.allFields);
 		import std;
 		writeln(cmpr.sResult);
 		writeln(cmpr.path);
@@ -232,8 +230,7 @@ unittest
 				])),
 		]));
 
-		const ubyte byAllFieldsButXpos = CompareBy.allFields;// & !CompareBy.Xpos;
-		cmpr.compare(visitor.current, etalon, byAllFieldsButXpos);
+		cmpr.compare(visitor.current, etalon, CompareBy.allFields);
 		import std;
 		writeln(cmpr.sResult);
 		writeln(cmpr.path);
@@ -297,8 +294,10 @@ unittest
 				])),
 		]));
 
-		const ubyte byAllFieldsButXpos = CompareBy.allFields & ~CompareBy.Ysize & ~CompareBy.Xpos;
-		cmpr.compare(visitor.current, etalon, byAllFieldsButXpos);
+		auto bySomeFields = CompareBy.allFields;
+		bySomeFields.Ysize = false;
+		bySomeFields.Xpos  = false;
+		cmpr.compare(visitor.current, etalon, bySomeFields);
 		import std;
 		writeln(cmpr.sResult);
 		writeln(cmpr.path);
@@ -368,8 +367,7 @@ unittest
 				node("string", V, 10, 60, 290, 10),  /* Test2.str */
 		]));
 
-		const ubyte byAllFieldsButXpos = CompareBy.allFields;
-		cmpr.compare(visitor.current, etalon, byAllFieldsButXpos);
+		cmpr.compare(visitor.current, etalon, CompareBy.allFields);
 		import std;
 		writeln(cmpr.sResult);
 		writeln(cmpr.path);
