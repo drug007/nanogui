@@ -424,7 +424,7 @@ struct TreePathVisitorImpl(Derived = Default)
 				return true;
 		}
 
-		loc.intend;
+		loc.indent;
 
 		with(loc) final switch (model.orientation)
 		{
@@ -442,7 +442,7 @@ struct TreePathVisitorImpl(Derived = Default)
 	void doAfterChildren(Order order, Data, Model)(ref const(Data) data, ref Model model)
 		if (Model.Collapsable)
 	{
-		loc.unintend;
+		loc.unindent;
 
 		with(loc) final switch (model.orientation)
 		{

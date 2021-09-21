@@ -56,12 +56,12 @@ struct Location
 		return false;
 	}
 
-	void intend()
+	void indent()
 	{
 		current_path.put(0);
 	}
 
-	void unintend()
+	void unindent()
 	{
 		current_path.popBack;
 	}
