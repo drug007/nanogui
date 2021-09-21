@@ -9,6 +9,7 @@ struct CompareBy
 
 	union
 	{
+		ubyte allBits = ubyte.max;
 		mixin(bitfields!(
 			bool, "name",        1,
 			bool, "Xpos",        1,
@@ -19,19 +20,16 @@ struct CompareBy
 			bool, "orientation", 1,
 			uint, "", 1,
 		));
-		ubyte allBits;
 	}
 
 	void setAll()
 	{
-		static foreach(i; 0..this.tupleof.length)
-			this.tupleof[i] = true;
+		allBits = ubyte.max;
 	}
 
 	void clearAll()
 	{
-		static foreach(i; 0..this.tupleof.length)
-			this.tupleof[i] = false;
+		allBits = 0;
 	}
 
 	bool none() const
