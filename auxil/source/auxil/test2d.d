@@ -156,6 +156,7 @@ unittest
 		}
 	}
 	visitor.loc.y.position = 0;
+	visitor.current = null;
 	model.visitForward(data, visitor);
 
 	() @trusted
