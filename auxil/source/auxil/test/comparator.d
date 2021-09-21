@@ -163,7 +163,9 @@ struct Comparator
 		auto s = StateStack(1, testRoot, etalonRoot);
 		while(s.inProgress)
 		{
-			logf(LogLevel.trace, true, "%s %s%s", s.path, ' '.repeat(s.stack.length), s.test.name);
+			logf(LogLevel.trace, true, "(%3s, %3s) %3sx%3s\t%s %s%s", 
+				s.test.x.position, s.test.y.position, s.test.x.size, s.test.y.size,
+				s.path, ' '.repeat(s.stack.length), s.test.name);
 
 			lhs = s.test;
 			rhs = s.etalon;

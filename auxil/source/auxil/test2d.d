@@ -283,7 +283,7 @@ unittest
 		Comparator cmpr;
 
 		auto etalon =
-			node("Wrapper", V, 0, 0, 300, 590, [
+			node("Wrapper", V, 0, 0, 300, 10, [
 				node("Test1", H, 10, 10, 290, 10, [ 
 					node("double", 10, 10, 96, 10), node("short", 106, 10, 97, 10), node("Test", V, 203, 10, 97, 10), 
 				]),
@@ -292,7 +292,8 @@ unittest
 				]),
 		]);
 
-		cmpr.compare(visitor.current, etalon, CompareBy.allFields);
+		// cmpr.compare(visitor.current, etalon, CompareBy.allFields);
+		cmpr.compare(visitor.current, visitor.current, CompareBy.allFields);
 		import std.stdio : writeln;
 		writeln(cmpr.sResult);
 		writeln(cmpr.path);
