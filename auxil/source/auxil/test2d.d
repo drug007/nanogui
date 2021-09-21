@@ -125,7 +125,7 @@ unittest
 			]));
 
 		cmpr.compare(visitor.current, etalon, CompareBy.allFields);
-		import std;
+		import std.stdio : writeln;
 		writeln(cmpr.sResult);
 		writeln(cmpr.path);
 		cmpr.bResult.shouldBeTrue;
@@ -175,7 +175,7 @@ unittest
 			]));
 
 		cmpr.compare(visitor.current, etalon, CompareBy.allFields);
-		import std;
+		import std.stdio : writeln;
 		writeln(cmpr.sResult);
 		writeln(cmpr.path);
 		cmpr.bResult.shouldBeTrue;
@@ -231,7 +231,7 @@ unittest
 		]));
 
 		cmpr.compare(visitor.current, etalon, CompareBy.allFields);
-		import std;
+		import std.stdio : writeln;
 		writeln(cmpr.sResult);
 		writeln(cmpr.path);
 		cmpr.bResult.shouldBeTrue;
@@ -296,7 +296,7 @@ unittest
 
 		auto bySomeFields = CompareBy.allFields.except!"Ysize".except!"Xpos";
 		cmpr.compare(visitor.current, etalon, bySomeFields);
-		import std;
+		import std.stdio : writeln;
 		writeln(cmpr.sResult);
 		writeln(cmpr.path);
 		cmpr.bResult.shouldBeTrue;
@@ -366,7 +366,7 @@ unittest
 		]));
 
 		cmpr.compare(visitor.current, etalon, CompareBy.allFields);
-		import std;
+		import std.stdio : writeln;
 		writeln(cmpr.sResult);
 		writeln(cmpr.path);
 		cmpr.bResult.shouldBeTrue;
