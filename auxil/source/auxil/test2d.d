@@ -294,9 +294,7 @@ unittest
 				])),
 		]));
 
-		auto bySomeFields = CompareBy.allFields;
-		bySomeFields.Ysize = false;
-		bySomeFields.Xpos  = false;
+		auto bySomeFields = CompareBy.allFields.except!"Ysize".except!"Xpos";
 		cmpr.compare(visitor.current, etalon, bySomeFields);
 		import std;
 		writeln(cmpr.sResult);

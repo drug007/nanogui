@@ -39,6 +39,12 @@ struct CompareBy
 		return allBits == 0;
 	}
 
+	auto except(string FieldName)()
+	{
+		mixin(FieldName, " = false;");
+		return this;
+	}
+
 	static auto allFields()
 	{
 		CompareBy compareBy;
