@@ -103,13 +103,7 @@ unittest
 	FieldNameTuple!(Model!StructWithStruct).length.should.be == 6;
 }
 
-private import std.range : isRandomAccessRange;
-private import std.traits : isSomeString, isStaticArray, isAssociativeArray;
-private enum dataHasStaticArrayModel(T) = isStaticArray!T;
-private enum dataHasAssociativeArrayModel(T) = isAssociativeArray!T;
-private enum dataHasRandomAccessRangeModel(T) = isRandomAccessRange!T && !isSomeString!T && !dataHasTaggedAlgebraicModel!T;
-private enum dataHasAggregateModel(T) = (is(T == struct) || is(T == union)) && !dataHasRandomAccessRangeModel!T && !dataHasTaggedAlgebraicModel!T;
-private enum dataHasTaggedAlgebraicModel(T) = is(T == struct) && isInstanceOf!(TaggedAlgebraic, T);
+import auxil.traits : dataHasAssociativeArrayModel, dataHasRandomAccessRangeModel, dataHasAggregateModel, dataHasTaggedAlgebraicModel;
 
 mixin template State(alias This)
 {

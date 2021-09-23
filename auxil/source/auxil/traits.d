@@ -1,6 +1,12 @@
 module auxil.traits;
 
-version(unittest) import unit_threaded : Name;
+version(no_unit_threaded)
+	struct Name
+	{
+		string dummy;
+	}
+else
+	version(unittest) import unit_threaded : Name;
 
 import std.traits : isTypeTuple;
 
@@ -55,6 +61,16 @@ template TypeOf(alias A)
 		alias TypeOf = Unqual!(typeof(A));
 	}
 }
+
+private import std.range : isRandomAccessRange;
+private import std.traits : isSomeString, isStaticArray, isAssociativeArray;
+private import taggedalgebraic : TaggedAlgebraic;
+
+enum dataHasStaticArrayModel(T) = isStaticArray!T;
+enum dataHasAssociativeArrayModel(T) = isAssociativeArray!T;
+enum dataHasRandomAccessRangeModel(T) = isRandomAccessRange!T && !isSomeString!T && !dataHasTaggedAlgebraicModel!T;
+enum dataHasAggregateModel(T) = (is(T == struct) || is(T == union)) && !dataHasRandomAccessRangeModel!T && !dataHasTaggedAlgebraicModel!T;
+enum dataHasTaggedAlgebraicModel(T) = is(T == struct) && isInstanceOf!(TaggedAlgebraic, T);
 
 // check if the member is readable/writeble?
 private enum isReadableAndWritable(alias aggregate, string member) = __traits(compiles, __traits(getMember, aggregate, member) = __traits(getMember, aggregate, member));
