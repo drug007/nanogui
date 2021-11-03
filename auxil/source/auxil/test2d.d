@@ -27,6 +27,8 @@ struct Visitor2D
 	Node current;
 	Vector!(Node, Mallocator) node_stack;
 
+	@disable this(this);
+
 	this(SizeType[2] size) @nogc nothrow
 	{
 		default_visitor = TreePathVisitor(size);

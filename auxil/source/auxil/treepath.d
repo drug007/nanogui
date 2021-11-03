@@ -7,7 +7,28 @@ struct TreePath
 
 @safe:
 
-	Vector!(int, Mallocator)  value;
+	Vector!(int, Mallocator) value;
+
+	@disable this(this);
+
+	this(ref return scope TreePath rhs) nothrow @trusted
+	{
+		value = rhs.value[];
+	}
+
+	this(ref return scope const(TreePath) rhs) nothrow @trusted const
+	{
+		value = rhs.value[];
+	}
+
+	this(ref return scope inout(TreePath) rhs) nothrow @trusted inout
+	{
+		// // value = typeof(this)(rhs.value[]);
+		// size_t l = rhs.value.length();
+		// (cast(const)value).length = l;
+		auto dummy = Vector!(int, Mallocator)(cast(int[])rhs.value[]);
+		value = cast(inout) dummy;
+	}
 
 	ref int back() return @nogc
 	{

@@ -18,6 +18,8 @@ struct PrettyPrintingVisitor
 	Vector!(char, Mallocator) output;
 	private Vector!(char, Mallocator) _indentation;
 
+	@disable this(this);
+
 	this(SizeType[2] size) @nogc
 	{
 		default_visitor = TreePathVisitor(size);

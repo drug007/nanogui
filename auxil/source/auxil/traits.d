@@ -257,7 +257,7 @@ template isMemberDrawableAndNotIgnored(alias value, string member)
 
 /// returns alias sequence, members of which are members of value
 /// that should be drawn
-package template DrawableMembers(alias A)
+template DrawableMembers(alias A)
 {
 	import std.meta : ApplyLeft, Filter, AliasSeq;
 	import std.traits : isType, Unqual;

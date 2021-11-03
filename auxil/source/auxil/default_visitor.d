@@ -216,6 +216,8 @@ struct TreePathVisitorImpl(Derived = Default)
 {
 	SizeType[2] size;
 
+	@disable this(this);
+
 	this(SizeType[2] s) @safe @nogc nothrow
 	{
 		size = s;
