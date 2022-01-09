@@ -955,7 +955,7 @@ mixin template visitImpl()
 
 			static if (hasTreePath) visitor.tree_path.put(0);
 			static if (hasTreePath) scope(exit) visitor.tree_path.popBack;
-			const len = getLength!(Data, data);
+			auto len = getLength!(Data, data);
 			static if (is(typeof(model.length)))
 				assert(len == model.length);
 			if (!len)
@@ -1000,14 +1000,17 @@ mixin template visitImpl()
 			else static if (dataHasAggregateModel!Data)
 			{
 				scope(exit) dbgPrint!(hasSize, hasTreePath)("scope(exit) this.size: ", this.size);
+				// work around ldc2 issue
+				// expression `const len = getLength!(Data, data);` is not a constant
+				const len2 = DrawableMembers!Data.length;
 				switch(start_value)
 				{
-					static foreach(i; 0..len)
+					static foreach(i; 0..len2)
 					{
 						// reverse fields order if Order.Bubbling
-						case (Sinking) ? i : len - i - 1:
+						case (Sinking) ? i : len2 - i - 1:
 						{
-							enum FieldNo = (Sinking) ? i : len - i - 1;
+							enum FieldNo = (Sinking) ? i : len2 - i - 1;
 							enum member = DrawableMembers!Data[FieldNo];
 							static if (hasTreePath) visitor.tree_path.back = cast(int) FieldNo;
 							static if (hasSize) scope(exit) this.size += mixin("this." ~ member).size;
@@ -1022,9 +1025,9 @@ mixin template visitImpl()
 						goto case;
 					}
 					// the dummy case needed because every `goto case` should be followed by a case clause
-					case len:
+					case len2:
 						// flow cannot get here directly
-						if (start_value == len)
+						if (start_value == len2)
 							assert(0);
 					break;
 					default:
