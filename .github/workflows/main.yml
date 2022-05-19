@@ -21,7 +21,7 @@ jobs:
       matrix:
         # Latest stable version, update at will
         os: [ ubuntu-18.04, windows-2019 ]
-        dc: [ dmd-latest, dmd-master, ldc-master, ldc-latest ]
+        dc: [ dmd-latest, ldc-master, ldc-latest ]
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -46,9 +46,13 @@ jobs:
       run: |
         cd examples/sdl
         dub build --compiler=${{ env.DC }}
+        cd ../renderer
+        dub 
 
     - name: '[Windows] Build'
       if: runner.os == 'Windows'
       run: |
         cd examples/sdl
         dub build --compiler=${{ env.DC }}
+        cd ..\renderer
+        dub 
