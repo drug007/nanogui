@@ -20,3 +20,4 @@ nanogui-test-*
 /.vscode/
 /examples/arsd/example-sdl
 /sizeindex
+/examples/renderer/renderer
