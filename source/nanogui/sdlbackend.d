@@ -1,108 +1,161 @@
 module nanogui.sdlbackend;
 
-import std.algorithm: map;
-import std.array: array;
-import std.exception: enforce;
-import std.file: thisExePath;
-import std.path: dirName, buildPath;
-import std.range: iota;
 import std.datetime : Clock;
+import std.exception: enforce;
 
-import std.experimental.logger: Logger, NullLogger, FileLogger, globalLogLevel, LogLevel;
+import std.experimental.logger: Logger;
 
-import gfm.math: mat4f, vec3f, vec4f;
-import gfm.opengl: OpenGL;
-import gfm.sdl2: SDL2, SDL2Window, SDL_Event, SDL_Cursor, SDL_SetCursor, 
-	SDL_FreeCursor, SDL_Delay;
+import gfm.sdl2: SDL_Event, SDL_Cursor, SDL_SetCursor, SDL_FreeCursor;
 
-import arsd.nanovega : nvgCreateContext, kill, NVGContextFlag;
+import arsd.nanovega : kill, NVGContextFlag;
+
 import nanogui.screen : Screen;
 import nanogui.theme : Theme;
 import nanogui.common : NanoContext, Vector2i, MouseButton, MouseAction, Cursor;
+import nanogui.sdlapp : SdlApp;
 
 class SdlBackend : Screen
 {
 	this(int w, int h, string title)
 	{
-		/* Avoid locale-related number parsing issues */
-		version(Windows) {}
-		else {
-			import core.stdc.locale;
-			setlocale(LC_NUMERIC, "C");
-		}
+		_sdlApp = new SdlApp(w, h, title);
 
-		import gfm.sdl2, gfm.opengl;
-		import bindbc.sdl;
-
-		this.width = w;
-		this.height = h;
-
-		// create a logger
-		import std.stdio : stdout;
-		_log = new FileLogger(stdout);
-
-		// load dynamic libraries
-		SDLSupport ret = loadSDL();
-		if(ret != sdlSupport) {
-			if(ret == SDLSupport.noLibrary) {
-				/*
-				The system failed to load the library. Usually this means that either the library or one of its dependencies could not be found.
-				*/
-			}
-			else if(SDLSupport.badLibrary) {
-				/*
-				This indicates that the system was able to find and successfully load the library, but one or more symbols the binding expected to find was missing. This usually indicates that the loaded library is of a lower API version than the binding was configured to load, e.g., an SDL 2.0.2 library loaded by an SDL 2.0.10 configuration.
-
-				For many C libraries, including SDL, this is perfectly fine and the application can continue as long as none of the missing functions are called.
-				*/
-			}
-		}
-		_sdl2 = new SDL2(_log);
-		globalLogLevel = LogLevel.error;
-
-		// You have to initialize each SDL subsystem you want by hand
-		_sdl2.subSystemInit(SDL_INIT_VIDEO);
-		_sdl2.subSystemInit(SDL_INIT_EVENTS);
-
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-		SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
-		// create an OpenGL-enabled SDL window
-		window = new SDL2Window(_sdl2,
-								SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-								width, height,
-								SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN );
-
-		window.setTitle(title);
-
-		GLSupport retVal = loadOpenGL();
-		if(retVal >= GLSupport.gl33)
+		_sdlApp.onBeforeLoopStart = ()
 		{
-			// configure renderer for OpenGL 3.3
-			import std.stdio;
-			writefln("Available version of opengl: %s", retVal);
-		}
-		else
+			import std.datetime : dur;
+
+			currTime = Clock.currTime.stdTime;
+			if (currTime - mBlinkingCursorTimestamp > dur!"msecs"(500).total!"hnsecs")
+			{
+				mBlinkingCursorVisible = !mBlinkingCursorVisible;
+				_sdlApp.invalidate();
+				mBlinkingCursorTimestamp = currTime;
+			}
+
+			if (_onBeforeLoopStart)
+				_onBeforeLoopStart();
+		};
+
+		_sdlApp.onDraw = ()
 		{
-			import std.stdio;
-			if (retVal == GLSupport.noLibrary)
-				writeln("opengl is not available");
-			else
-				writefln("Unsupported version of opengl %s", retVal);
-			import std.exception;
-			enforce(0);
-		}
+			if (mNeedToDraw)
+				_sdlApp.invalidate;
+			size = Vector2i(width, height);
+			super.draw(ctx);
+		};
 
-		_gl = new OpenGL(_log);
+		_sdlApp.onKeyDown = (ref const(SDL_Event) event)
+		{
+			import nanogui.common : KeyAction;
 
-		// redirect OpenGL output to our Logger
-		_gl.redirectDebugOutput();
+			_sdlApp.invalidate;
+
+			auto key = event.key.keysym.sym.convertSdlKeyToNanoguiKey;
+			int modifiers = event.key.keysym.mod.convertSdlModifierToNanoguiModifier;
+			return super.keyboardEvent(key, event.key.keysym.scancode, KeyAction.Press, modifiers);
+		};
+
+		_sdlApp.onMouseWheel = (ref const(SDL_Event) event)
+		{
+			_sdlApp.invalidate;
+			if (event.wheel.y > 0)
+			{
+				btn = MouseButton.WheelUp;
+				return super.scrollCallbackEvent(0, +1, Clock.currTime.stdTime);
+			}
+			else if (event.wheel.y < 0)
+			{
+				btn = MouseButton.WheelDown;
+				return super.scrollCallbackEvent(0, -1, Clock.currTime.stdTime);
+			}
+			return false;
+		};
+		
+		_sdlApp.onMouseMotion = (ref const(SDL_Event) event)
+		{
+			import gfm.sdl2 : SDL_BUTTON_LMASK, SDL_BUTTON_RMASK, SDL_BUTTON_MMASK;
+
+			_sdlApp.invalidate;
+
+			ctx.mouse.x = event.motion.x;
+			ctx.mouse.y = event.motion.y;
+
+			if (event.motion.state & SDL_BUTTON_LMASK)
+				btn = MouseButton.Left;
+			else if (event.motion.state & SDL_BUTTON_RMASK)
+				btn = MouseButton.Right;
+			else if (event.motion.state & SDL_BUTTON_MMASK)
+				btn = MouseButton.Middle;
+
+			if (event.motion.state & SDL_BUTTON_LMASK)
+				modifiers |= MouseButton.Left;
+			if (event.motion.state & SDL_BUTTON_RMASK)
+				modifiers |= MouseButton.Right;
+			if (event.motion.state & SDL_BUTTON_MMASK)
+				modifiers |= MouseButton.Middle;
+
+			action = MouseAction.Motion;
+			return super.cursorPosCallbackEvent(ctx.mouse.x, ctx.mouse.y, Clock.currTime.stdTime);
+		};
+
+		_sdlApp.onMouseUp = (ref const(SDL_Event) event)
+		{
+			import gfm.sdl2 : SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT, SDL_BUTTON_MIDDLE;
+
+			_sdlApp.invalidate;
+
+			switch(event.button.button)
+			{
+				case SDL_BUTTON_LEFT:
+					btn = MouseButton.Left;
+				break;
+				case SDL_BUTTON_RIGHT:
+					btn = MouseButton.Right;
+				break;
+				case SDL_BUTTON_MIDDLE:
+					btn = MouseButton.Middle;
+				break;
+				default:
+			}
+			action = MouseAction.Release;
+			return super.mouseButtonCallbackEvent(btn, action, modifiers, Clock.currTime.stdTime);
+		};
+
+		_sdlApp.onMouseDown = (ref const(SDL_Event) event)
+		{
+			import gfm.sdl2 : SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT, SDL_BUTTON_MIDDLE;
+
+			_sdlApp.invalidate;
+
+			switch(event.button.button)
+			{
+				case SDL_BUTTON_LEFT:
+					btn = MouseButton.Left;
+				break;
+				case SDL_BUTTON_RIGHT:
+					btn = MouseButton.Right;
+				break;
+				case SDL_BUTTON_MIDDLE:
+					btn = MouseButton.Middle;
+				break;
+				default:
+			}
+			action = MouseAction.Press;
+			return super.mouseButtonCallbackEvent(btn, action, modifiers, Clock.currTime.stdTime);
+		};
+
+		_sdlApp.onClose = ()
+		{
+			if (_onClose)
+				return _onClose();
+
+			return true;
+		};
 
 		ctx = NanoContext(NVGContextFlag.Debug);
 		enforce(ctx !is null, "cannot initialize NanoGui");
 
+		import gfm.sdl2;
 		mCursorSet[Cursor.Arrow]     = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 		mCursorSet[Cursor.IBeam]     = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_IBEAM);
 		mCursorSet[Cursor.Crosshair] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
@@ -110,7 +163,7 @@ class SdlBackend : Screen
 		mCursorSet[Cursor.HResize]   = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEWE);
 		mCursorSet[Cursor.VResize]   = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENS);
 
-		super(width, height, Clock.currTime.stdTime);
+		super(w, h, Clock.currTime.stdTime);
 		theme = new Theme(ctx);
 	}
 
@@ -124,9 +177,7 @@ class SdlBackend : Screen
 		SDL_FreeCursor(mCursorSet[Cursor.VResize]);
 
 		ctx.kill();
-		_gl.destroy();
-		window.destroy();
-		_sdl2.destroy();
+		destroy(_sdlApp);
 	}
 
 	private void delegate () _onBeforeLoopStart;
@@ -134,329 +185,41 @@ class SdlBackend : Screen
 	{
 		_onBeforeLoopStart = dg;
 	}
+	
+	private bool delegate() _onClose;
+	void onClose(bool delegate() dg) @safe
+	{
+		_onClose = dg;
+	}
 
 	void run()
 	{
-		import gfm.sdl2;
-
-		window.hide;
-		SDL_FlushEvents(SDL_WINDOWEVENT, SDL_SYSWMEVENT);
-
 		onVisibleForTheFirstTime();
-		window.show;
 
-		SDL_Event event;
-
-		bool running = true;
-		while (running)
-		{
-			if (_onBeforeLoopStart)
-				_onBeforeLoopStart();
-
-			SDL_PumpEvents();
-
-			while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_SYSWMEVENT))
-			{
-				switch (event.type)
-				{
-					case SDL_WINDOWEVENT:
-					{
-						switch (event.window.event)
-						{
-							case SDL_WINDOWEVENT_MOVED:
-								// window has been moved to other position
-								break;
-
-							case SDL_WINDOWEVENT_RESIZED:
-							case SDL_WINDOWEVENT_SIZE_CHANGED:
-							{
-								// window size has been resized
-								with(event.window)
-								{
-									width = data1;
-									height = data2;
-									resizeEvent(size);
-								}
-								break;
-							}
-
-							case SDL_WINDOWEVENT_SHOWN:
-							case SDL_WINDOWEVENT_FOCUS_GAINED:
-							case SDL_WINDOWEVENT_RESTORED:
-							case SDL_WINDOWEVENT_MAXIMIZED:
-								// window has been activated
-								break;
-
-							case SDL_WINDOWEVENT_HIDDEN:
-							case SDL_WINDOWEVENT_FOCUS_LOST:
-							case SDL_WINDOWEVENT_MINIMIZED:
-								// window has been deactivated
-								break;
-
-							case SDL_WINDOWEVENT_ENTER:
-								// mouse cursor has entered window
-								// for example default cursor can be disable
-								// using SDL_ShowCursor(SDL_FALSE);
-								break;
-
-							case SDL_WINDOWEVENT_LEAVE:
-								// mouse cursor has left window
-								// for example default cursor can be disable
-								// using SDL_ShowCursor(SDL_TRUE);
-								break;
-
-							case SDL_WINDOWEVENT_CLOSE:
-								running = false;
-								break;
-							default:
-						}
-						break;
-					}
-					default:
-				}
-			}
-
-			// mouse update
-			{
-				while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_MOUSEMOTION, SDL_MOUSEWHEEL))
-				{
-					switch (event.type)
-					{
-					case SDL_MOUSEBUTTONDOWN:
-						onMouseDown(event);
-						// force redrawing
-						mNeedToDraw = true;
-						break;
-					case SDL_MOUSEBUTTONUP:
-						onMouseUp(event);
-						// force redrawing
-						mNeedToDraw = true;
-						break;
-					case SDL_MOUSEMOTION:
-						onMouseMotion(event);
-						// force redrawing
-						mNeedToDraw = true;
-						break;
-					case SDL_MOUSEWHEEL:
-						onMouseWheel(event);
-						// force redrawing
-						mNeedToDraw = true;
-						break;
-					default:
-					}
-				}
-			}
-
-			// keyboard update
-			{
-				while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_KEYDOWN, SDL_KEYUP))
-				{
-					switch (event.type)
-					{
-						case SDL_KEYDOWN:
-							onKeyDown(event);
-							// force redrawing
-							mNeedToDraw = true;
-							break;
-						case SDL_KEYUP:
-							onKeyUp(event);
-							// force redrawing
-							mNeedToDraw = true;
-							break;
-						default:
-					}
-				}
-			}
-
-			// text update
-			{
-				while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_TEXTINPUT, SDL_TEXTINPUT))
-				{
-					switch (event.type)
-					{
-						case SDL_TEXTINPUT:
-							import core.stdc.string : strlen;
-							auto len = strlen(&event.text.text[0]);
-							if (!len)
-								break;
-							assert(len < event.text.text.sizeof);
-							auto txt = event.text.text[0..len];
-							import std.utf : byDchar;
-							foreach(ch; txt.byDchar)
-								super.keyboardCharacterEvent(ch);
-
-							// force redrawing
-							mNeedToDraw = true;
-							break;
-						default:
-							break;
-					}
-				}
-			}
-
-			// user event, we use it as timer notification
-			{
-				while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_USEREVENT, SDL_USEREVENT))
-				{
-					switch (event.type)
-					{
-						case SDL_USEREVENT:
-							// force redrawing
-							mNeedToDraw = true;
-							break;
-						default:
-							break;
-					}
-				}
-			}
-
-			// perform drawing if needed
-			{
-				import std.datetime : dur;
-
-				static auto pauseTimeMs = 0;
-				currTime = Clock.currTime.stdTime;
-				if (currTime - mBlinkingCursorTimestamp > dur!"msecs"(500).total!"hnsecs")
-				{
-					mBlinkingCursorVisible = !mBlinkingCursorVisible;
-					mNeedToDraw = true;
-					mBlinkingCursorTimestamp = currTime;
-				}
-
-				if (needToDraw)
-				{
-					pauseTimeMs = 0;
-					size = Vector2i(width, height);
-					super.draw(ctx);
-
-					window.swapBuffers();
-				}
-				else
-				{
-					pauseTimeMs = pauseTimeMs * 2 + 1; // exponential pause
-					if (pauseTimeMs > 100)
-						pauseTimeMs = 100; // max 100ms of pause
-					SDL_Delay(pauseTimeMs);
-				}
-			}
-		}
+		_sdlApp.run();
 	}
+
+	void close()
+	{
+		_sdlApp.close();
+	}
+
+	auto invalidate() { _sdlApp.invalidate; }
 
 	abstract void onVisibleForTheFirstTime();
 
-	override Logger logger() { return _log; }
+	override Logger logger() { return _sdlApp.logger; }
 
 protected:
-	SDL2Window window;
-	int width;
-	int height;
+	SdlApp _sdlApp;
 
 	MouseButton btn;
 	MouseAction action;
 	int modifiers;
 
-	Logger _log;
-	OpenGL _gl;
-	SDL2 _sdl2;
-
 	NanoContext ctx;
 
 	SDL_Cursor*[6] mCursorSet;
-
-	public void onKeyDown(ref const(SDL_Event) event)
-	{
-		import nanogui.common : KeyAction;
-
-		auto key = event.key.keysym.sym.convertSdlKeyToNanoguiKey;
-		int modifiers = event.key.keysym.mod.convertSdlModifierToNanoguiModifier;
-		super.keyboardEvent(key, event.key.keysym.scancode, KeyAction.Press, modifiers);
-	}
-
-	public void onKeyUp(ref const(SDL_Event) event)
-	{
-		
-	}
-
-	public void onMouseWheel(ref const(SDL_Event) event)
-	{
-		if (event.wheel.y > 0)
-		{
-			btn = MouseButton.WheelUp;
-			super.scrollCallbackEvent(0, +1, Clock.currTime.stdTime);
-		}
-		else if (event.wheel.y < 0)
-		{
-			btn = MouseButton.WheelDown;
-			super.scrollCallbackEvent(0, -1, Clock.currTime.stdTime);
-		}
-	}
-	
-	public void onMouseMotion(ref const(SDL_Event) event)
-	{
-		import gfm.sdl2 : SDL_BUTTON_LMASK, SDL_BUTTON_RMASK, SDL_BUTTON_MMASK;
-
-		ctx.mouse.x = event.motion.x;
-		ctx.mouse.y = event.motion.y;
-
-		if (event.motion.state & SDL_BUTTON_LMASK)
-			btn = MouseButton.Left;
-		else if (event.motion.state & SDL_BUTTON_RMASK)
-			btn = MouseButton.Right;
-		else if (event.motion.state & SDL_BUTTON_MMASK)
-			btn = MouseButton.Middle;
-
-		if (event.motion.state & SDL_BUTTON_LMASK)
-			modifiers |= MouseButton.Left;
-		if (event.motion.state & SDL_BUTTON_RMASK)
-			modifiers |= MouseButton.Right;
-		if (event.motion.state & SDL_BUTTON_MMASK)
-			modifiers |= MouseButton.Middle;
-
-		action = MouseAction.Motion;
-		super.cursorPosCallbackEvent(ctx.mouse.x, ctx.mouse.y, Clock.currTime.stdTime);
-	}
-
-	public void onMouseUp(ref const(SDL_Event) event)
-	{
-		import gfm.sdl2 : SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT, SDL_BUTTON_MIDDLE;
-
-		switch(event.button.button)
-		{
-			case SDL_BUTTON_LEFT:
-				btn = MouseButton.Left;
-			break;
-			case SDL_BUTTON_RIGHT:
-				btn = MouseButton.Right;
-			break;
-			case SDL_BUTTON_MIDDLE:
-				btn = MouseButton.Middle;
-			break;
-			default:
-		}
-		action = MouseAction.Release;
-		super.mouseButtonCallbackEvent(btn, action, modifiers, Clock.currTime.stdTime);
-	}
-
-	public void onMouseDown(ref const(SDL_Event) event)
-	{
-		import gfm.sdl2 : SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT, SDL_BUTTON_MIDDLE;
-
-		switch(event.button.button)
-		{
-			case SDL_BUTTON_LEFT:
-				btn = MouseButton.Left;
-			break;
-			case SDL_BUTTON_RIGHT:
-				btn = MouseButton.Right;
-			break;
-			case SDL_BUTTON_MIDDLE:
-				btn = MouseButton.Middle;
-			break;
-			default:
-		}
-		action = MouseAction.Press;
-		super.mouseButtonCallbackEvent(btn, action, modifiers, Clock.currTime.stdTime);
-	}
 
 	override void cursor(Cursor value)
 	{

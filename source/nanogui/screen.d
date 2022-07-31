@@ -22,6 +22,7 @@ class Screen : Widget
 		mLastInteraction = mTimestamp = timestamp;
 		mCursor = Cursor.Arrow;
 		mPixelRatio = 1.0;
+		mClearEnabled = true;
 	}
 
 	auto currTime() const { return mTimestamp; }
@@ -69,9 +70,12 @@ class Screen : Widget
 		}
 
 		// draw the rest
-		glViewport(0, 0, size.x, size.y);
-		glClearColor(0., 0., 0., 0);
-		glClear(glNVGClearFlags); // use NanoVega API to get flags for OpenGL call
+		if (mClearEnabled)
+		{
+			glViewport(0, 0, size.x, size.y);
+			glClearColor(0., 0., 0., 0);
+			glClear(glNVGClearFlags); // use NanoVega API to get flags for OpenGL call
+		}
 		ctx.beginFrame(size.x, size.y); // begin rendering
 		scope(exit)
 		{
@@ -395,9 +399,9 @@ class Screen : Widget
 	/// Return the ratio between pixel and device coordinates (e.g. >= 2 on Mac Retina displays)
 	float pixelRatio() const { return mPixelRatio; }
 
-	package bool needToDraw() const pure @safe nothrow { return mNeedToDraw; }
-	// TODO add package qualifier at least but better to remove it completely
-	void needToDraw(bool value) pure @safe nothrow { if (value) mNeedToDraw = value; }
+	bool clearEnabled() @safe const { return mClearEnabled; }
+	void clearEnabled(bool value) @safe { mClearEnabled = value; }
+
 	package bool needToPerfomLayout() const pure @safe nothrow { return mNeedToPerfomLayout; }
 	package void needToPerfomLayout(bool value) pure @safe nothrow { if (value) mNeedToPerfomLayout = value; }
 	package bool blinkingCursorIsVisibleNow() const pure @safe nothrow { return mBlinkingCursorVisible; }
@@ -445,4 +449,5 @@ protected:
 	float        mPixelRatio;
 	void delegate(Vector2i) mResizeCallback;
 	Array!GLCanvas mGLCanvases;
+	bool         mClearEnabled;
 }
