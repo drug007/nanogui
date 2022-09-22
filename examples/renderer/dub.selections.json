@@ -1,7 +1,7 @@
 {
 	"fileVersion": 1,
 	"versions": {
-		"arsd-official": "10.8.2",
+		"arsd-official": "10.9.2",
 		"automem": "0.6.7",
 		"auxil": {"path":"../../auxil"},
 		"bindbc-loader": "0.3.2",
