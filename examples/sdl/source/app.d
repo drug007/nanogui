@@ -389,6 +389,44 @@ class MyGui : SdlBackend
 			tb = new TextBox(window, "中国");
 			tb.theme = asian_theme;
 			tb.editable = true;
+
+			version(none)
+			{
+
+			// Added two arabic themes after https://forum.dlang.org/thread/sbymyafmdrsfgemlgsld@forum.dlang.org
+			// currently don't work as expected
+
+			auto arabic_theme1 = new Theme(ctx);
+			{
+				// sorta hack because loading font in nvg results in
+				// conflicting font id
+				auto nvg2 = nvgCreateContext(NVGContextFlag.Debug);
+				scope(exit) nvg2.kill;
+				nvg2.createFont("arabic1", "./resources/fonts/Amiri-Regular.ttf");
+				ctx.nvg.addFontsFrom(nvg2);
+				arabic_theme1.mFontNormal = ctx.nvg.findFont("arabic1");
+			}
+
+			auto arabic_theme2 = new Theme(ctx);
+			{
+				// sorta hack because loading font in nvg results in
+				// conflicting font id
+				auto nvg2 = nvgCreateContext(NVGContextFlag.Debug);
+				scope(exit) nvg2.kill;
+				nvg2.createFont("arabic2", "./resources/fonts/ElMessiri-VariableFont_wght.ttf");
+				ctx.nvg.addFontsFrom(nvg2);
+				arabic_theme2.mFontNormal = ctx.nvg.findFont("arabic2");
+			}
+
+			tb = new TextBox(window, "حالكم");
+			tb.theme = arabic_theme1;
+			tb.editable = true;
+
+			tb = new TextBox(window, "حالكم");
+			tb.theme = arabic_theme2;
+			tb.editable = true;
+
+			} // version(none)
 		}
 
 		{
