@@ -127,7 +127,7 @@ class SdlApp
 	}
 	auto onResize() { return _onResize; }
 
-	alias OnKeyboardChar = void delegate(dchar ch);
+	alias OnKeyboardChar = bool delegate(dchar ch);
 	private OnKeyboardChar _onKeyboardChar;
 	void onKeyboardChar(OnKeyboardChar handler)
 	{

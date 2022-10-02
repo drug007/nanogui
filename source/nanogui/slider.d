@@ -13,7 +13,7 @@ import std.algorithm : min, max;
 import arsd.nanovega;
 import nanogui.widget : Widget;
 import nanogui.common : Vector2i, MouseButton, Color, boxGradient, 
-	fillColor, Vector2f, radialGradient, linearGradient;
+	fillColor, Vector2f, radialGradient, linearGradient, NanoContext;
 
 /// Fractional slider widget with mouse control
 class Slider(T) : Widget {
@@ -170,7 +170,7 @@ public:
 		return true;
 	}
 
-	override void draw(NanoContext ctx)
+	override void draw(ref NanoContext ctx)
 	{
 		Vector2f center = cast(Vector2f) mPos + 0.5f * cast(Vector2f) mSize;
 		float kr = cast(int) (mSize.y * 0.4f);

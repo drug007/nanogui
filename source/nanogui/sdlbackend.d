@@ -144,6 +144,11 @@ class SdlBackend : Screen
 			return super.mouseButtonCallbackEvent(btn, action, modifiers, Clock.currTime.stdTime);
 		};
 
+		_sdlApp.onKeyboardChar = delegate(dchar codepoint)
+		{
+			return keyboardCharacterEvent(codepoint);
+		};
+
 		_sdlApp.onClose = ()
 		{
 			if (_onClose)
