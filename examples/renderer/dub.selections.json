@@ -5,7 +5,7 @@
 		"automem": "0.6.7",
 		"auxil": {"path":"../../auxil"},
 		"bindbc-loader": "0.3.2",
-		"bindbc-opengl": "0.15.0",
+		"bindbc-opengl": "1.1.0",
 		"bindbc-sdl": "0.19.2",
 		"binrange": "1.0.3",
 		"dplug": "9.3.4",
