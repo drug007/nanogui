@@ -1,21 +1,21 @@
 {
 	"fileVersion": 1,
 	"versions": {
-		"arsd-official": "10.9.2",
-		"automem": "0.6.7",
+		"arsd-official": "11.3.0",
+		"automem": "0.6.9",
 		"auxil": {"path":"../../auxil"},
-		"bindbc-loader": "0.3.2",
-		"bindbc-opengl": "0.15.0",
-		"bindbc-sdl": "0.19.2",
+		"bindbc-loader": "1.0.1",
+		"bindbc-opengl": "1.0.3",
+		"bindbc-sdl": "1.2.4",
 		"gfm": "8.0.6",
-		"gfm7": "1.1.2",
-		"intel-intrinsics": "1.10.2",
+		"gfm7": "1.2.0",
+		"intel-intrinsics": "1.11.18",
 		"localimport": "1.3.0",
 		"nanogui": {"path":"../.."},
 		"nogc": "0.5.1",
-		"resusage": "0.3.2",
+		"resusage": "0.4.0",
 		"taggedalgebraic": "0.11.22",
-		"test_allocator": "0.3.3",
-		"unit-threaded": "0.10.8"
+		"test_allocator": "0.3.4",
+		"unit-threaded": "2.1.8"
 	}
 }
