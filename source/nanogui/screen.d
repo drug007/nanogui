@@ -14,7 +14,7 @@ class Screen : Widget
 {
 	import nanogui.window : Window;
 
-	this(int w, int h, long timestamp)
+	this(int w, int h, long timestamp, int scale)
 	{
 		super(null);
 		size = vec2i(w, h);
@@ -23,6 +23,7 @@ class Screen : Widget
 		mCursor = Cursor.Arrow;
 		mPixelRatio = 1.0;
 		mClearEnabled = true;
+		mScale = scale;
 	}
 
 	auto currTime() const { return mTimestamp; }
@@ -37,6 +38,8 @@ class Screen : Widget
 				mNeedToDraw = true;
 		}
 	}
+
+	auto scale() const { return mScale; }
 
 	auto lastInteraction() { return mLastInteraction; }
 
@@ -72,11 +75,11 @@ class Screen : Widget
 		// draw the rest
 		if (mClearEnabled)
 		{
-			glViewport(0, 0, size.x, size.y);
+			glViewport(0, 0, size.x*mScale, size.y*mScale);
 			glClearColor(0., 0., 0., 0);
 			glClear(glNVGClearFlags); // use NanoVega API to get flags for OpenGL call
 		}
-		ctx.beginFrame(size.x, size.y); // begin rendering
+		ctx.beginFrame(size.x, size.y, mScale); // begin rendering
 		scope(exit)
 		{
 			if (ctx.inFrame)
@@ -450,4 +453,6 @@ protected:
 	void delegate(Vector2i) mResizeCallback;
 	Array!GLCanvas mGLCanvases;
 	bool         mClearEnabled;
+	/// Integer scale for 4K support
+	int			 mScale;
 }
