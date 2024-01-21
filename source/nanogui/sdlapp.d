@@ -12,7 +12,7 @@ class SdlApp
 {
 	alias Event = SDL_Event;
 
-	this(int w, int h, string title)
+	this(int w, int h, string title, int scale = 1)
 	{
 		/* Avoid locale-related number parsing issues */
 		version(Windows) {}
@@ -66,7 +66,7 @@ class SdlApp
 		// create an OpenGL-enabled SDL window
 		window = new SDL2Window(_sdl2,
 								SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-								width, height,
+								width * scale, height * scale,
 								SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN );
 
 		window.setTitle(title);

@@ -1,6 +1,7 @@
 module examples.sdl;
 
 import std.datetime : Clock;
+import std.getopt : defaultGetoptPrinter, getopt;
 import arsd.nanovega;
 import nanogui.sdlbackend : SdlBackend;
 import nanogui.widget : Widget;
@@ -179,9 +180,9 @@ class MyGui : SdlBackend
 	Label lblCpuUsage;
 	ProcessCPUWatcher cpuWatcher;
 
-	this(int w, int h, string title)
+	this(int w, int h, string title, int scale)
 	{
-		super(w, h, title);
+		super(w, h, title, scale);
 	}
 
 	override void onVisibleForTheFirstTime()
@@ -551,8 +552,29 @@ union Payload
 }
 alias Item = TaggedAlgebraic!Payload;
 
-void main () {
-	auto gui = new MyGui(1000, 800, "Nanogui using SDL2 backend");
+int main (string[] args)
+{
+	int scale = 1;
+
+	auto helpInformation = getopt(
+		args,
+		"scale", "Scale, 2 for 4K monitors and 1 for the rest", &scale,
+	);
+
+	if (helpInformation.helpWanted)
+	{
+		defaultGetoptPrinter("Usage:", helpInformation.options);
+		return 0;
+	}
+
+	if (scale != 1 && scale != 2)
+	{
+		import std;
+		stderr.writeln("Scale can be 1 or 2 only");
+		return 1;
+	}
+
+	auto gui = new MyGui(1000, 800, "Nanogui using SDL2 backend", scale);
 	gui.onBeforeLoopStart = () {
 		import std.datetime : SysTime, seconds, Clock;
 		static SysTime prevStdTime;
@@ -566,4 +588,6 @@ void main () {
 		}
 	};
 	gui.run();
+
+	return 0;
 }
