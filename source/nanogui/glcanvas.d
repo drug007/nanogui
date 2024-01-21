@@ -86,13 +86,14 @@ public:
 		if (mDrawBorder)
 			drawWidgetBorder(ctx);
 
+		const scale = screen.scale; // TODO PERFORMANCE it can be expensive operation
 		auto mImage = glCreateImageFromOpenGLTexture(ctx, mColorBuf.handle, width, height, NVGImageFlag.NoDelete);
 		assert(mImage.valid);
 		auto mPaint = ctx.imagePattern(
 			mPos.x + 1,
 			mPos.y + 1.0f,
-			mSize.x - 2,
-			mSize.y - 2,
+			mSize.x/scale - 2,
+			mSize.y/scale - 2,
 			0,
 			mImage);
 

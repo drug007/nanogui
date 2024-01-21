@@ -16,9 +16,9 @@ import nanogui.sdlapp : SdlApp;
 
 class SdlBackend : Screen
 {
-	this(int w, int h, string title)
+	this(int w, int h, string title, int scale)
 	{
-		_sdlApp = new SdlApp(w, h, title);
+		_sdlApp = new SdlApp(w, h, title, scale);
 
 		_sdlApp.onBeforeLoopStart = ()
 		{
@@ -77,8 +77,8 @@ class SdlBackend : Screen
 
 			_sdlApp.invalidate;
 
-			ctx.mouse.x = event.motion.x;
-			ctx.mouse.y = event.motion.y;
+			ctx.mouse.x = event.motion.x/scale;
+			ctx.mouse.y = event.motion.y/scale;
 
 			if (event.motion.state & SDL_BUTTON_LMASK)
 				btn = MouseButton.Left;
@@ -168,7 +168,7 @@ class SdlBackend : Screen
 		mCursorSet[Cursor.HResize]   = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEWE);
 		mCursorSet[Cursor.VResize]   = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENS);
 
-		super(w, h, Clock.currTime.stdTime);
+		super(w, h, Clock.currTime.stdTime, scale);
 		theme = new Theme(ctx);
 	}
 

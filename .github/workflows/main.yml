@@ -1,16 +1,6 @@
 name: Build
 
-on:
-  push:
-    branches:
-      - master
-      - develop
-  pull_request:
-    branches:
-      - master
-      - develop
-      # Use this branch name in your fork to test changes
-      - github-actions
+on: push
 
 jobs:
   main:
@@ -20,7 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         # Latest stable version, update at will
-        os: [ ubuntu-18.04, windows-2019 ]
+        os: [ ubuntu-20.04, windows-2019 ]
         dc: [ dmd-latest, ldc-latest ]
 
     runs-on: ${{ matrix.os }}
