@@ -3,7 +3,6 @@ module nanogui.experimental.utils;
 import nanogui.common : NanoContext;
 import nanogui.common : Vector2f, Vector2i;
 
-public import auxil.sizeindex;
 public import auxil.model;
 public import auxil.traits;
 
