@@ -902,7 +902,7 @@ version(unittest)
 				model.visitForward(data, v);
 
 				v.position.should.be == 170;
-				v.path.value[].should.be == [];
+				v.path.value[].should.be == (int[]).init;
 			}
 
 			// next position is between two elements
@@ -983,7 +983,7 @@ version(unittest)
 			// scroll 7 px forward
 			visit(model, data, v, 7);
 			// current element is the root one
-			v.path.value[].should.be == [];
+			v.path.value[].should.be == (int[]).init;
 			// position of the current element is 0 px
 			v.position.should.be == 0;
 			// the window starts from 7th px
@@ -1055,7 +1055,7 @@ version(unittest)
 			// scroll the next 5th px backward
 			visit(model, data, v, 7);
 			// the current element is the root element
-			v.path.value[].should.be == [];
+			v.path.value[].should.be == (int[]).init;
 			// position of the current element is 0 px
 			v.position.should.be == 0;
 			// the window starts from 7th px
@@ -1091,7 +1091,7 @@ version(unittest)
 			v.destination.should.be ~ 133.4;
 
 			visit(model, data, v, 0);
-			v.path.value[].should.be == [];
+			v.path.value[].should.be == (int[]).init;
 			v.position.should.be == 0;
 			v.destination.should.be ~ 0.0;
 		}

@@ -156,11 +156,18 @@ template isProcessible(alias A)
 	static if (is(T == struct) || is(T == union))
 	{
 		static foreach(member; DrawableMembers!T)
-			static if (!is(typeof(isProcessible) == bool) &&
+		{
+			static if (is(Unqual!(typeof(mixin("T." ~ member))) == T))
+			{
+				// If the member is a property and returns type T then
+				// we skip this property to prevent endless recursion
+			}
+			else static if (!is(typeof(isProcessible) == bool) &&
 				!isProcessible!(mixin("T." ~ member)))
 			{
 				enum isProcessible = false;
 			}
+		}
 
 		static if (!is(typeof(isProcessible) == bool))
 			enum isProcessible = true;
