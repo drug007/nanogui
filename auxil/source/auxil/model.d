@@ -201,7 +201,7 @@ struct StaticArrayModel(alias A)// if (dataHasStaticArrayModel!(TypeOf!A))
 			model[i] = Model!ElementType(data[i]);
 	}
 
-	mixin visitImpl;
+	mixin acceptImpl;
 }
 
 struct RaRModel(alias A)// if (dataHasRandomAccessRangeModel!(TypeOf!A))
@@ -242,7 +242,7 @@ struct RaRModel(alias A)// if (dataHasRandomAccessRangeModel!(TypeOf!A))
 		update(taget!Data(v));
 	}
 
-	mixin visitImpl;
+	mixin acceptImpl;
 }
 
 struct AssocArrayModel(alias A)// if (dataHasAssociativeArrayModel!(TypeOf!A))
@@ -290,7 +290,7 @@ struct AssocArrayModel(alias A)// if (dataHasAssociativeArrayModel!(TypeOf!A))
 		update(taget!Data(v));
 	}
 
-	mixin visitImpl;
+	mixin acceptImpl;
 }
 
 private enum isCollapsable(T) = is(typeof(T.Collapsable)) && T.Collapsable;
@@ -387,14 +387,14 @@ struct TaggedAlgebraicModel(alias A)// if (dataHasTaggedAlgebraicModel!(TypeOf!A
 		tamodel = makeModel(data);
 	}
 
-	bool visit(Order order, Visitor)(ref const(Data) data, ref Visitor visitor)
+	bool accept(Order order, Visitor)(ref const(Data) data, ref Visitor visitor)
 	{
 		dbgPrint!(true, true)(" dataHasTaggedAlgebraicModel!Data");
 		final switch (data.kind) {
 			foreach (i, fname; Data.UnionType.fieldNames)
 			{
 				case __traits(getMember, data.Kind, fname):
-					if (taget!(this.UnionType.FieldTypes[i])(tamodel).visit!order(
+					if (taget!(this.UnionType.FieldTypes[i])(tamodel).accept!order(
 							taget!(Data.UnionType.FieldTypes[i])(data),
 							visitor,
 						))
@@ -439,9 +439,9 @@ template AggregateModel(alias A) // if (dataHasAggregateModel!(TypeOf!A) && !is(
 					mixin("single_member_model = Model!Member(data.%1$s);".format(member));
 			}
 
-			bool visit(Order order, Visitor)(auto ref const(T) data, ref Visitor visitor)
+			bool accept(Order order, Visitor)(auto ref const(T) data, ref Visitor visitor)
 			{
-				return single_member_model.visit!order(mixin("data." ~ member), visitor);
+				return single_member_model.accept!order(mixin("data." ~ member), visitor);
 			}
 		}
 		alias AggregateModel = SingleMemberAggregateModel!Data;
@@ -475,7 +475,7 @@ template AggregateModel(alias A) // if (dataHasAggregateModel!(TypeOf!A) && !is(
 				}
 			}
 
-			mixin visitImpl;
+			mixin acceptImpl;
 		}
 	}
 }
@@ -503,9 +503,9 @@ struct RenderedAsAggregateModel(alias A)// if (dataHasAggregateModel!(TypeOf!A) 
 		proxy_model = Model!proxy(proxy);
 	}
 
-	bool visit(Order order, Visitor)(auto ref const(Data) ignored_data, ref Visitor visitor)
+	bool accept(Order order, Visitor)(auto ref const(Data) ignored_data, ref Visitor visitor)
 	{
-		return proxy_model.visit!order(proxy, visitor);
+		return proxy_model.accept!order(proxy, visitor);
 	}
 }
 
@@ -528,9 +528,9 @@ struct RenderedAsMemberAggregateModel(alias A)// if (dataHasAggregateModel!Data 
 		model = typeof(model)(mixin("data." ~ member_name));
 	}
 
-	bool visit(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
+	bool accept(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
 	{
-		return model.visit!order(mixin("data." ~ member_name), visitor);
+		return model.accept!order(mixin("data." ~ member_name), visitor);
 	}
 }
 
@@ -551,9 +551,9 @@ struct RenderedAsMemberStringAggregateModel(alias A)// if (dataHasAggregateModel
 		model = typeof(model)(mixin("data." ~ member_name));
 	}
 
-	bool visit(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
+	bool accept(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
 	{
-		return model.visit!order(mixin("data." ~ member_name), visitor);
+		return model.accept!order(mixin("data." ~ member_name), visitor);
 	}
 }
 
@@ -574,9 +574,9 @@ struct RenderedAsPointeeStringModel(alias A)
 		model = typeof(model)(*mixin("data." ~ member_name));
 	}
 
-	bool visit(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
+	bool accept(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
 	{
-		return model.visit!order(*mixin("data." ~ member_name), visitor);
+		return model.accept!order(*mixin("data." ~ member_name), visitor);
 	}
 }
 
@@ -604,9 +604,9 @@ struct DurationModel(alias A)
 		proxy_model = Model!proxy(proxy);
 	}
 
-	bool visit(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
+	bool accept(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
 	{
-		return proxy_model.visit!order(proxy, visitor);
+		return proxy_model.accept!order(proxy, visitor);
 	}
 }
 
@@ -650,13 +650,13 @@ struct NullableModel(alias A)
 			nullable_model = Model!Payload(data.get);
 	}
 
-	bool visit(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
+	bool accept(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
 	{
 		isNull = data.isNull;
 		if (isNull)
-			return nulled_model.visit!order(NulledPayload, visitor);
+			return nulled_model.accept!order(NulledPayload, visitor);
 		else
-			return nullable_model.visit!order(data.get, visitor);
+			return nullable_model.accept!order(data.get, visitor);
 	}
 }
 
@@ -722,13 +722,13 @@ struct TimemarkedModel(alias A)
 			timemarked_model = Model!TimemarkedPayload(data.value);
 	}
 
-	bool visit(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
+	bool accept(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
 	{
 		isNull = data.isNull;
 		if (isNull)
-			return nulled_model.visit!order(NulledPayload, visitor);
+			return nulled_model.accept!order(NulledPayload, visitor);
 
-		if (timemarked_model.visit!order(TimemarkedPayload(data.value), visitor))
+		if (timemarked_model.accept!order(TimemarkedPayload(data.value), visitor))
 			return true;
 
 		version(none)
@@ -736,7 +736,7 @@ struct TimemarkedModel(alias A)
 			visitor.indent;
 			scope(exit) visitor.unindent;
 
-			if (timestamp_model.visit!order(data.timestamp, visitor))
+			if (timestamp_model.accept!order(data.timestamp, visitor))
 				return true;
 		}
 
@@ -763,7 +763,7 @@ struct ScalarModel(alias A)
 	{
 	}
 
-	private bool visit(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
+	private bool accept(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
 	{
 		import std.algorithm : among;
 
@@ -832,21 +832,21 @@ auto makeModel(T)(auto ref const(T) data)
 	return Model!T(data);
 }
 
-mixin template visitImpl()
+mixin template acceptImpl()
 {
-	bool visit(Order order, Visitor)(ref const(Data) data, ref Visitor visitor)
+	bool accept(Order order, Visitor)(ref const(Data) data, ref Visitor visitor)
 		if (Data.sizeof > 24)
 	{
-		return baseVisit!order(data, visitor);
+		return baseAccept!order(data, visitor);
 	}
 
-	bool visit(Order order, Visitor)(const(Data) data, ref Visitor visitor)
+	bool accept(Order order, Visitor)(const(Data) data, ref Visitor visitor)
 		if (Data.sizeof <= 24)
 	{
-		return baseVisit!order(data, visitor);
+		return baseAccept!order(data, visitor);
 	}
 
-	bool baseVisit(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
+	bool baseAccept(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
 	{
 		static if (Data.sizeof > 24 && !__traits(isRef, data))
 			pragma(msg, "Warning: ", Data, " is a value type and has size larger than 24 bytes");
@@ -990,7 +990,7 @@ mixin template visitImpl()
 					static if (hasTreePath) visitor.tree_path.back = i;
 					static if (hasSize) scope(exit) this.size += model[i].size;
 					auto idx = getIndex!(Data)(this, i);
-					if (model[i].visit!order(data[idx], visitor))
+					if (model[i].accept!order(data[idx], visitor))
 					{
 						dbgPrint!(hasSize, hasTreePath)("premature quitting at ", __FILE__, ":", __LINE__);
 						return true;
@@ -1016,7 +1016,7 @@ mixin template visitImpl()
 							static if (hasSize) scope(exit) this.size += mixin("this." ~ member).size;
 							dbgPrint!(hasSize, hasTreePath)("this.size: ", this.size);
 							scope(exit) dbgPrint!(hasSize, hasTreePath)("member.size: ", mixin("this." ~ member).size);
-							if (mixin("this." ~ member).visit!order(mixin("data." ~ member), visitor))
+							if (mixin("this." ~ member).accept!order(mixin("data." ~ member), visitor))
 							{
 								dbgPrint!(hasSize, hasTreePath)("premature quitting at ", __FILE__, ":", __LINE__);
 								return true;
@@ -1285,7 +1285,7 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 		visitor.deferred_change = 0;
 	}
 	visitor.enterTree!order(data, model);
-	model.visit!order(data, visitor);
+	model.accept!order(data, visitor);
 }
 
 void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor)
@@ -1297,7 +1297,7 @@ void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, re
 		visitor.deferred_change = 0;
 	}
 	visitor.enterTree!order(data, model);
-	model.visit!order(data, visitor);
+	model.accept!order(data, visitor);
 }
 
 struct TreePath
