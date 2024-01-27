@@ -62,7 +62,7 @@ public:
 		_model_changed = true;
 		calculateScrollableState;
 		rm.position = 0;
-		visit(_model, _data, rm, 1);
+		traversal(_model, _data, rm, 1);
 	}
 
 	/// Callback that called on mouse clicking
@@ -100,7 +100,7 @@ public:
 			const scroll_position = mScroll * (_model.size - size.y);
 			import nanogui.experimental.utils : MeasuringVisitor;
 			auto mv = MeasuringVisitor(fontSize);
-			_model.visitForward(_data, mv);
+			_model.traversalForward(_data, mv);
 			mScroll = scroll_position / (_model.size - size.y);
 			_model_changed = false;
 		}
@@ -301,7 +301,7 @@ public:
 		if (_scroll_position != scroll_position)
 		{
 			_scroll_position = scroll_position;
-			visit(_model, _data, rm, _scroll_position);
+			traversal(_model, _data, rm, _scroll_position);
 		}
 
 		ctx.theme = theme;
@@ -321,7 +321,7 @@ public:
 		renderer.finish = rm.destination + size.y;
 		import nanogui.layout : Orientation;
 		renderer.ctx.orientation = Orientation.Vertical;
-		visit(_model, _data, renderer, rm.destination + size.y + 50); // FIXME `+ 50` is dirty hack
+		traversal(_model, _data, renderer, rm.destination + size.y + 50); // FIXME `+ 50` is dirty hack
 		tree_path = renderer.selected_item;
 
 		ctx.restore;
@@ -379,7 +379,7 @@ protected:
 		float h; // height of the scroll button
 	}
 
-	import nanogui.experimental.utils : makeModel, visit, visitForward, TreePath;
+	import nanogui.experimental.utils : makeModel, traversal, traversalForward, TreePath;
 
 	enum ScrollBarWidth = 8;
 	Data _data;

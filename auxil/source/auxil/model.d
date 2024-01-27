@@ -1085,7 +1085,7 @@ auto setPropertyByTreePath(string propertyName, Value, Data, Model)(auto ref Dat
 	pv.path.value = path;
 	pv.value = value;
 	pv.propertyKind = PropertyKind.setter;
-	model.visitForward(data, pv);
+	model.traversalForward(data, pv);
 }
 
 auto getPropertyByTreePath(string propertyName, Value, Data, Model)(auto ref Data data, ref Model model, int[] path)
@@ -1093,7 +1093,7 @@ auto getPropertyByTreePath(string propertyName, Value, Data, Model)(auto ref Dat
 	auto pv = PropertyVisitor!(propertyName, Value)();
 	pv.path.value = path;
 	pv.propertyKind = PropertyKind.getter;
-	model.visitForward(data, pv);
+	model.traversalForward(data, pv);
 	return pv.value;
 }
 
@@ -1145,7 +1145,7 @@ void applyByTreePath(T, Data, Model)(auto ref Data data, ref Model model, const(
 	auto pv = ApplyVisitor!T();
 	pv.path.value = path;
 	pv.dg = dg;
-	model.visitForward(data, pv);
+	model.traversalForward(data, pv);
 }
 
 private struct ApplyVisitor(T)
@@ -1265,18 +1265,18 @@ unittest
 	}
 }
 
-void visit(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor, double destination)
+void traversal(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor, double destination)
 {
 	visitor.destination = destination;
 	if (destination == visitor.position)
 		return;
 	else if (destination < visitor.position)
-		model.visitBackward(data, visitor);
+		model.traversalBackward(data, visitor);
 	else
-		model.visitForward(data, visitor);
+		model.traversalForward(data, visitor);
 }
 
-void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) data, ref Visitor visitor)
+void traversalForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) data, ref Visitor visitor)
 {
 	enum order = Order.Sinking;
 	static if (Visitor.treePathEnabled)
@@ -1288,7 +1288,7 @@ void visitForward(Model, Data, Visitor)(ref Model model, auto ref const(Data) da
 	model.accept!order(data, visitor);
 }
 
-void visitBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor)
+void traversalBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor)
 {
 	enum order = Order.Bubbling;
 	static if (Visitor.treePathEnabled)
@@ -1356,7 +1356,7 @@ unittest
 	int[] data = [1, 2];
 	NullVisitor visitor;
 	auto model = makeModel(data);
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 }
 
 import std.typecons : Flag;
@@ -1417,7 +1417,7 @@ unittest
 	auto visitor = MeasuringVisitor(9);
 
 	model.collapsed = false;
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 
 	model.size.should.be == 50;
 	model[].map!"a.size".should.be == [10, 10, 10, 10];

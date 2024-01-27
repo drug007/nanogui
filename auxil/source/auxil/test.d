@@ -104,18 +104,18 @@ unittest
 	auto visitor = PrettyPrintingVisitor(9);
 	auto d = StructWithStruct();
 	auto m = makeModel(d);
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 	assert(m.size == 10);
 	d.d = 0;
 	d.l = 1;
 	d.t.f = 2;
 	d.t.i = 3;
 	d.t.s = "s";
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 	m.collapsed = false;
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 	m.t.collapsed = false;
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 }
 
 version(unittest) @Name("static_array")
@@ -133,7 +133,7 @@ unittest
 	auto visitor = PrettyPrintingVisitor(9);
 	visitor.processItem;
 	m.collapsed = false;
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 
 	visitor.output ~= '\0';
 	version(none)
@@ -162,15 +162,15 @@ unittest
 	visitor.processItem;
 	m.collapsed = false;
 	m.model.length = d.length;
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 
 	d ~= [4.4f, 5.5f];
 	m.model.length = d.length;
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 
 	d = d[2..3];
 	m.model.length = d.length;
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 
 	visitor.output ~= '\0';
 	version(none)
@@ -213,7 +213,7 @@ version(unittest) @Name("aggregate_with_only_member")
 
 	auto visitor = PrettyPrintingVisitor(9);
 	visitor.processItem;
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 
 	visitor.output ~= '\0';
 
@@ -260,7 +260,7 @@ unittest
 
 	auto visitor = PrettyPrintingVisitor(9);
 	visitor.processItem;
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 
 	visitor.output ~= '\0';
 
@@ -339,7 +339,7 @@ unittest
 
 		auto visitor = PrettyPrintingVisitor(9);
 		visitor.processItem;
-		m.visitForward(d, visitor);
+		m.traversalForward(d, visitor);
 
 		visitor.output ~= '\0';
 
@@ -364,7 +364,7 @@ unittest
 
 		auto visitor = PrettyPrintingVisitor(9);
 		visitor.processItem;
-		m.visitForward(d, visitor);
+		m.traversalForward(d, visitor);
 
 		visitor.output ~= '\0';
 
@@ -399,7 +399,7 @@ nan
 
 		auto visitor = PrettyPrintingVisitor(9);
 		visitor.processItem;
-		m.visitForward(d, visitor);
+		m.traversalForward(d, visitor);
 
 		visitor.output ~= '\0';
 
@@ -432,7 +432,7 @@ nan
 
 		auto visitor = PrettyPrintingVisitor(9);
 		visitor.processItem;
-		m.visitForward(d, visitor);
+		m.traversalForward(d, visitor);
 
 		visitor.output ~= '\0';
 
@@ -518,16 +518,16 @@ unittest
 
 	auto visitor = PrettyPrintingVisitor(9);
 	visitor.processItem;
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 
 	data[4] ~= "recently added 4th element";
 	model[4].update(data[4]);
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 
 	data[4] = data[4].get!(string[])[3..$];
 	data[4].get!(string[])[0] = "former 4th element, now the only one";
 	model[4].update(data[4]);
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 
 	visitor.output ~= '\0';
 	version(none)
@@ -601,11 +601,11 @@ unittest
 
 	auto visitor = PrettyPrintingVisitor(14);
 	visitor.processItem;
-	model.visitForward(data[], visitor);
+	model.traversalForward(data[], visitor);
 	assert(model.size == visitor.size + model.Spacing);
 
 	model.collapsed = false;
-	model.visitForward(data[], visitor);
+	model.traversalForward(data[], visitor);
 
 	assert(model.size == 4*(visitor.size + model.Spacing));
 	foreach(e; model.model)
@@ -669,7 +669,7 @@ unittest
 
 	model.size.should.be == 0;
 	auto visitor = PrettyPrintingVisitor(17);
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 
 	model.collapsed.should.be == true;
 	model.size.should.be ~ (visitor.size + model.Spacing);
@@ -677,37 +677,37 @@ unittest
 	visitor.position.should.be ~ 0.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [], false);
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 	model.size.should.be ~ (visitor.size + model.Spacing)*7;
 	model.size.should.be ~ 18.0*7;
 	visitor.position.should.be ~ 6*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [3], false);
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 	model.size.should.be ~ (visitor.size + model.Spacing)*9;
 	model.size.should.be ~ 18.0*9;
 	visitor.position.should.be ~ (6+2)*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [4], false);
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 	model.size.should.be ~ (visitor.size + model.Spacing)*12;
 	model.size.should.be ~ 18.0*12;
 	visitor.position.should.be ~ (6+2+3)*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [5], false);
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 	model.size.should.be ~ (visitor.size + model.Spacing)*15;
 	model.size.should.be ~ 18.0*15;
 	visitor.position.should.be ~ (6+2+3+3)*18.0;
 
 	visitor.destination = visitor.destination.nan;
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 	model.size.should.be == 270;
 	visitor.position.should.be == 252;
 
 	visitor.position = 0;
 	visitor.destination = 100;
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 	model.size.should.be == 126;
 	visitor.position.should.be == 90;
 }
@@ -810,7 +810,7 @@ version(unittest)
 			// measure size
 			{
 				auto mv = MeasuringVisitor(9);
-				model.visitForward(data, mv);
+				model.traversalForward(data, mv);
 			}
 		}
 
@@ -852,7 +852,7 @@ version(unittest)
 		override void test()
 		{
 			v.position = 0;
-			model.visitForward(data, v);
+			model.traversalForward(data, v);
 			model.size.should.be == 180;
 			v.output.should.be == [
 				TreePosition([ ],         0),
@@ -878,7 +878,7 @@ version(unittest)
 
 			v.position = 0;
 			v.path.value = [4,2,1];
-			model.visitForward(data, v);
+			model.traversalForward(data, v);
 			v.output.should.be == [
 				TreePosition([4, 2, 1],  0),
 				TreePosition([4, 3],    10),
@@ -899,7 +899,7 @@ version(unittest)
 				v.path.clear;
 				v.position = 0;
 				v.destination = v.destination.nan;
-				model.visitForward(data, v);
+				model.traversalForward(data, v);
 
 				v.position.should.be == 170;
 				v.path.value[].should.be == (int[]).init;
@@ -910,7 +910,7 @@ version(unittest)
 				v.path.clear;
 				v.position = 0;
 				v.destination = 15;
-				model.visitForward(data, v);
+				model.traversalForward(data, v);
 
 				v.position.should.be == 10;
 				v.destination.should.be == 15;
@@ -922,7 +922,7 @@ version(unittest)
 				v.path.clear;
 				v.position = 0;
 				v.destination = 30;
-				model.visitForward(data, v);
+				model.traversalForward(data, v);
 
 				v.position.should.be == 30;
 				v.destination.should.be == 30;
@@ -934,7 +934,7 @@ version(unittest)
 				v.path.value = [3, 0];
 				v.position = 0;
 				v.destination = 55;
-				model.visitForward(data, v);
+				model.traversalForward(data, v);
 
 				v.position.should.be == 50;
 				v.destination.should.be == 55;
@@ -947,7 +947,7 @@ version(unittest)
 				v.position = 90;
 				v.destination = 41;
 
-				model.visitBackward(data, v);
+				model.traversalBackward(data, v);
 
 				v.position.should.be == 40;
 				v.destination.should.be == 41;
@@ -956,7 +956,7 @@ version(unittest)
 				// bubble to the next element
 				v.destination = 19;
 
-				model.visitBackward(data, v);
+				model.traversalBackward(data, v);
 
 				v.path.value[].should.be == [0];
 				v.position.should.be == 10;
@@ -981,7 +981,7 @@ version(unittest)
 			// the element height is 10 px
 
 			// scroll 7 px forward
-			visit(model, data, v, 7);
+			traversal(model, data, v, 7);
 			// current element is the root one
 			v.path.value[].should.be == (int[]).init;
 			// position of the current element is 0 px
@@ -990,7 +990,7 @@ version(unittest)
 			v.destination.should.be == 7;
 
 			// scroll the next 7th px forward
-			visit(model, data, v, 14);
+			traversal(model, data, v, 14);
 			// the current element is the first child element
 			v.path.value[].should.be == [0];
 			// position of the current element is 10 px
@@ -999,7 +999,7 @@ version(unittest)
 			v.destination.should.be == 14;
 
 			// scroll the next 7th px forward
-			visit(model, data, v, 21);
+			traversal(model, data, v, 21);
 			// the current element is the second child element
 			v.path.value[].should.be == [1];
 			// position of the current element is 20 px
@@ -1008,7 +1008,7 @@ version(unittest)
 			v.destination.should.be == 21;
 
 			// scroll the next 7th px forward
-			visit(model, data, v, 28);
+			traversal(model, data, v, 28);
 			// the current element is the second child element
 			v.path.value[].should.be == [1];
 			// position of the current element is 20 px
@@ -1017,7 +1017,7 @@ version(unittest)
 			v.destination.should.be == 28;
 
 			// scroll the next 7th px forward
-			visit(model, data, v, 35);
+			traversal(model, data, v, 35);
 			// the current element is the third child element
 			v.path.value[].should.be == [2];
 			// position of the current element is 30 px
@@ -1026,7 +1026,7 @@ version(unittest)
 			v.destination.should.be == 35;
 
 			// scroll 7th px backward
-			visit(model, data, v, 27);
+			traversal(model, data, v, 27);
 			// the current element is the second child element
 			v.path.value[].should.be == [1];
 			// position of the current element is 20 px
@@ -1035,7 +1035,7 @@ version(unittest)
 			v.destination.should.be == 27;
 
 			// scroll the next 9th px backward
-			visit(model, data, v, 18);
+			traversal(model, data, v, 18);
 			// the current element is the first child element
 			v.path.value[].should.be == [0];
 			// position of the current element is 10 px
@@ -1044,7 +1044,7 @@ version(unittest)
 			v.destination.should.be == 18;
 
 			// scroll the next 6th px backward
-			visit(model, data, v, 12);
+			traversal(model, data, v, 12);
 			// the current element is the first child element
 			v.path.value[].should.be == [0];
 			// position of the current element is 10 px
@@ -1053,7 +1053,7 @@ version(unittest)
 			v.destination.should.be == 12;
 
 			// scroll the next 5th px backward
-			visit(model, data, v, 7);
+			traversal(model, data, v, 7);
 			// the current element is the root element
 			v.path.value[].should.be == (int[]).init;
 			// position of the current element is 0 px
@@ -1062,7 +1062,7 @@ version(unittest)
 			v.destination.should.be == 7;
 
 			// scroll 76 px forward
-			visit(model, data, v, 83);
+			traversal(model, data, v, 83);
 			// // the current element is the second child element
 			// v.path.value[].should.be == [4, 0];
 			// // position of the current element is 20 px
@@ -1070,27 +1070,27 @@ version(unittest)
 			// the window starts from 27th px
 			v.destination.should.be == 83;
 
-			visit(model, data, v, 81);
+			traversal(model, data, v, 81);
 			v.path.value[].should.be == [4, 0];
 			v.position.should.be == 80;
 			v.destination.should.be == 81;
 
-			visit(model, data, v, 80);
+			traversal(model, data, v, 80);
 			v.path.value[].should.be == [4, 0];
 			v.position.should.be == 80;
 			v.destination.should.be == 80;
 
-			visit(model, data, v, 79.1);
+			traversal(model, data, v, 79.1);
 			v.path.value[].should.be == [4];
 			v.position.should.be == 70;
 			v.destination.should.be ~ 79.1;
 
-			visit(model, data, v, 133.4);
+			traversal(model, data, v, 133.4);
 			v.path.value[].should.be == [4, 3];
 			v.position.should.be == 130;
 			v.destination.should.be ~ 133.4;
 
-			visit(model, data, v, 0);
+			traversal(model, data, v, 0);
 			v.path.value[].should.be == (int[]).init;
 			v.position.should.be == 0;
 			v.destination.should.be ~ 0.0;
@@ -1110,10 +1110,10 @@ unittest
 	model.collapsed = false;
 	{
 		auto mv = MeasuringVisitor(9);
-		model.visitForward(data, mv);
+		model.traversalForward(data, mv);
 	}
 	visitor.position = 0;
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([ ],  0),
 		TreePosition([0], 10),
@@ -1124,7 +1124,7 @@ unittest
 
 	visitor.position.should.be == 40;
 
-	model.visitBackward(data, visitor);
+	model.traversalBackward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([3], 40),
 		TreePosition([2], 30),
@@ -1135,14 +1135,14 @@ unittest
 
 	visitor.path.value = [1,];
 	visitor.position = 20;
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([1], 20),
 		TreePosition([2], 30),
 		TreePosition([3], 40),
 	];
 	visitor.position = 20;
-	model.visitBackward(data, visitor);
+	model.traversalBackward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([1], 20),
 		TreePosition([0], 10),
@@ -1184,10 +1184,10 @@ unittest
 	model.collapsed = false;
 	{
 		auto mv = MeasuringVisitor(9);
-		model.visitForward(data, mv);
+		model.traversalForward(data, mv);
 	}
 	visitor.position = 0;
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([], 0),
 		TreePosition([0], 10),
@@ -1202,7 +1202,7 @@ unittest
 		visitor.path.clear;
 		visitor.position = 0;
 		visitor.destination = 30;
-		model.visitForward(data, visitor);
+		model.traversalForward(data, visitor);
 		visitor.output.should.be == [
 			TreePosition([], 0),
 			TreePosition([0], 10),
@@ -1216,7 +1216,7 @@ unittest
 		visitor.path.clear;
 		visitor.position = 30;
 		visitor.destination = visitor.position + 30;
-		model.visitForward(data, visitor);
+		model.traversalForward(data, visitor);
 		visitor.output.should.be == [
 			TreePosition([], 30),
 			TreePosition([0], 40),
@@ -1230,7 +1230,7 @@ unittest
 		visitor.path.value = [0];
 		visitor.position = 130;
 		visitor.destination = visitor.position + 20;
-		model.visitForward(data, visitor);
+		model.traversalForward(data, visitor);
 		visitor.output.should.be == [
 			TreePosition([0], 130),
 			TreePosition([1], 140),
@@ -1242,7 +1242,7 @@ unittest
 	visitor.path.value = [2];
 	visitor.position = 30;
 	visitor.destination = visitor.destination.nan;
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 
 	visitor.output.should.be == [
 		TreePosition([2], 30),
@@ -1252,7 +1252,7 @@ unittest
 
 	visitor.path.clear;
 	visitor.destination = visitor.destination.nan;
-	model.visitBackward(data, visitor);
+	model.traversalBackward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([4], 50),
 		TreePosition([3], 40),
@@ -1283,7 +1283,7 @@ unittest
 	auto m = makeModel(d);
 	m.collapsed = false;
 	auto visitor = DefaultVisitor(19);
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 	import std;
 	writeln(m);
 }

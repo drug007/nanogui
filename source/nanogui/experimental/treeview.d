@@ -48,7 +48,7 @@ public:
 		_model = makeModel(_data);
 		import nanogui.experimental.utils : MeasuringVisitor;
 		auto v = MeasuringVisitor(fontSize);
-		_model.visitForward(_data, v);
+		_model.traversalForward(_data, v);
 	}
 
 	/// The caption of this TreeView.
@@ -117,7 +117,7 @@ public:
 						setPropertyByTreePath!"collapsed"(_data, _model, tree_path.value[], !value.get);
 						import nanogui.experimental.utils : MeasuringVisitor;
 						auto mv = MeasuringVisitor(fontSize);
-						_model.visitForward(_data, mv);
+						_model.traversalForward(_data, mv);
 						screen.needToPerfomLayout = true;
 					}
 				}
@@ -175,7 +175,7 @@ public:
 		renderer.destination = ctx.position.y + size.y;
 		import nanogui.layout : Orientation;
 		renderer.ctx.orientation = Orientation.Vertical;
-		_model.visitForward(_data, renderer);
+		_model.traversalForward(_data, renderer);
 		tree_path = renderer.selected_item;
 	}
 
@@ -187,7 +187,7 @@ public:
 
 protected:
 
-	import nanogui.experimental.utils : makeModel, visit, visitForward, TreePath;
+	import nanogui.experimental.utils : makeModel, traversal, traversalForward, TreePath;
 
 	/// The caption text of this TreeView.
 	string mCaption;
@@ -217,7 +217,7 @@ protected:
 					_model.collapsed = !v;
 					import nanogui.experimental.utils : MeasuringVisitor;
 					auto mv = MeasuringVisitor(fontSize);
-					_model.visitForward(_data, mv);
+					_model.traversalForward(_data, mv);
 					screen.needToPerfomLayout = true;
 				}
 		}
