@@ -17,7 +17,7 @@ configuration "unittest" {
 
 	mainSourceFile "tests/main.d"
 
-	dflags "-dip25" "-dip1000" "-dip1008"
+	dflags "-dip1000" "-dip1008"
 
 	dependency "unit-threaded" version="~>2.1.8"
 }
