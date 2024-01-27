@@ -243,8 +243,10 @@ template isMemberDrawableAndNotIgnored(alias value, string member)
 /// that should be drawn
 package template DrawableMembers(alias A)
 {
-	import std.meta : ApplyLeft, Filter, AliasSeq;
-	import std.traits : isType, Unqual;
+	import std.meta : ApplyLeft, Filter, AliasSeq, EraseAll;
+	import std.traits : isType, Unqual, isInstanceOf;
+
+	import taggedalgebraic : TaggedAlgebraic;
 
 	static if (isType!A)
 	{
@@ -257,7 +259,20 @@ package template DrawableMembers(alias A)
 
 	Type symbol;
 
-	alias AllMembers = AliasSeq!(__traits(allMembers, Type));
+	alias RawAllMembers = AliasSeq!(__traits(allMembers, Type));
+	// Because TaggedAlgebraic has deprecated members to avoid compiler
+	// warnings we filter deprecated members out
+	static if (isInstanceOf!(TaggedAlgebraic, Type))
+	{
+		import std.algorithm : among;
+
+		alias AllMembers = AliasSeq!();
+		static foreach (m; RawAllMembers)
+			static if (!m.among("typeID", "Union", "Type"))
+				AllMembers = AliasSeq!(AllMembers, m);
+	}
+	else
+		alias AllMembers = RawAllMembers;
 	alias isProper = ApplyLeft!(isMemberDrawableAndNotIgnored, symbol);
 	alias DrawableMembers = Filter!(isProper, AllMembers);
 }
