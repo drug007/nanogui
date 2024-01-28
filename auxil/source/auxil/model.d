@@ -859,27 +859,6 @@ mixin template acceptImpl()
 		enum hasTreePath = Visitor.treePathEnabled;
 		enum hasSize     = Visitor.sizeEnabled;
 
-		static if (hasTreePath)
-		{
-			with(visitor) final switch(state)
-			{
-				case State.seeking:
-					if (tree_path.value == path.value)
-						state = State.first;
-				break;
-				case State.first:
-					state = State.rest;
-				break;
-				case State.rest:
-					// do nothing
-				break;
-				case State.finishing:
-				{
-					dbgPrint!(hasSize, hasTreePath)("state is State.finishing");
-					return true;
-				}
-			}
-		}
 		if (visitor.complete)
 		{
 			dbgPrint!(hasSize, hasTreePath)("visitor.complete is true");
@@ -888,23 +867,45 @@ mixin template acceptImpl()
 
 		static if (hasSize) size = header_size = visitor.size + Spacing;
 
-		static if (hasTreePath) with(visitor)
+		static if (hasTreePath)
 		{
-			if (visitor.state.among(visitor.State.first, visitor.State.rest))
+			with(visitor)
 			{
-				static if (Sinking)
+				final switch(state)
 				{
-					visitor.position += visitor.deferred_change;
-					visitor.deferred_change = this.header_size;
-				}
-				visitor.enterNode!(order, Data)(data, this);
-				static if (Sinking)
-				{
-					if (position+deferred_change > destination)
+					case State.seeking:
+						if (tree_path.value == path.value)
+							state = State.first;
+					break;
+					case State.first:
+						state = State.rest;
+					break;
+					case State.rest:
+						// do nothing
+					break;
+					case State.finishing:
 					{
-						dbgPrint!(hasSize, hasTreePath)("state becomes State.finishing [", visitor.tree_path, "] at ", __FILE__, ":", __LINE__);
-						state = State.finishing;
-						path = tree_path;
+						dbgPrint!(hasSize, hasTreePath)("state is State.finishing");
+						return true;
+					}
+				}
+
+				if (visitor.state.among(visitor.State.first, visitor.State.rest))
+				{
+					static if (Sinking)
+					{
+						visitor.position += visitor.deferred_change;
+						visitor.deferred_change = this.header_size;
+					}
+					visitor.enterNode!(order, Data)(data, this);
+					static if (Sinking)
+					{
+						if (position+deferred_change > destination)
+						{
+							dbgPrint!(hasSize, hasTreePath)("state becomes State.finishing [", visitor.tree_path, "] at ", __FILE__, ":", __LINE__);
+							state = State.finishing;
+							path = tree_path;
+						}
 					}
 				}
 			}
