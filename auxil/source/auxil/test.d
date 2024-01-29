@@ -52,7 +52,7 @@ struct PrettyPrintingVisitor
 
 		static if (hasRenderHeader!data)
 		{
-			import auxil.model : FixedAppender;
+			import auxil.model.fixedappender : FixedAppender;
 			FixedAppender!512 app;
 			data.renderHeader(app);
 			() @trusted { processItem(app[]); } ();
