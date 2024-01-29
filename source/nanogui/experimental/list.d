@@ -407,7 +407,7 @@ protected:
 // This visitor renders the current visible elements
 private struct RenderingVisitor
 {
-	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath;
+	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath, DefaultVisitorImpl, SizeEnabled, TreePathEnabled;
 	import auxil.model;
 
 	NanoContext ctx;
@@ -537,6 +537,7 @@ private struct RenderingVisitor
 // This visitor updates current path to the first visible element
 struct RelativeMeasurer
 {
+	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath, DefaultVisitorImpl, SizeEnabled, TreePathEnabled;
 	import auxil.model;
 
 	alias DefVisitor = DefaultVisitorImpl!(SizeEnabled.no, TreePathEnabled.yes);

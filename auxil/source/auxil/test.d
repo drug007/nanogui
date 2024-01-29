@@ -3,6 +3,7 @@ module auxil.test;
 version(unittest) import unit_threaded : Name;
 
 import auxil.model;
+import auxil.model.default_visitor;
 
 @safe private
 struct PrettyPrintingVisitor
