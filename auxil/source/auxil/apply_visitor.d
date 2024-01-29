@@ -1,6 +1,7 @@
 module auxil.apply_visitor;
 
-import auxil.model : Order, traversalForward;
+import auxil.common : Order;
+import auxil.model : traversalForward;
 import auxil.default_visitor : TreePathVisitor;
 
 void applyByTreePath(T, Data, Model)(auto ref Data data, ref Model model, const(int)[] path, void delegate(ref const(T) value) dg)

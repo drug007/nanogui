@@ -3,6 +3,7 @@ module auxil.model;
 import std.traits : isInstanceOf;
 import taggedalgebraic : TaggedAlgebraic, taget = get;
 import auxil.traits;
+import auxil.common;
 import auxil.model.state : State;
 import auxil.model.accept_impl : acceptImpl;
 
@@ -720,8 +721,6 @@ private auto getLength(Data, alias data)()
 	else
 		static assert(0);
 }
-
-enum Order { Sinking, Bubbling, }
 
 void traversal(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor, double destination)
 {

@@ -1,6 +1,6 @@
 module auxil.two_faced_range;
 
-import auxil.model : Order;
+import auxil.common : Order;
 
 version(unittest) import unit_threaded : Name;
 

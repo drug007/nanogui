@@ -2,6 +2,7 @@ module auxil.test;
 
 version(unittest) import unit_threaded : Name;
 
+import auxil.common : Order;
 import auxil.model;
 import auxil.default_visitor;
 

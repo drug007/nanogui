@@ -409,6 +409,7 @@ private struct RenderingVisitor
 {
 	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath, DefaultVisitorImpl, SizeEnabled, TreePathEnabled;
 	import auxil.model;
+	import auxil.common : Order;
 
 	NanoContext ctx;
 	DefaultVisitorImpl!(SizeEnabled.no, TreePathEnabled.yes) default_visitor;

@@ -4,7 +4,7 @@ import std.typecons : Flag;
 
 version(unittest) import unit_threaded : Name;
 
-import auxil.model : Order;
+import auxil.common : Order;
 
 alias SizeEnabled     = Flag!"SizeEnabled";
 alias TreePathEnabled = Flag!"TreePathEnabled";
