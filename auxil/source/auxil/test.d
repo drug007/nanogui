@@ -457,6 +457,8 @@ unittest
 	import taggedalgebraic : TaggedAlgebraic, Void, get;
 	import unit_threaded : should, be;
 
+	import auxil.model.property_visitor;
+
 	static struct Struct
 	{
 		double d;
@@ -635,6 +637,8 @@ unittest
 	import taggedalgebraic : TaggedAlgebraic, Void, get;
 	import unit_threaded : should, be;
 
+	import auxil.model.property_visitor;
+
 	static struct Struct
 	{
 		double d;
@@ -782,6 +786,8 @@ struct TreePosition
 version(unittest)
 {
 	import unit_threaded;
+
+	import auxil.model.property_visitor;
 
 	class Fixture : TestCase
 	{
