@@ -875,13 +875,14 @@ mixin template acceptImpl()
 				}
 			}
 
-			static if (hasTreePath) visitor.tree_path.put(0);
-			static if (hasTreePath) scope(exit) visitor.tree_path.popBack;
 			auto len = getLength!(Data, data);
 			static if (is(typeof(model.length)))
 				assert(len == model.length);
 			if (!len)
 				return false;
+
+			static if (hasTreePath) visitor.tree_path.put(0);
+			static if (hasTreePath) scope(exit) visitor.tree_path.popBack;
 
 			size_t start_value;
 			static if (Bubbling)
