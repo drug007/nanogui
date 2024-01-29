@@ -3,6 +3,7 @@ module auxil.model;
 import std.traits : isInstanceOf;
 import taggedalgebraic : TaggedAlgebraic, taget = get;
 import auxil.traits;
+import auxil.model.state : State;
 
 version(unittest) import unit_threaded : Name;
 
@@ -67,40 +68,6 @@ private enum dataHasAssociativeArrayModel(T) = isAssociativeArray!T;
 private enum dataHasRandomAccessRangeModel(T) = isRandomAccessRange!T && !isSomeString!T && !dataHasTaggedAlgebraicModel!T;
 private enum dataHasAggregateModel(T) = (is(T == struct) || is(T == union)) && !dataHasRandomAccessRangeModel!T && !dataHasTaggedAlgebraicModel!T;
 private enum dataHasTaggedAlgebraicModel(T) = is(T == struct) && isInstanceOf!(TaggedAlgebraic, T);
-
-mixin template State()
-{
-	enum Spacing = 1;
-	double size = 0, header_size = 0;
-	int _placeholder = 1 << Field.Collapsed | 
-	                   1 << Field.Enabled;
-
-	private enum Field { Collapsed, Enabled, }
-
-	@property void collapsed(bool v)
-	{
-		if (collapsed != v)
-		{
-			if (v)
-				_placeholder |=   1 << Field.Collapsed;
-			else
-				_placeholder &= ~(1 << Field.Collapsed);
-		}
-	}
-	@property bool collapsed() const { return (_placeholder & (1 << Field.Collapsed)) != 0; }
-
-	@property void enabled(bool v)
-	{
-		if (enabled != v)
-		{
-			if (v)
-				_placeholder |=   1 << Field.Enabled;
-			else
-				_placeholder &= ~(1 << Field.Enabled);
-		}
-	}
-	@property bool enabled() const { return (_placeholder & (1 << Field.Enabled)) != 0; }
-}
 
 template Model(alias A)
 {
