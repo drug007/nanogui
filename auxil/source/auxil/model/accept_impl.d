@@ -83,6 +83,8 @@ mixin template acceptImpl()
 			           dataHasRandomAccessRangeModel!Data ||
 			           dataHasAssociativeArrayModel!Data)
 			{
+                import auxil.model.two_faced_range : TwoFacedRange;
+
 				foreach(i; TwoFacedRange!order(start_value, data.length))
 				{
 					static if (hasTreePath) visitor.tree_path.back = i;
