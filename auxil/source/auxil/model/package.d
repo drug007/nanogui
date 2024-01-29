@@ -761,6 +761,8 @@ void traversalBackward(Model, Data, Visitor)(ref Model model, auto ref Data data
 version(unittest) @Name("null_visitor")
 unittest
 {
+	import auxil.default_visitor;
+
 	int[] data = [1, 2];
 	NullVisitor visitor;
 	auto model = makeModel(data);
@@ -772,6 +774,8 @@ unittest
 {
 	import std.algorithm : map;
 	import unit_threaded : should, be;
+
+	import auxil.default_visitor;
 
 	auto data = [0, 1, 2, 3];
 	auto model = makeModel(data);

@@ -83,7 +83,7 @@ mixin template acceptImpl()
 			           dataHasRandomAccessRangeModel!Data ||
 			           dataHasAssociativeArrayModel!Data)
 			{
-                import auxil.model.two_faced_range : TwoFacedRange;
+                import auxil.two_faced_range : TwoFacedRange;
 
 				foreach(i; TwoFacedRange!order(start_value, data.length))
 				{

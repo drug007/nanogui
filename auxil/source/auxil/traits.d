@@ -27,7 +27,7 @@ template isTimemarked(T)
 
 template hasRenderHeader(alias A)
 {
-	import auxil.model.fixedappender : FixedAppender;
+	import auxil.fixedappender : FixedAppender;
 
 	FixedAppender!32 app;
 

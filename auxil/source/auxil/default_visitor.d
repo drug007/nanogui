@@ -1,4 +1,4 @@
-module auxil.model.default_visitor;
+module auxil.default_visitor;
 
 import std.typecons : Flag;
 
@@ -36,7 +36,7 @@ struct DefaultVisitorImpl(
 
 	static if (treePathEnabled == TreePathEnabled.yes)
 	{
-		import auxil.model.tree_path : TreePath;
+		import auxil.tree_path : TreePath;
 
 		enum State { seeking, first, rest, finishing, }
 		State state;

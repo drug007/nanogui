@@ -3,7 +3,7 @@ module auxil.test;
 version(unittest) import unit_threaded : Name;
 
 import auxil.model;
-import auxil.model.default_visitor;
+import auxil.default_visitor;
 
 @safe private
 struct PrettyPrintingVisitor
@@ -53,7 +53,7 @@ struct PrettyPrintingVisitor
 
 		static if (hasRenderHeader!data)
 		{
-			import auxil.model.fixedappender : FixedAppender;
+			import auxil.fixedappender : FixedAppender;
 			FixedAppender!512 app;
 			data.renderHeader(app);
 			() @trusted { processItem(app[]); } ();
@@ -458,7 +458,7 @@ unittest
 	import taggedalgebraic : TaggedAlgebraic, Void, get;
 	import unit_threaded : should, be;
 
-	import auxil.model.property_visitor;
+	import auxil.property_visitor;
 
 	static struct Struct
 	{
@@ -638,7 +638,7 @@ unittest
 	import taggedalgebraic : TaggedAlgebraic, Void, get;
 	import unit_threaded : should, be;
 
-	import auxil.model.property_visitor;
+	import auxil.property_visitor;
 
 	static struct Struct
 	{
@@ -788,7 +788,7 @@ version(unittest)
 {
 	import unit_threaded;
 
-	import auxil.model.property_visitor;
+	import auxil.property_visitor;
 
 	class Fixture : TestCase
 	{

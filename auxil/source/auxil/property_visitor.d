@@ -1,7 +1,7 @@
-module auxil.model.property_visitor;
+module auxil.property_visitor;
 
 import auxil.model : Order, traversalForward;
-import auxil.model.default_visitor : TreePathVisitor;
+import auxil.default_visitor : TreePathVisitor;
 
 private enum PropertyKind { setter, getter }
 

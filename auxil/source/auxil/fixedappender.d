@@ -1,4 +1,4 @@
-module auxil.model.fixedappender;
+module auxil.fixedappender;
 
 struct FixedAppender(size_t Size)
 {

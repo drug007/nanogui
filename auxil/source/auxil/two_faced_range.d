@@ -1,4 +1,4 @@
-module auxil.model.two_faced_range;
+module auxil.two_faced_range;
 
 import auxil.model : Order;
 

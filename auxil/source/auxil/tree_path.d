@@ -1,4 +1,4 @@
-module auxil.model.tree_path;
+module auxil.tree_path;
 
 struct TreePath
 {
