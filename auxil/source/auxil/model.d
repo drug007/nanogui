@@ -859,82 +859,12 @@ mixin template acceptImpl()
 		enum hasTreePath = Visitor.treePathEnabled;
 		enum hasSize     = Visitor.sizeEnabled;
 
-		if (visitor.complete)
-		{
-			dbgPrint!(hasSize, hasTreePath)("visitor.complete is true");
+		if (visitor.doEnterNode!(order, Data)(data, this, visitor))
 			return true;
-		}
-
-		static if (hasSize) size = header_size = visitor.size + Spacing;
-
-		static if (hasTreePath)
-		{
-			with(visitor)
-			{
-				final switch(state)
-				{
-					case State.seeking:
-						if (tree_path.value == path.value)
-							state = State.first;
-					break;
-					case State.first:
-						state = State.rest;
-					break;
-					case State.rest:
-						// do nothing
-					break;
-					case State.finishing:
-					{
-						dbgPrint!(hasSize, hasTreePath)("state is State.finishing");
-						return true;
-					}
-				}
-
-				if (visitor.state.among(visitor.State.first, visitor.State.rest))
-				{
-					static if (Sinking)
-					{
-						visitor.position += visitor.deferred_change;
-						visitor.deferred_change = this.header_size;
-					}
-					visitor.enterNode!(order, Data)(data, this);
-					static if (Sinking)
-					{
-						if (position+deferred_change > destination)
-						{
-							dbgPrint!(hasSize, hasTreePath)("state becomes State.finishing [", visitor.tree_path, "] at ", __FILE__, ":", __LINE__);
-							state = State.finishing;
-							path = tree_path;
-						}
-					}
-				}
-			}
-		}
-		else
-			visitor.enterNode!(order, Data)(data, this);
 
 		scope(exit)
 		{
-			static if (hasTreePath) with(visitor)
-			{
-				if (state.among(State.first, State.rest))
-				{
-					static if (Bubbling)
-					{
-						position += deferred_change;
-						deferred_change = -this.header_size;
-						if (position <= destination)
-						{
-							dbgPrint!(hasSize, hasTreePath)("state becomes State.finishing at ", __FILE__, ":", __LINE__);
-							state = State.finishing;
-							path = tree_path;
-						}
-					}
-					visitor.leaveNode!order(data, this);
-				}
-			}
-			else
-				visitor.leaveNode!order(data, this);
+			visitor.doLeaveNode!(order, Data)(data, this, visitor);
 		}
 
 		dbgPrint!(hasSize, hasTreePath)(" ", Data.stringof);
@@ -1405,6 +1335,100 @@ struct DefaultVisitorImpl(
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
+
+	// DerivedVisitor is "ansector" of this struct. Because the method is template one and can not be a virtual
+	// so no polyphormism at all the actual type of "ansector" is passed directly
+	// IOW when SomeVisitor calls doEnterNode inside this method typeof of this is always DefaultVisitorImpl so
+	// the type of SomeVisitor should b passed directly to call the proper version of the EnterNode method
+	bool doEnterNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
+		if (treePathEnabled == TreePathEnabled.yes)
+	{
+		import std.algorithm : among;
+
+		if (derivedVisitor.complete)
+		{
+			return true;
+		}
+
+		static if (sizeEnabled == SizeEnabled.yes) model.size = model.header_size = size + model.Spacing;
+
+		final switch(state)
+		{
+			case State.seeking:
+				if (tree_path.value == path.value)
+					state = State.first;
+			break;
+			case State.first:
+				state = State.rest;
+			break;
+			case State.rest:
+				// do nothing
+			break;
+			case State.finishing:
+			{
+				return true;
+			}
+		}
+
+		if (state.among(State.first, State.rest))
+		{
+			enum Sinking = order == Order.Sinking;
+
+			static if (Sinking)
+			{
+				position += deferred_change;
+				deferred_change = model.header_size;
+			}
+			derivedVisitor.enterNode!(order, Data)(data, model);
+			static if (Sinking)
+			{
+				if (position+deferred_change > destination)
+				{
+					state = State.finishing;
+					path = tree_path;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	bool doEnterNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
+		if (treePathEnabled == TreePathEnabled.no)
+	{
+		static if (sizeEnabled == SizeEnabled.yes) model.size = model.header_size = size + model.Spacing;
+
+		derivedVisitor.enterNode!(order, Data)(data, model);
+
+		return false;
+	}
+
+	void doLeaveNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
+		if (treePathEnabled == TreePathEnabled.yes)
+	{
+		import std.algorithm : among;
+
+		if (state.among(State.first, State.rest))
+		{
+			static if (order == Order.Bubbling)
+			{
+				position += deferred_change;
+				deferred_change = -model.header_size;
+				if (position <= destination)
+				{
+					state = State.finishing;
+					path = tree_path;
+				}
+			}
+			derivedVisitor.leaveNode!order(data, model);
+		}
+	}
+
+	void doLeaveNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
+		if (treePathEnabled == TreePathEnabled.no)
+	{
+		derivedVisitor.leaveNode!order(data, model);
+	}
 }
 
 version(unittest) @Name("MeasuringVisitor")
