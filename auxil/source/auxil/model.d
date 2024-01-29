@@ -389,7 +389,6 @@ struct TaggedAlgebraicModel(alias A)// if (dataHasTaggedAlgebraicModel!(TypeOf!A
 
 	bool accept(Order order, Visitor)(ref const(Data) data, ref Visitor visitor)
 	{
-		dbgPrint!(true, true)(" dataHasTaggedAlgebraicModel!Data");
 		final switch (data.kind) {
 			foreach (i, fname; Data.UnionType.fieldNames)
 			{
@@ -399,7 +398,6 @@ struct TaggedAlgebraicModel(alias A)// if (dataHasTaggedAlgebraicModel!(TypeOf!A
 							visitor,
 						))
 					{
-						dbgPrint!(true, true)("premature quitting at ", __FILE__, ":", __LINE__);
 						return true;
 					}
 				break;
@@ -788,19 +786,15 @@ struct ScalarModel(alias A)
 				break;
 				case State.finishing:
 				{
-					dbgPrint!(hasSize, hasTreePath)("state is State.finishing");
 					return true;
 				}
 			}
 		}
 		if (visitor.complete)
 		{
-			dbgPrint!(hasSize, hasTreePath)("visitor.complete is true");
 			return true;
 		}
 
-		static if (hasTreePath) with(visitor) { dbgPrint!(hasSize, hasTreePath)(" no constraint ", position, " ", deferred_change, " ", destination, " ");}
-		else {dbgPrint!(hasSize, hasTreePath)(" no constraint ", Data.stringof, " ", data);}
 		static if (hasSize) this.size = visitor.size + this.Spacing;
 		static if (hasTreePath) with(visitor) 
 		{
@@ -813,7 +807,6 @@ struct ScalarModel(alias A)
 				if ((Sinking  && position+deferred_change > destination) ||
 					(Bubbling && position                 < destination))
 				{
-					dbgPrint!(hasSize, hasTreePath)("state becomes State.finishing at ", __FILE__, ":", __LINE__);
 					state = State.finishing;
 					path = tree_path;
 				}
@@ -867,7 +860,6 @@ mixin template acceptImpl()
 			visitor.doLeaveNode!(order, Data)(data, this, visitor);
 		}
 
-		dbgPrint!(hasSize, hasTreePath)(" ", Data.stringof);
 		if (!this.collapsed)
 		{
 			visitor.indent;
@@ -879,7 +871,6 @@ mixin template acceptImpl()
 				// then the childs of the collapsable aren't processed
 				if (visitor.path.value.length && visitor.tree_path.value[] == visitor.path.value[])
 				{
-					dbgPrint!(hasSize, hasTreePath)("special edge case at ", __FILE__, ":", __LINE__);
 					return false;
 				}
 			}
@@ -923,14 +914,12 @@ mixin template acceptImpl()
 					auto idx = getIndex!(Data)(this, i);
 					if (model[i].accept!order(data[idx], visitor))
 					{
-						dbgPrint!(hasSize, hasTreePath)("premature quitting at ", __FILE__, ":", __LINE__);
 						return true;
 					}
 				}
 			}
 			else static if (dataHasAggregateModel!Data)
 			{
-				scope(exit) dbgPrint!(hasSize, hasTreePath)("scope(exit) this.size: ", this.size);
 				// work around ldc2 issue
 				// expression `const len = getLength!(Data, data);` is not a constant
 				const len2 = DrawableMembers!Data.length;
@@ -945,11 +934,8 @@ mixin template acceptImpl()
 							enum member = DrawableMembers!Data[FieldNo];
 							static if (hasTreePath) visitor.tree_path.back = cast(int) FieldNo;
 							static if (hasSize) scope(exit) this.size += mixin("this." ~ member).size;
-							dbgPrint!(hasSize, hasTreePath)("this.size: ", this.size);
-							scope(exit) dbgPrint!(hasSize, hasTreePath)("member.size: ", mixin("this." ~ member).size);
 							if (mixin("this." ~ member).accept!order(mixin("data." ~ member), visitor))
 							{
-								dbgPrint!(hasSize, hasTreePath)("premature quitting at ", __FILE__, ":", __LINE__);
 								return true;
 							}
 						}
@@ -968,7 +954,6 @@ mixin template acceptImpl()
 		}
 		else
 		{
-			dbgPrint!(hasSize, hasTreePath)("is collapsed");
 		}
 
 		return false;
@@ -997,15 +982,6 @@ private auto getLength(Data, alias data)()
 		return DrawableMembers!Data.length;
 	else
 		static assert(0);
-}
-
-void dbgPrint(bool hasSize, bool hasTreePath, Args...)(Args args)
-{
-	version(none) static if (hasSize)
-	{
-		import std;
-		debug writeln(args);
-	}
 }
 
 private enum PropertyKind { setter, getter }
