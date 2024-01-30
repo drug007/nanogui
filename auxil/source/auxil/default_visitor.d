@@ -66,7 +66,7 @@ struct DefaultVisitorImpl(
 			return true;
 		}
 
-		static if (sizeEnabled == SizeEnabled.yes) model.size = model.header_size = sizeY + model.Spacing;
+		static if (sizeEnabled == SizeEnabled.yes) model.size = model.headerSizeY = sizeY + model.Spacing;
 
 		final switch(state)
 		{
@@ -93,7 +93,7 @@ struct DefaultVisitorImpl(
 			static if (Sinking)
 			{
 				position += deferred_change;
-				deferred_change = model.header_size;
+				deferred_change = model.headerSizeY;
 			}
 			derivedVisitor.enterNode!(order, Data)(data, model);
 			static if (Sinking)
@@ -112,7 +112,7 @@ struct DefaultVisitorImpl(
 	bool doEnterNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
 		if (treePathEnabled == TreePathEnabled.no)
 	{
-		static if (sizeEnabled == SizeEnabled.yes) model.size = model.header_size = sizeY + model.Spacing;
+		static if (sizeEnabled == SizeEnabled.yes) model.size = model.headerSizeY = sizeY + model.Spacing;
 
 		derivedVisitor.enterNode!(order, Data)(data, model);
 
@@ -129,7 +129,7 @@ struct DefaultVisitorImpl(
 			static if (order == Order.Bubbling)
 			{
 				position += deferred_change;
-				deferred_change = -model.header_size;
+				deferred_change = -model.headerSizeY;
 				if (position <= destination)
 				{
 					state = State.finishing;
