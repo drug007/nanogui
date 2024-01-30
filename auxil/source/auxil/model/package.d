@@ -229,14 +229,14 @@ struct TaggedAlgebraicModel(alias A)// if (dataHasTaggedAlgebraicModel!(TypeOf!A
 			assert(0); // never reached
 		}
 
-		@property size() const
+		@property sizeYM() const
 		{
 			final switch(value.kind)
 			{
 				foreach (i, FT; value.UnionType.FieldTypes)
 				{
 					case __traits(getMember, value.Kind, value.UnionType.fieldNames[i]):
-						return taget!FT(value).size;
+						return taget!FT(value).sizeYM;
 				}
 			}
 			assert(0);
@@ -507,17 +507,17 @@ struct NullableModel(alias A)
 
 	alias nullable_model this;
 
-	@property auto size()
+	@property auto sizeYM()
 	{
-		return (isNull) ? nulled_model.size : nullable_model.size;
+		return (isNull) ? nulled_model.sizeYM : nullable_model.sizeYM;
 	}
 
-	@property auto size(double v)
+	@property auto sizeYM(double v)
 	{
 		if (isNull)
-			nulled_model.size = v;
+			nulled_model.sizeYM = v;
 		else
-			nullable_model.size = v;
+			nullable_model.sizeYM = v;
 	}
 
 	this()(auto ref const(Data) data)
@@ -571,17 +571,17 @@ struct TimemarkedModel(alias A)
 
 	alias timemarked_model this;
 
-	@property auto size()
+	@property auto sizeYM()
 	{
-		return (isNull) ? nulled_model.size : timemarked_model.size;
+		return (isNull) ? nulled_model.sizeYM : timemarked_model.sizeYM;
 	}
 
-	@property auto size(double v)
+	@property auto sizeYM(double v)
 	{
 		if (isNull)
-			nulled_model.size = v;
+			nulled_model.sizeYM = v;
 		else
-			timemarked_model.size = v;
+			timemarked_model.sizeYM = v;
 	}
 
 	this()(auto ref const(Data) data)
@@ -623,7 +623,7 @@ struct ScalarModel(alias A)
 	    !dataHasAssociativeArrayModel!(TypeOf!A))
 {
 	enum Spacing = 1;
-	float size = 0;
+	float sizeYM = 0;
 
 	enum Collapsable = false;
 
@@ -668,11 +668,11 @@ struct ScalarModel(alias A)
 			return true;
 		}
 
-		static if (hasSize) this.size = visitor.sizeY + this.Spacing;
+		static if (hasSize) this.sizeYM = visitor.sizeY + this.Spacing;
 		static if (hasTreePath) with(visitor) 
 		{
 			position += deferred_change;
-			deferred_change = (Sinking) ? this.size : -this.size;
+			deferred_change = (Sinking) ? this.sizeYM : -this.sizeYM;
 
 			if (state.among(State.first, State.rest))
 			{
@@ -783,8 +783,8 @@ unittest
 	model.collapsed = false;
 	model.traversalForward(data, visitor);
 
-	model.size.should.be == 50;
-	model[].map!"a.size".should.be == [10, 10, 10, 10];
+	model.sizeYM.should.be == 50;
+	model[].map!"a.sizeYM".should.be == [10, 10, 10, 10];
 }
 
 version(unittest) @Name("union")
@@ -838,7 +838,7 @@ unittest
 	static assert(FieldNameTuple!(typeof(m))                                 == AliasSeq!("single_member_model"));
 	static assert(FieldNameTuple!(typeof(m.single_member_model))             == AliasSeq!("proxy", "proxy_model"));
 	static assert(FieldNameTuple!(typeof(m.single_member_model.proxy))       == AliasSeq!(""));
-	static assert(FieldNameTuple!(typeof(m.single_member_model.proxy_model)) == AliasSeq!("size"));
+	static assert(FieldNameTuple!(typeof(m.single_member_model.proxy_model)) == AliasSeq!("sizeYM"));
 
 	@renderedAs!string
 	Duration d;

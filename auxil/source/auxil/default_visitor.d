@@ -66,7 +66,7 @@ struct DefaultVisitorImpl(
 			return true;
 		}
 
-		static if (sizeEnabled == SizeEnabled.yes) model.size = model.headerSizeY = sizeY + model.Spacing;
+		static if (sizeEnabled == SizeEnabled.yes) model.sizeYM = model.headerSizeY = sizeY + model.Spacing;
 
 		final switch(state)
 		{
@@ -112,7 +112,7 @@ struct DefaultVisitorImpl(
 	bool doEnterNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
 		if (treePathEnabled == TreePathEnabled.no)
 	{
-		static if (sizeEnabled == SizeEnabled.yes) model.size = model.headerSizeY = sizeY + model.Spacing;
+		static if (sizeEnabled == SizeEnabled.yes) model.sizeYM = model.headerSizeY = sizeY + model.Spacing;
 
 		derivedVisitor.enterNode!(order, Data)(data, model);
 

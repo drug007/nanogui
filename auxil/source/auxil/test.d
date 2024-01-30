@@ -107,7 +107,7 @@ unittest
 	auto d = StructWithStruct();
 	auto m = makeModel(d);
 	m.traversalForward(d, visitor);
-	assert(m.size == 10);
+	assert(m.sizeYM == 10);
 	d.d = 0;
 	d.l = 1;
 	d.t.f = 2;
@@ -606,14 +606,14 @@ unittest
 	auto visitor = PrettyPrintingVisitor(14);
 	visitor.processItem;
 	model.traversalForward(data[], visitor);
-	assert(model.size == visitor.sizeY + model.Spacing);
+	assert(model.sizeYM == visitor.sizeY + model.Spacing);
 
 	model.collapsed = false;
 	model.traversalForward(data[], visitor);
 
-	assert(model.size == 4*(visitor.sizeY + model.Spacing));
+	assert(model.sizeYM == 4*(visitor.sizeY + model.Spacing));
 	foreach(e; model.model)
-		assert(e.size == (visitor.sizeY + model.Spacing));
+		assert(e.sizeYM == (visitor.sizeY + model.Spacing));
 
 	visitor.output ~= '\0';
 	version(none)
@@ -673,48 +673,48 @@ unittest
 	assert(model.length == data.length);
 	assert(model[4].get!(Model!(string[])).length == data[4].length);
 
-	model.size.should.be == 0;
+	model.sizeYM.should.be == 0;
 	auto visitor = PrettyPrintingVisitor(17);
 	model.traversalForward(data, visitor);
 
 	model.collapsed.should.be == true;
-	model.size.should.be ~ (visitor.sizeY + model.Spacing);
-	model.size.should.be ~ 18.0;
+	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing);
+	model.sizeYM.should.be ~ 18.0;
 	visitor.position.should.be ~ 0.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [], false);
 	model.traversalForward(data, visitor);
-	model.size.should.be ~ (visitor.sizeY + model.Spacing)*7;
-	model.size.should.be ~ 18.0*7;
+	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing)*7;
+	model.sizeYM.should.be ~ 18.0*7;
 	visitor.position.should.be ~ 6*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [3], false);
 	model.traversalForward(data, visitor);
-	model.size.should.be ~ (visitor.sizeY + model.Spacing)*9;
-	model.size.should.be ~ 18.0*9;
+	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing)*9;
+	model.sizeYM.should.be ~ 18.0*9;
 	visitor.position.should.be ~ (6+2)*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [4], false);
 	model.traversalForward(data, visitor);
-	model.size.should.be ~ (visitor.sizeY + model.Spacing)*12;
-	model.size.should.be ~ 18.0*12;
+	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing)*12;
+	model.sizeYM.should.be ~ 18.0*12;
 	visitor.position.should.be ~ (6+2+3)*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [5], false);
 	model.traversalForward(data, visitor);
-	model.size.should.be ~ (visitor.sizeY + model.Spacing)*15;
-	model.size.should.be ~ 18.0*15;
+	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing)*15;
+	model.sizeYM.should.be ~ 18.0*15;
 	visitor.position.should.be ~ (6+2+3+3)*18.0;
 
 	visitor.destination = visitor.destination.nan;
 	model.traversalForward(data, visitor);
-	model.size.should.be == 270;
+	model.sizeYM.should.be == 270;
 	visitor.position.should.be == 252;
 
 	visitor.position = 0;
 	visitor.destination = 100;
 	model.traversalForward(data, visitor);
-	model.size.should.be == 126;
+	model.sizeYM.should.be == 126;
 	visitor.position.should.be == 90;
 }
 
@@ -861,7 +861,7 @@ version(unittest)
 		{
 			v.position = 0;
 			model.traversalForward(data, v);
-			model.size.should.be == 180;
+			model.sizeYM.should.be == 180;
 			v.output.should.be == [
 				TreePosition([ ],         0),
 				TreePosition([0],        10),
