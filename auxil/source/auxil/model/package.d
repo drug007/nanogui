@@ -625,6 +625,8 @@ struct ScalarModel(alias A)
 	enum Spacing = 1;
 	float sizeYM = 0;
 
+    @property typeof(sizeYM) size() const { return sizeYM; }
+
 	enum Collapsable = false;
 
 	alias Data = TypeOf!A;

@@ -58,7 +58,7 @@ public:
 	{
 		_data = data;
 		_model.update(data);
-		_model.size = 0;
+		_model.sizeYM = 0;
 		_model_changed = true;
 		calculateScrollableState;
 		rm.position = 0;

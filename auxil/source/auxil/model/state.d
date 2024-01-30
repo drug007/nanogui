@@ -9,6 +9,9 @@ mixin template State()
 
 	private enum Field { Collapsed, Enabled, }
 
+    @property typeof(sizeYM) size() const { return sizeYM; }
+    @property typeof(headerSizeY) header_size() const { return headerSizeY; }
+
 	@property void collapsed(bool v)
 	{
 		if (collapsed != v)
