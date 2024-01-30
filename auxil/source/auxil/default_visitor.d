@@ -4,7 +4,7 @@ import std.typecons : Flag;
 
 version(unittest) import unit_threaded : Name;
 
-import auxil.common : Order;
+import auxil.common : Order, SizeType;
 
 alias SizeEnabled     = Flag!"SizeEnabled";
 alias TreePathEnabled = Flag!"TreePathEnabled";
@@ -23,7 +23,6 @@ struct DefaultVisitorImpl(
 	alias sizeEnabled     = _size_;
 	alias treePathEnabled = _tree_path_;
 
-	alias SizeType = double;
 	static if (sizeEnabled == SizeEnabled.yes)
 	{
 		SizeType sizeY;

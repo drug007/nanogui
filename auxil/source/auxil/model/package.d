@@ -512,7 +512,7 @@ struct NullableModel(alias A)
 		return (isNull) ? nulled_model.sizeYM : nullable_model.sizeYM;
 	}
 
-	@property auto sizeYM(double v)
+	@property auto sizeYM(SizeType v)
 	{
 		if (isNull)
 			nulled_model.sizeYM = v;
@@ -576,7 +576,7 @@ struct TimemarkedModel(alias A)
 		return (isNull) ? nulled_model.sizeYM : timemarked_model.sizeYM;
 	}
 
-	@property auto sizeYM(double v)
+	@property auto sizeYM(SizeType v)
 	{
 		if (isNull)
 			nulled_model.sizeYM = v;
@@ -622,8 +622,10 @@ struct ScalarModel(alias A)
 	    !dataHasTaggedAlgebraicModel!(TypeOf!A) &&
 	    !dataHasAssociativeArrayModel!(TypeOf!A))
 {
+	import auxil.common : SizeType;
+
 	enum Spacing = 1;
-	float sizeYM = 0;
+	SizeType sizeYM = 0;
 
     @property typeof(sizeYM) size() const { return sizeYM; }
 
@@ -720,7 +722,7 @@ private auto getLength(Data, alias data)()
 		static assert(0);
 }
 
-void traversal(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor, double destination)
+void traversal(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor, SizeType destination)
 {
 	visitor.destination = destination;
 	if (destination == visitor.position)

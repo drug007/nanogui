@@ -2,8 +2,10 @@ module auxil.model.state;
 
 mixin template State()
 {
+    import auxil.common : SizeType;
+
 	enum Spacing = 1;
-	double sizeYM = 0, headerSizeY = 0;
+	SizeType sizeYM = 0, headerSizeY = 0;
 	int _placeholder = 1 << Field.Collapsed | 
 	                   1 << Field.Enabled;
 
