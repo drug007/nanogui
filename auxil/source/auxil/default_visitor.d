@@ -44,6 +44,48 @@ struct DefaultVisitorImpl(
 		SizeType position, deferred_change, destination;
 	}
 
+	package void updatePositionSinking(Order order, Change)(Change change)
+	{
+		static if (order == Order.Sinking)
+		{
+			position += deferred_change;
+			deferred_change = change;
+		}
+	}
+
+	package void updatePositionBubbling(Order order, Change)(Change change)
+	{
+		static if (order == Order.Bubbling)
+		{
+			position += deferred_change;
+			deferred_change = change;
+		}
+	}
+
+	package void checkTraversalCompletionSinking(Order order)()
+	{
+		static if (order == Order.Sinking)
+		{
+			if (position+deferred_change > destination)
+			{
+				state = State.finishing;
+				path = tree_path;
+			}
+		}
+	}
+
+	package void checkTraversalCompletionBubbling(Order order)()
+	{
+		static if (order == Order.Bubbling)
+		{
+			if (position <= destination)
+			{
+				state = State.finishing;
+				path = tree_path;
+			}
+		}
+	}
+
 	void indent() {}
 	void unindent() {}
 	bool complete() @safe @nogc { return false; }
@@ -88,22 +130,9 @@ struct DefaultVisitorImpl(
 
 		if (state.among(State.first, State.rest))
 		{
-			enum Sinking = order == Order.Sinking;
-
-			static if (Sinking)
-			{
-				position += deferred_change;
-				deferred_change = model.headerSizeY;
-			}
+			updatePositionSinking!order(model.headerSizeY);
 			derivedVisitor.enterNode!(order, Data)(data, model);
-			static if (Sinking)
-			{
-				if (position+deferred_change > destination)
-				{
-					state = State.finishing;
-					path = tree_path;
-				}
-			}
+			checkTraversalCompletionSinking!order();
 		}
 
 		return false;
@@ -112,6 +141,11 @@ struct DefaultVisitorImpl(
 	bool doEnterNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
 		if (treePathEnabled == TreePathEnabled.no)
 	{
+		if (derivedVisitor.complete)
+		{
+			return true;
+		}
+
 		static if (sizeEnabled == SizeEnabled.yes) model.sizeYM = model.headerSizeY = sizeY + model.Spacing;
 
 		derivedVisitor.enterNode!(order, Data)(data, model);
@@ -126,16 +160,9 @@ struct DefaultVisitorImpl(
 
 		if (state.among(State.first, State.rest))
 		{
-			static if (order == Order.Bubbling)
-			{
-				position += deferred_change;
-				deferred_change = -model.headerSizeY;
-				if (position <= destination)
-				{
-					state = State.finishing;
-					path = tree_path;
-				}
-			}
+			updatePositionBubbling!order(-model.headerSizeY);
+			checkTraversalCompletionBubbling!order();
+
 			derivedVisitor.leaveNode!order(data, model);
 		}
 	}

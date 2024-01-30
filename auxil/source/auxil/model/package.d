@@ -671,18 +671,14 @@ struct ScalarModel(alias A)
 		static if (hasSize) this.sizeYM = visitor.sizeY + this.Spacing;
 		static if (hasTreePath) with(visitor) 
 		{
-			position += deferred_change;
-			deferred_change = (Sinking) ? this.sizeYM : -this.sizeYM;
+			visitor.updatePositionSinking!order(sizeYM);
+			visitor.updatePositionBubbling!order(-sizeYM);
 
 			if (state.among(State.first, State.rest))
 			{
 				static if (Sinking) visitor.processLeaf!order(data, this);
-				if ((Sinking  && position+deferred_change > destination) ||
-					(Bubbling && position                 < destination))
-				{
-					state = State.finishing;
-					path = tree_path;
-				}
+				visitor.checkTraversalCompletionBubbling!order();
+				visitor.checkTraversalCompletionSinking!order();
 				static if (Bubbling) visitor.processLeaf!order(data, this);
 			}
 		}
