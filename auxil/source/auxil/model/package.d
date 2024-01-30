@@ -668,7 +668,7 @@ struct ScalarModel(alias A)
 			return true;
 		}
 
-		static if (hasSize) this.size = visitor.size + this.Spacing;
+		static if (hasSize) this.size = visitor.sizeY + this.Spacing;
 		static if (hasTreePath) with(visitor) 
 		{
 			position += deferred_change;

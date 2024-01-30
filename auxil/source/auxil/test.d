@@ -606,14 +606,14 @@ unittest
 	auto visitor = PrettyPrintingVisitor(14);
 	visitor.processItem;
 	model.traversalForward(data[], visitor);
-	assert(model.size == visitor.size + model.Spacing);
+	assert(model.size == visitor.sizeY + model.Spacing);
 
 	model.collapsed = false;
 	model.traversalForward(data[], visitor);
 
-	assert(model.size == 4*(visitor.size + model.Spacing));
+	assert(model.size == 4*(visitor.sizeY + model.Spacing));
 	foreach(e; model.model)
-		assert(e.size == (visitor.size + model.Spacing));
+		assert(e.size == (visitor.sizeY + model.Spacing));
 
 	visitor.output ~= '\0';
 	version(none)
@@ -678,31 +678,31 @@ unittest
 	model.traversalForward(data, visitor);
 
 	model.collapsed.should.be == true;
-	model.size.should.be ~ (visitor.size + model.Spacing);
+	model.size.should.be ~ (visitor.sizeY + model.Spacing);
 	model.size.should.be ~ 18.0;
 	visitor.position.should.be ~ 0.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [], false);
 	model.traversalForward(data, visitor);
-	model.size.should.be ~ (visitor.size + model.Spacing)*7;
+	model.size.should.be ~ (visitor.sizeY + model.Spacing)*7;
 	model.size.should.be ~ 18.0*7;
 	visitor.position.should.be ~ 6*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [3], false);
 	model.traversalForward(data, visitor);
-	model.size.should.be ~ (visitor.size + model.Spacing)*9;
+	model.size.should.be ~ (visitor.sizeY + model.Spacing)*9;
 	model.size.should.be ~ 18.0*9;
 	visitor.position.should.be ~ (6+2)*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [4], false);
 	model.traversalForward(data, visitor);
-	model.size.should.be ~ (visitor.size + model.Spacing)*12;
+	model.size.should.be ~ (visitor.sizeY + model.Spacing)*12;
 	model.size.should.be ~ 18.0*12;
 	visitor.position.should.be ~ (6+2+3)*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [5], false);
 	model.traversalForward(data, visitor);
-	model.size.should.be ~ (visitor.size + model.Spacing)*15;
+	model.size.should.be ~ (visitor.sizeY + model.Spacing)*15;
 	model.size.should.be ~ 18.0*15;
 	visitor.position.should.be ~ (6+2+3+3)*18.0;
 
