@@ -61,7 +61,7 @@ public:
 		_model.sizeYM = 0;
 		_model_changed = true;
 		calculateScrollableState;
-		rm.position = 0;
+		rm.posY = 0;
 		traversal(_model, _data, rm, 1);
 	}
 
@@ -309,7 +309,7 @@ public:
 		if (_model.size > mSize.y)
 			ctx.size.x -= ScrollBarWidth;
 		ctx.position.x = 0;
-		ctx.position.y = rm.position - rm.destination;
+		ctx.position.y = rm.posY - rm.destY;
 
 		ctx.mouse -= mPos;
 		scope(exit) ctx.mouse += mPos;
@@ -317,11 +317,11 @@ public:
 		ctx.intersectScissor(0, 0, ctx.size.x, mSize.y);
 		auto renderer = RenderingVisitor(ctx);
 		renderer.path = rm.path;
-		renderer.position = rm.position;
-		renderer.finish = rm.destination + size.y;
+		renderer.posY = rm.posY;
+		renderer.finish = rm.destY + size.y;
 		import nanogui.layout : Orientation;
 		renderer.ctx.orientation = Orientation.Vertical;
-		traversal(_model, _data, renderer, rm.destination + size.y + 50); // FIXME `+ 50` is dirty hack
+		traversal(_model, _data, renderer, rm.destY + size.y + 50); // FIXME `+ 50` is dirty hack
 		tree_path = renderer.selected_item;
 
 		ctx.restore;

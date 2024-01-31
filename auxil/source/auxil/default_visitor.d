@@ -4,7 +4,7 @@ import std.typecons : Flag;
 
 version(unittest) import unit_threaded : Name;
 
-import auxil.common : Order, SizeType;
+import auxil.common : Order, SizeType, Orientation;
 
 alias SizeEnabled     = Flag!"SizeEnabled";
 alias TreePathEnabled = Flag!"TreePathEnabled";
@@ -40,15 +40,26 @@ struct DefaultVisitorImpl(
 		enum State { seeking, first, rest, finishing, }
 		State state;
 		TreePath tree_path, path;
-		SizeType position, deferred_change, destination;
+		private SizeType[2] _pos, _deferred_change, _destination;
+
+		SizeType posY() const { return _pos[Orientation.Vertical]; }
+		SizeType posY(SizeType value) { _pos[Orientation.Vertical] = value; return value; }
+
+		SizeType destY() const { return _destination[Orientation.Vertical]; }
+		SizeType destY(SizeType value) { _destination[Orientation.Vertical] = value; return value; }
+
+		void clear()
+		{
+			_deferred_change = 0;
+		}
 	}
 
 	package void updatePositionSinking(Order order, Change)(Change change)
 	{
 		static if (order == Order.Sinking)
 		{
-			position += deferred_change;
-			deferred_change = change;
+			_pos[Orientation.Vertical] += _deferred_change[Orientation.Vertical];
+			_deferred_change = change;
 		}
 	}
 
@@ -56,8 +67,8 @@ struct DefaultVisitorImpl(
 	{
 		static if (order == Order.Bubbling)
 		{
-			position += deferred_change;
-			deferred_change = change;
+			_pos[Orientation.Vertical] += _deferred_change[Orientation.Vertical];
+			_deferred_change = change;
 		}
 	}
 
@@ -65,7 +76,7 @@ struct DefaultVisitorImpl(
 	{
 		static if (order == Order.Sinking)
 		{
-			if (position+deferred_change > destination)
+			if (_pos[Orientation.Vertical]+_deferred_change[Orientation.Vertical] > _destination[Orientation.Vertical])
 			{
 				state = State.finishing;
 				path = tree_path;
@@ -77,7 +88,7 @@ struct DefaultVisitorImpl(
 	{
 		static if (order == Order.Bubbling)
 		{
-			if (position <= destination)
+			if (_pos[Orientation.Vertical] <= _destination[Orientation.Vertical])
 			{
 				state = State.finishing;
 				path = tree_path;

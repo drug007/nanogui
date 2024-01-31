@@ -75,7 +75,7 @@ mixin template acceptImpl()
 						start_value = visitor.path.value[idx-1];
 						// position should change only if we've got the initial path
 						// and don't get the end
-						if (visitor.state == visitor.State.seeking) visitor.deferred_change = 0;
+						if (visitor.state == visitor.State.seeking) visitor.clear;
 					}
 				}
 			}

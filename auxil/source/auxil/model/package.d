@@ -724,10 +724,10 @@ private auto getLength(Data, alias data)()
 
 void traversal(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor, SizeType destination)
 {
-	visitor.destination = destination;
-	if (destination == visitor.position)
+	visitor.destY = destination;
+	if (destination == visitor.posY)
 		return;
-	else if (destination < visitor.position)
+	else if (destination < visitor.posY)
 		model.traversalBackward(data, visitor);
 	else
 		model.traversalForward(data, visitor);
@@ -739,7 +739,7 @@ void traversalForward(Model, Data, Visitor)(ref Model model, auto ref const(Data
 	static if (Visitor.treePathEnabled)
 	{
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
-		visitor.deferred_change = 0;
+		visitor.clear;
 	}
 	visitor.enterTree!order(data, model);
 	model.accept!order(data, visitor);
@@ -751,7 +751,7 @@ void traversalBackward(Model, Data, Visitor)(ref Model model, auto ref Data data
 	static if (Visitor.treePathEnabled)
 	{
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
-		visitor.deferred_change = 0;
+		visitor.clear;
 	}
 	visitor.enterTree!order(data, model);
 	model.accept!order(data, visitor);
