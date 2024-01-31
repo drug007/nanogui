@@ -2,14 +2,14 @@ module auxil.model.state;
 
 mixin template State()
 {
-    import auxil.common : SizeType;
+    import auxil.common : SizeType, Orientation;
 
 	enum Spacing = 1;
 	SizeType sizeYM = 0, headerSizeY = 0;
 	int _placeholder = 1 << Field.Collapsed | 
 	                   1 << Field.Enabled;
 
-	private enum Field { Collapsed, Enabled, }
+	private enum Field { Collapsed, Enabled, Orientation}
 
     @property typeof(sizeYM) size() const { return sizeYM; }
     @property typeof(headerSizeY) header_size() const { return headerSizeY; }
@@ -37,4 +37,19 @@ mixin template State()
 		}
 	}
 	@property bool enabled() const { return (_placeholder & (1 << Field.Enabled)) != 0; }
+
+	@property void orientation(Orientation v)
+	{
+		if (orientation != v)
+		{
+			if (v == Orientation.Horizontal)
+				_placeholder |=   1 << Field.Orientation;
+			else
+				_placeholder &= ~(1 << Field.Orientation);
+		}
+	}
+	@property Orientation orientation() const
+    {
+        return (_placeholder & (1 << Field.Orientation)) ? Orientation.Horizontal : Orientation.Vertical;
+    }
 }
