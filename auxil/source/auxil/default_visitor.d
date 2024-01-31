@@ -62,7 +62,7 @@ struct DefaultVisitorImpl(
 		static if (order == Order.Sinking)
 		{
 			_pos[_orientation] += _deferred_change[_orientation];
-			_deferred_change = change;
+			_deferred_change[_orientation] = change;
 		}
 	}
 
@@ -71,7 +71,7 @@ struct DefaultVisitorImpl(
 		static if (order == Order.Bubbling)
 		{
 			_pos[_orientation] += _deferred_change[_orientation];
-			_deferred_change = change;
+			_deferred_change[_orientation] = change;
 		}
 	}
 
