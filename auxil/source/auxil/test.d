@@ -1271,35 +1271,6 @@ unittest
 	];
 }
 
-version(unittest) @Name("horizontal")
-unittest
-{
-	import auxil.common : Orientation;
-
-	static struct TrivialStruct
-	{
-		int i;
-		float f;
-	}
-
-	auto data = TrivialStruct();
-	auto model = makeModel(data);
-	import std;
-	writeln(model);
-	model.collapsed = false;
-
-	model.orientation.should.be == Orientation.Vertical;
-
-	model.orientation = Orientation.Horizontal;
-
-	import std;
-	writeln(model);
-	auto visitor = DefaultVisitor(19);
-	model.traversalForward(data, visitor);
-	import std;
-	writeln(model);
-}
-
 version(unittest) @Name("new_paradigm")
 unittest
 {

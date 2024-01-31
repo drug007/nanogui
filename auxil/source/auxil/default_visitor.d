@@ -43,6 +43,8 @@ struct DefaultVisitorImpl(
 		private SizeType[2] _pos, _deferred_change, _destination;
 		private Orientation _orientation;
 
+		SizeType posX() const { return _pos[Orientation.Horizontal]; }
+		SizeType posX(SizeType value) { _pos[Orientation.Horizontal] = value; return value; }
 		SizeType posY() const { return _pos[Orientation.Vertical]; }
 		SizeType posY(SizeType value) { _pos[Orientation.Vertical] = value; return value; }
 
@@ -107,10 +109,10 @@ struct DefaultVisitorImpl(
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 
-	// DerivedVisitor is "ansector" of this struct. Because the method is template one and can not be a virtual
-	// so no polyphormism at all the actual type of "ansector" is passed directly
-	// IOW when SomeVisitor calls doEnterNode inside this method typeof of this is always DefaultVisitorImpl so
-	// the type of SomeVisitor should b passed directly to call the proper version of the EnterNode method
+	// DerivedVisitor is "ansector" of this struct. Because the method is a template one and can not be virtual
+	// (so no polyphormism at all) the actual type of "ansector" is passed directly
+	// IOW when SomeVisitor calls doEnterNode inside this method the type of `this` is always DefaultVisitorImpl so
+	// the type of SomeVisitor should be passed directly to call the proper version of the enterNode method
 	bool doEnterNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
 		if (treePathEnabled == TreePathEnabled.yes)
 	{
