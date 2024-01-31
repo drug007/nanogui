@@ -1287,7 +1287,11 @@ unittest
 	import std;
 	writeln(model);
 	model.collapsed = false;
+
+	model.orientation.should.be == Orientation.Vertical;
+
 	model.orientation = Orientation.Horizontal;
+
 	import std;
 	writeln(model);
 	auto visitor = DefaultVisitor(19);

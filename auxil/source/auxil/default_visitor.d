@@ -41,12 +41,15 @@ struct DefaultVisitorImpl(
 		State state;
 		TreePath tree_path, path;
 		private SizeType[2] _pos, _deferred_change, _destination;
+		private Orientation _orientation;
 
 		SizeType posY() const { return _pos[Orientation.Vertical]; }
 		SizeType posY(SizeType value) { _pos[Orientation.Vertical] = value; return value; }
 
 		SizeType destY() const { return _destination[Orientation.Vertical]; }
 		SizeType destY(SizeType value) { _destination[Orientation.Vertical] = value; return value; }
+
+		Orientation orientation() const { return _orientation; }
 
 		void clear()
 		{
@@ -58,7 +61,7 @@ struct DefaultVisitorImpl(
 	{
 		static if (order == Order.Sinking)
 		{
-			_pos[Orientation.Vertical] += _deferred_change[Orientation.Vertical];
+			_pos[_orientation] += _deferred_change[_orientation];
 			_deferred_change = change;
 		}
 	}
@@ -67,7 +70,7 @@ struct DefaultVisitorImpl(
 	{
 		static if (order == Order.Bubbling)
 		{
-			_pos[Orientation.Vertical] += _deferred_change[Orientation.Vertical];
+			_pos[_orientation] += _deferred_change[_orientation];
 			_deferred_change = change;
 		}
 	}
@@ -76,7 +79,7 @@ struct DefaultVisitorImpl(
 	{
 		static if (order == Order.Sinking)
 		{
-			if (_pos[Orientation.Vertical]+_deferred_change[Orientation.Vertical] > _destination[Orientation.Vertical])
+			if (_pos[_orientation]+_deferred_change[_orientation] > _destination[_orientation])
 			{
 				state = State.finishing;
 				path = tree_path;
@@ -88,7 +91,7 @@ struct DefaultVisitorImpl(
 	{
 		static if (order == Order.Bubbling)
 		{
-			if (_pos[Orientation.Vertical] <= _destination[Orientation.Vertical])
+			if (_pos[_orientation] <= _destination[_orientation])
 			{
 				state = State.finishing;
 				path = tree_path;
@@ -137,6 +140,8 @@ struct DefaultVisitorImpl(
 				return true;
 			}
 		}
+
+		derivedVisitor._orientation = model.orientation;
 
 		if (state.among(State.first, State.rest))
 		{
