@@ -244,12 +244,6 @@ private struct RenderingVisitor
 	alias default_visitor this;
 
 	TreePath selected_item;
-	float finish;
-
-	bool complete()
-	{
-		return ctx.position.y > finish;
-	}
 
 	void indent()
 	{

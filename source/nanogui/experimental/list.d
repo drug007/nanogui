@@ -318,7 +318,7 @@ public:
 		auto renderer = RenderingVisitor(ctx);
 		renderer.path = rm.path;
 		renderer.posY = rm.posY;
-		renderer.finish = rm.destY + size.y;
+		renderer.destY = rm.destY + size.y;
 		import nanogui.layout : Orientation;
 		renderer.ctx.orientation = Orientation.Vertical;
 		traversal(_model, _data, renderer, rm.destY + size.y + 50); // FIXME `+ 50` is dirty hack
@@ -416,12 +416,6 @@ private struct RenderingVisitor
 	alias default_visitor this;
 
 	TreePath selected_item;
-	float finish;
-
-	bool complete()
-	{
-		return ctx.position.y > finish;
-	}
 
 	void indent()
 	{
