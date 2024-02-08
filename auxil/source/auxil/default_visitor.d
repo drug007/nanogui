@@ -101,6 +101,23 @@ struct DefaultVisitorImpl(
 		}
 	}
 
+	void toString(scope void delegate(const(char)[]) sink) const
+    {
+		import std.conv : to;
+
+		sink(typeof(this).stringof);
+		sink("(");
+
+		static foreach(i; 0..typeof(this).tupleof.length)
+		{
+			sink(this.tupleof[i].stringof[5..$]);
+			sink(": ");
+			sink(this.tupleof[i].to!string);
+			sink(", ");
+		}
+		sink(")");
+	}
+
 	void indent() {}
 	void unindent() {}
 	bool complete() @safe @nogc { return false; }

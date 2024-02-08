@@ -301,6 +301,10 @@ public:
 		if (_scroll_position != scroll_position)
 		{
 			_scroll_position = scroll_position;
+			// Make a traversal to determine the position of the first visible item (rm.posY)
+			// The coordinate of visible area (destination in this case) minus the position of
+			// the first visible item is  the size of invisible part of the first visible item
+			// if the item is partially visible
 			traversal(_model, _data, rm, _scroll_position);
 		}
 
@@ -309,20 +313,22 @@ public:
 		if (_model.size > mSize.y)
 			ctx.size.x -= ScrollBarWidth;
 		ctx.position.x = 0;
+		// the size of invisible part of the first item
+		// always 0 or below
 		ctx.position.y = rm.posY - rm.destY;
+		assert(ctx.position.y <= 0);
 
 		ctx.mouse -= mPos;
 		scope(exit) ctx.mouse += mPos;
 		ctx.translate(mPos.x, mPos.y);
 		ctx.intersectScissor(0, 0, ctx.size.x, mSize.y);
-		auto renderer = RenderingVisitor(ctx);
-		renderer.path = rm.path;
-		renderer.posY = rm.posY;
-		renderer.destY = rm.destY + size.y;
+
+		import nanogui.experimental.details.list_visitors : RenderingVisitor;
 		import nanogui.layout : Orientation;
-		renderer.ctx.orientation = Orientation.Vertical;
-		traversal(_model, _data, renderer, rm.destY + size.y + 50); // FIXME `+ 50` is dirty hack
-		tree_path = renderer.selected_item;
+
+		auto renderer = RenderingVisitor(ctx, Orientation.Vertical, rm.path, rm.posY, rm.destY + size.y);
+		traversal(_model, _data, renderer, rm.destY + size.y);
+		tree_path = renderer.selectedItem;
 
 		ctx.restore;
 
@@ -380,6 +386,7 @@ protected:
 	}
 
 	import nanogui.experimental.utils : makeModel, traversal, traversalForward, TreePath;
+	import nanogui.experimental.details.list_visitors : RelativeMeasurer;
 
 	enum ScrollBarWidth = 8;
 	Data _data;
@@ -402,140 +409,4 @@ protected:
 	bool _model_changed;
 	// if mouse left button has been pressed and not released over scroll button
 	bool _pushed_scroll_btn;
-}
-
-// This visitor renders the current visible elements
-private struct RenderingVisitor
-{
-	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath, DefaultVisitorImpl, SizeEnabled, TreePathEnabled;
-	import auxil.model;
-	import auxil.common : Order;
-
-	NanoContext ctx;
-	DefaultVisitorImpl!(SizeEnabled.no, TreePathEnabled.yes) default_visitor;
-	alias default_visitor this;
-
-	TreePath selected_item;
-
-	void indent()
-	{
-		ctx.indent;
-	}
-
-	void unindent()
-	{
-		ctx.unindent;
-	}
-
-	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
-	{
-		ctx.save;
-		scope(exit) ctx.restore;
-		version(none)
-		{
-			ctx.strokeWidth(1.0f);
-			ctx.beginPath;
-			ctx.rect(ctx.position.x + 1.0f, ctx.position.y + 1.0f, ctx.size.x - 2, model.size-2);
-			ctx.strokeColor(Color(255, 0, 0, 255));
-			ctx.stroke;
-		}
-
-		{
-			// background for icon
-			NVGPaint bg = ctx.boxGradient(
-				ctx.position.x + 1.5f, ctx.position.y + 1.5f,
-				ctx.size[ctx.orientation] - 2.0f, ctx.size[ctx.orientation] - 2.0f, 3, 3,
-				true/*pushed*/ ? Color(0, 0, 0, 100) : Color(0, 0, 0, 32),
-				Color(0, 0, 0, 180)
-			);
-
-			ctx.beginPath;
-			ctx.roundedRect(ctx.position.x + 1.0f, ctx.position.y + 1.0f,
-				ctx.size[ctx.orientation] - 2.0f, ctx.size[ctx.orientation] - 2.0f, 3);
-			ctx.fillPaint(bg);
-			ctx.fill;
-		}
-
-		{
-			// icon
-			ctx.fontSize(ctx.size.y);
-			ctx.fontFace("icons");
-			ctx.fillColor(model.enabled ? ctx.theme.mIconColor
-			                            : ctx.theme.mDisabledTextColor);
-			NVGTextAlign algn;
-			algn.center = true;
-			algn.middle = true;
-			ctx.textAlign(algn);
-
-			import nanogui.entypo : Entypo;
-			int axis2 = (cast(int)ctx.orientation+1)%2;
-			const old = ctx.size[axis2];
-			ctx.size[axis2] = ctx.size[ctx.orientation]; // icon has width equals to its height
-			dchar[1] symb;
-			symb[0] = model.collapsed ? Entypo.ICON_CHEVRON_RIGHT :
-			                            Entypo.ICON_CHEVRON_DOWN;
-			if (drawItem(ctx, ctx.size[ctx.orientation], symb[]))
-				selected_item = tree_path;
-			ctx.size[axis2] = old; // restore full width
-			ctx.position[ctx.orientation] -= ctx.size[ctx.orientation];
-		}
-
-		{
-			// Caption
-			const shift = 1.6f * ctx.size.y;
-			ctx.position.x += shift;
-			ctx.size.x -= shift;
-			scope(exit)
-			{
-				ctx.position.x -= shift;
-				ctx.size.x += shift;
-			}
-			ctx.fontSize(ctx.size.y);
-			ctx.fontFace("sans");
-			ctx.fillColor(model.enabled ? ctx.theme.mTextColor : ctx.theme.mDisabledTextColor);
-
-			import nanogui.experimental.utils : hasRenderHeader;
-			static if (hasRenderHeader!data)
-			{
-				import auxil.model : FixedAppender;
-				FixedAppender!512 app;
-				data.renderHeader(app);
-				auto header = app[];
-			}
-			else
-				auto header = Data.stringof;
-			if (drawItem(ctx, model.header_size, header))
-				selected_item = tree_path;
-		}
-	}
-
-	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
-	{
-		ctx.save;
-		scope(exit) ctx.restore;
-		version(none)
-		{
-			ctx.strokeWidth(1.0f);
-			ctx.beginPath;
-			ctx.rect(ctx.position.x + 1.0f, ctx.position.y + 1.0f, ctx.size.x - 2, model.size - 2);
-			ctx.strokeColor(Color(255, 0, 0, 255));
-			ctx.stroke;
-		}
-		ctx.fontSize(ctx.size.y);
-		ctx.fontFace("sans");
-		ctx.fillColor(ctx.theme.mTextColor);
-		if (drawItem(ctx, model.size, data))
-			selected_item = tree_path;
-	}
-}
-
-// This visitor updates current path to the first visible element
-struct RelativeMeasurer
-{
-	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath, DefaultVisitorImpl, SizeEnabled, TreePathEnabled;
-	import auxil.model;
-
-	alias DefVisitor = DefaultVisitorImpl!(SizeEnabled.no, TreePathEnabled.yes);
-	DefVisitor default_visitor;
-	alias default_visitor this;
 }
