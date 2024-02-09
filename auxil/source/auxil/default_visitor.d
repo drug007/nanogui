@@ -6,24 +6,35 @@ version(unittest) import unit_threaded : Name;
 
 import auxil.common : Order, SizeType, Orientation;
 
-alias SizeEnabled     = Flag!"SizeEnabled";
-alias TreePathEnabled = Flag!"TreePathEnabled";
+struct FeaturesNull {}
 
-alias NullVisitor      = DefaultVisitorImpl!(SizeEnabled.no,  TreePathEnabled.no );
-alias MeasuringVisitor = DefaultVisitorImpl!(SizeEnabled.yes, TreePathEnabled.no );
-alias TreePathVisitor  = DefaultVisitorImpl!(SizeEnabled.no,  TreePathEnabled.yes);
-alias DefaultVisitor   = DefaultVisitorImpl!(SizeEnabled.yes, TreePathEnabled.yes);
+struct FeaturesSize
+{
+	bool SizeEnabled;
+}
+
+struct FeaturesTreePath
+{
+	bool TreePathEnabled;
+}
+
+struct FeaturesSizeTreePath
+{
+	bool SizeEnabled, TreePathEnabled;
+}
+
+alias NullVisitor      = DefaultVisitorImpl!FeaturesNull;
+alias MeasuringVisitor = DefaultVisitorImpl!FeaturesSize;
+alias TreePathVisitor  = DefaultVisitorImpl!FeaturesTreePath;
+alias DefaultVisitor   = DefaultVisitorImpl!FeaturesSizeTreePath;
 
 /// Default implementation of Visitor
-struct DefaultVisitorImpl(
-	SizeEnabled _size_,
-	TreePathEnabled _tree_path_,
-)
+struct DefaultVisitorImpl(Features)
 {
-	alias sizeEnabled     = _size_;
-	alias treePathEnabled = _tree_path_;
+	enum sizeEnabled     = is(typeof(Features.SizeEnabled));
+	enum treePathEnabled = is(typeof(Features.TreePathEnabled));
 
-	static if (sizeEnabled == SizeEnabled.yes)
+	static if (sizeEnabled)
 	{
 		SizeType sizeY;
 
@@ -33,7 +44,7 @@ struct DefaultVisitorImpl(
 		}
 	}
 
-	static if (treePathEnabled == TreePathEnabled.yes)
+	static if (treePathEnabled)
 	{
 		import auxil.tree_path : TreePath;
 
@@ -131,7 +142,7 @@ struct DefaultVisitorImpl(
 	// IOW when SomeVisitor calls doEnterNode inside this method the type of `this` is always DefaultVisitorImpl so
 	// the type of SomeVisitor should be passed directly to call the proper version of the enterNode method
 	bool doEnterNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
-		if (treePathEnabled == TreePathEnabled.yes)
+		if (treePathEnabled)
 	{
 		import std.algorithm : among;
 
@@ -140,7 +151,7 @@ struct DefaultVisitorImpl(
 			return true;
 		}
 
-		static if (sizeEnabled == SizeEnabled.yes) model.sizeYM = model.headerSizeY = sizeY + model.Spacing;
+		static if (sizeEnabled) model.sizeYM = model.headerSizeY = sizeY + model.Spacing;
 
 		final switch(state)
 		{
@@ -173,14 +184,14 @@ struct DefaultVisitorImpl(
 	}
 
 	bool doEnterNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
-		if (treePathEnabled == TreePathEnabled.no)
+		if (!treePathEnabled)
 	{
 		if (derivedVisitor.complete)
 		{
 			return true;
 		}
 
-		static if (sizeEnabled == SizeEnabled.yes) model.sizeYM = model.headerSizeY = sizeY + model.Spacing;
+		static if (sizeEnabled) model.sizeYM = model.headerSizeY = sizeY + model.Spacing;
 
 		derivedVisitor.enterNode!(order, Data)(data, model);
 
@@ -188,7 +199,7 @@ struct DefaultVisitorImpl(
 	}
 
 	void doLeaveNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
-		if (treePathEnabled == TreePathEnabled.yes)
+		if (treePathEnabled)
 	{
 		import std.algorithm : among;
 
@@ -202,7 +213,7 @@ struct DefaultVisitorImpl(
 	}
 
 	void doLeaveNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
-		if (treePathEnabled == TreePathEnabled.no)
+		if (!treePathEnabled)
 	{
 		derivedVisitor.leaveNode!order(data, model);
 	}

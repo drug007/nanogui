@@ -235,12 +235,13 @@ protected:
 
 private struct RenderingVisitor
 {
-	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath, DefaultVisitorImpl, SizeEnabled, TreePathEnabled;
+	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath, DefaultVisitorImpl;
 	import auxil.model;
 	import auxil.common : Order;
+	import auxil.default_visitor : TreePathVisitor;
 
 	NanoContext ctx;
-	DefaultVisitorImpl!(SizeEnabled.no, TreePathEnabled.yes) default_visitor;
+	TreePathVisitor default_visitor;
 	alias default_visitor this;
 
 	TreePath selected_item;

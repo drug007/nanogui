@@ -720,7 +720,7 @@ unittest
 
 struct RelativeMeasurer
 {
-	DefaultVisitorImpl!(SizeEnabled.no, TreePathEnabled.yes) default_visitor;
+	TreePathVisitor default_visitor;
 	alias default_visitor this;
 
 	TreePosition[] output;

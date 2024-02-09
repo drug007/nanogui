@@ -3,16 +3,17 @@ module nanogui.experimental.details.list_visitors;
 // This visitor renders the current visible elements
 struct RenderingVisitor
 {
-	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath, DefaultVisitorImpl, SizeEnabled, TreePathEnabled;
+	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath, DefaultVisitorImpl;
     import nanogui.common : Color, NanoContext, boxGradient, fillColor;
     import nanogui.layout : Orientation;
 	import auxil.model;
 	import auxil.common : Order, SizeType;
+	import auxil.default_visitor : TreePathVisitor;
 
     import arsd.nanovega;
 
 	private NanoContext* _ctxPtr;
-	DefaultVisitorImpl!(SizeEnabled.no, TreePathEnabled.yes) default_visitor;
+	TreePathVisitor default_visitor;
 	alias default_visitor this;
 	// Координата начала текущего окна вывода виджета плюс (отрицательная )
 	// поправка на невидимую часть первого видимого элемента
@@ -164,10 +165,10 @@ struct RenderingVisitor
 // This visitor updates the current path to the first visible element
 struct RelativeMeasurer
 {
-	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath, DefaultVisitorImpl, SizeEnabled, TreePathEnabled;
+	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath, DefaultVisitorImpl;
 	import auxil.model;
+	import auxil.default_visitor : TreePathVisitor;
 
-	alias DefVisitor = DefaultVisitorImpl!(SizeEnabled.no, TreePathEnabled.yes);
-	DefVisitor default_visitor;
+	TreePathVisitor default_visitor;
 	alias default_visitor this;
 }
