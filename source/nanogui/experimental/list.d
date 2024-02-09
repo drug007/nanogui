@@ -312,11 +312,6 @@ public:
 		ctx.size = Vector2f(size.x, fontSize);
 		if (_model.size > mSize.y)
 			ctx.size.x -= ScrollBarWidth;
-		ctx.position.x = 0;
-		// the size of invisible part of the first item
-		// always 0 or below
-		ctx.position.y = rm.posY - rm.destY;
-		assert(ctx.position.y <= 0);
 
 		ctx.mouse -= mPos;
 		scope(exit) ctx.mouse += mPos;
@@ -326,8 +321,13 @@ public:
 		import nanogui.experimental.details.list_visitors : RenderingVisitor;
 		import nanogui.layout : Orientation;
 
-		auto renderer = RenderingVisitor(ctx, Orientation.Vertical, rm.path, rm.posY, rm.destY + size.y);
-		traversal(_model, _data, renderer, rm.destY + size.y);
+		// the size of invisible part of the first item
+		// always 0 or below
+		const auto invisiblePartSize = rm.posY - rm.destY;
+		assert(invisiblePartSize <= 0);
+
+		auto renderer = RenderingVisitor(ctx, Orientation.Vertical, rm.path, rm.posY, invisiblePartSize);
+		traversal(_model, _data, renderer, _scroll_position + size.y);
 		tree_path = renderer.selectedItem;
 
 		ctx.restore;

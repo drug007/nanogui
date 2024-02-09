@@ -23,7 +23,10 @@ struct RenderingVisitor
         ctx.orientation = o;
         default_visitor.path = path;
         default_visitor.posY = py;
-        default_visitor.destY = dy;
+
+		ctx.position.x = 0;
+		ctx.position.y = dy;
+		assert(ctx.position.y <= 0);
     }
 
     auto selectedItem()
