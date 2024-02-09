@@ -14,19 +14,22 @@ struct RenderingVisitor
 	private NanoContext* _ctxPtr;
 	DefaultVisitorImpl!(SizeEnabled.no, TreePathEnabled.yes) default_visitor;
 	alias default_visitor this;
+	// Координата начала текущего окна вывода виджета плюс (отрицательная )
+	// поправка на невидимую часть первого видимого элемента
+	private SizeType _adjustmentY;
 
 	private TreePath _selected_item;
 
-    this(ref NanoContext ctx, Orientation o, ref TreePath path, SizeType py, SizeType dy)
+    this(ref NanoContext ctx, Orientation o, ref TreePath path, SizeType py, SizeType adjustment)
     {
         _ctxPtr = &ctx;
         ctx.orientation = o;
         default_visitor.path = path;
+		default_visitor.posX = 0;
         default_visitor.posY = py;
+		_adjustmentY = adjustment - py;
 
-		ctx.position.x = 0;
-		ctx.position.y = dy;
-		assert(ctx.position.y <= 0);
+		assert(adjustment <= 0);
     }
 
     auto selectedItem()
@@ -41,18 +44,23 @@ struct RenderingVisitor
 
 	void indent()
 	{
-		ctx.indent;
+		posX = posX + 20;
+		ctx.size.x -= 20;
 	}
 
 	void unindent()
 	{
-		ctx.unindent;
+		posX = posX - 20;
+		ctx.size.x += 20;
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		ctx.save;
 		scope(exit) ctx.restore;
+
+		ctx.position.x = posX;
+		ctx.position.y = posY + _adjustmentY;
 
 		version(none)
 		{
@@ -125,8 +133,6 @@ struct RenderingVisitor
 
 			if (drawItem(ctx, model.header_size, header))
 				_selected_item = tree_path;
-
-			ctx.position.y = ctx.position.y + model.header_size;
 		}
 	}
 
@@ -134,6 +140,9 @@ struct RenderingVisitor
 	{
 		ctx.save;
 		scope(exit) ctx.restore;
+
+		ctx.position.x = posX;
+		ctx.position.y = posY + _adjustmentY;
 
 		version(none)
 		{
@@ -149,8 +158,6 @@ struct RenderingVisitor
 		ctx.fillColor(ctx.theme.mTextColor);
 		if (drawItem(ctx, model.size, data))
 			_selected_item = tree_path;
-
-		ctx.position.y = ctx.position.y + model.size;
 	}
 }
 
