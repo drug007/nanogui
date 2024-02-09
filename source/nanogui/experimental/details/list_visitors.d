@@ -88,16 +88,11 @@ struct RenderingVisitor
 			ctx.textAlign(algn);
 
 			import nanogui.entypo : Entypo;
-			int axis2 = (cast(int)ctx.orientation+1)%2;
-			const old = ctx.size[axis2];
-			ctx.size[axis2] = ctx.size[ctx.orientation]; // icon has width equals to its height
 			dchar[1] symb;
 			symb[0] = model.collapsed ? Entypo.ICON_CHEVRON_RIGHT :
 			                            Entypo.ICON_CHEVRON_DOWN;
 			if (drawItem(ctx, ctx.size[ctx.orientation], symb[]))
 				_selected_item = tree_path;
-			ctx.size[axis2] = old; // restore full width
-			ctx.position[ctx.orientation] -= ctx.size[ctx.orientation];
 		}
 
 		{
@@ -127,6 +122,8 @@ struct RenderingVisitor
 
 			if (drawItem(ctx, model.header_size, header))
 				_selected_item = tree_path;
+
+			ctx.position.y = ctx.position.y + model.header_size;
 		}
 	}
 
@@ -149,6 +146,8 @@ struct RenderingVisitor
 		ctx.fillColor(ctx.theme.mTextColor);
 		if (drawItem(ctx, model.size, data))
 			_selected_item = tree_path;
+
+		ctx.position.y = ctx.position.y + model.size;
 	}
 }
 
