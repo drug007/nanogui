@@ -309,14 +309,16 @@ public:
 		}
 
 		ctx.theme = theme;
-		ctx.size = Vector2f(size.x, fontSize);
+		// Задаем размер по Х. Пыо У размер рассчитывается на основе размеров
+		// элементов виджета
+		auto sizeX = size.x;
 		if (_model.size > mSize.y)
-			ctx.size.x -= ScrollBarWidth;
+			sizeX -= ScrollBarWidth;
 
 		ctx.mouse -= mPos;
 		scope(exit) ctx.mouse += mPos;
 		ctx.translate(mPos.x, mPos.y);
-		ctx.intersectScissor(0, 0, ctx.size.x, mSize.y);
+		ctx.intersectScissor(0, 0, sizeX, mSize.y);
 
 		import nanogui.experimental.details.list_visitors : RenderingVisitor;
 		import nanogui.layout : Orientation;
@@ -326,7 +328,7 @@ public:
 		const auto invisiblePartSize = rm.posY - rm.destY;
 		assert(invisiblePartSize <= 0);
 
-		auto renderer = RenderingVisitor(ctx, Orientation.Vertical, rm.path, rm.posY, invisiblePartSize);
+		auto renderer = RenderingVisitor(ctx, Orientation.Vertical, rm.path, rm.posY, invisiblePartSize, sizeX);
 		traversal(_model, _data, renderer, _scroll_position + size.y);
 		tree_path = renderer.selectedItem;
 

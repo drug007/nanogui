@@ -8,12 +8,12 @@ struct RenderingVisitor
     import nanogui.layout : Orientation;
 	import auxil.model;
 	import auxil.common : Order, SizeType;
-	import auxil.default_visitor : TreePathVisitor;
+	import auxil.default_visitor : DefaultRenderingVisitor;
 
     import arsd.nanovega;
 
 	private NanoContext* _ctxPtr;
-	TreePathVisitor default_visitor;
+	DefaultRenderingVisitor default_visitor;
 	alias default_visitor this;
 	// Координата начала текущего окна вывода виджета плюс (отрицательная )
 	// поправка на невидимую часть первого видимого элемента
@@ -21,13 +21,18 @@ struct RenderingVisitor
 
 	private TreePath _selected_item;
 
-    this(ref NanoContext ctx, Orientation o, ref TreePath path, SizeType py, SizeType adjustment)
+    this(ref NanoContext ctx, Orientation o, ref TreePath path, SizeType py, SizeType adjustment, SizeType sizeX)
     {
         _ctxPtr = &ctx;
         ctx.orientation = o;
+		// Так как ориентация вертикальная, то размер по У должен быть уже рассчитан при вызове
+		// MeasuringVisitor и хранится в model. Поэтому размер по У не используется и задается
+		// только размер по Х
+		default_visitor = DefaultRenderingVisitor(sizeX, 0);
         default_visitor.path = path;
 		default_visitor.posX = 0;
         default_visitor.posY = py;
+		default_visitor.sizeX = sizeX;
 		_adjustmentY = adjustment - py;
 
 		assert(adjustment <= 0);
@@ -46,13 +51,13 @@ struct RenderingVisitor
 	void indent()
 	{
 		posX = posX + 20;
-		ctx.size.x -= 20;
+		sizeX -= 20;
 	}
 
 	void unindent()
 	{
 		posX = posX - 20;
-		ctx.size.x += 20;
+		sizeX += 20;
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
@@ -62,6 +67,11 @@ struct RenderingVisitor
 
 		ctx.position.x = posX;
 		ctx.position.y = posY + _adjustmentY;
+		ctx.size.x = sizeX;
+		ctx.size.y = model.header_size;
+		import std.math : isFinite;
+		assert(isFinite(ctx.size.x));
+		assert(isFinite(ctx.size.y));
 
 		version(none)
 		{
@@ -144,6 +154,11 @@ struct RenderingVisitor
 
 		ctx.position.x = posX;
 		ctx.position.y = posY + _adjustmentY;
+		ctx.size.x = sizeX;
+		ctx.size.y = model.size;
+		import std.math : isFinite;
+		assert(isFinite(ctx.size.x));
+		assert(isFinite(ctx.size.y));
 
 		version(none)
 		{

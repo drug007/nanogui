@@ -23,10 +23,18 @@ struct FeaturesSizeTreePath
 	bool SizeCalculationEnabled, TreePathEnabled;
 }
 
+// Предусмотрено использование размера по обоим осям для отрисовки
+// (на чтение, без расчета размера), а также пути для навигации
+struct FeaturesRenderer
+{
+	bool SizeEnabled, TreePathEnabled;
+}
+
 alias NullVisitor      = DefaultVisitorImpl!FeaturesNull;
 alias MeasuringVisitor = DefaultVisitorImpl!FeaturesSize;
 alias TreePathVisitor  = DefaultVisitorImpl!FeaturesTreePath;
 alias DefaultVisitor   = DefaultVisitorImpl!FeaturesSizeTreePath;
+alias DefaultRenderingVisitor  = DefaultVisitorImpl!FeaturesRenderer;
 
 /// Default implementation of Visitor
 struct DefaultVisitorImpl(Features)
