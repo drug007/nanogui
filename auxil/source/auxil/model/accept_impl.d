@@ -25,7 +25,7 @@ mixin template acceptImpl()
 		enum Sinking     = order == Order.Sinking;
 		enum Bubbling    = !Sinking; 
 		enum hasTreePath = Visitor.treePathEnabled;
-		enum hasSize     = Visitor.sizeEnabled;
+		enum hasSize     = Visitor.sizeCalculationEnabled;
 
 		if (visitor.doEnterNode!(order, Data)(data, this, visitor))
 			return true;

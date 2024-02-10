@@ -645,7 +645,6 @@ struct ScalarModel(alias A)
 		enum Sinking     = order == Order.Sinking;
 		enum Bubbling    = !Sinking; 
 		enum hasTreePath = Visitor.treePathEnabled;
-		enum hasSize     = Visitor.sizeEnabled;
 
 		static if (hasTreePath)
 		{
@@ -672,7 +671,7 @@ struct ScalarModel(alias A)
 			return true;
 		}
 
-		static if (hasSize) this.sizeYM = visitor.sizeY + this.Spacing;
+		static if (Visitor.sizeCalculationEnabled) this.sizeYM = visitor.sizeY + this.Spacing;
 		static if (hasTreePath) with(visitor) 
 		{
 			visitor.updatePositionSinking!order(sizeYM);

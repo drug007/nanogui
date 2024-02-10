@@ -10,7 +10,7 @@ struct FeaturesNull {}
 
 struct FeaturesSize
 {
-	bool SizeEnabled;
+	bool SizeCalculationEnabled;
 }
 
 struct FeaturesTreePath
@@ -20,7 +20,7 @@ struct FeaturesTreePath
 
 struct FeaturesSizeTreePath
 {
-	bool SizeEnabled, TreePathEnabled;
+	bool SizeCalculationEnabled, TreePathEnabled;
 }
 
 alias NullVisitor      = DefaultVisitorImpl!FeaturesNull;
@@ -31,10 +31,10 @@ alias DefaultVisitor   = DefaultVisitorImpl!FeaturesSizeTreePath;
 /// Default implementation of Visitor
 struct DefaultVisitorImpl(Features)
 {
-	enum sizeEnabled     = is(typeof(Features.SizeEnabled));
+	enum sizeCalculationEnabled = is(typeof(Features.SizeCalculationEnabled));
 	enum treePathEnabled = is(typeof(Features.TreePathEnabled));
 
-	static if (sizeEnabled)
+	static if (sizeCalculationEnabled)
 	{
 		SizeType sizeY;
 
@@ -151,7 +151,7 @@ struct DefaultVisitorImpl(Features)
 			return true;
 		}
 
-		static if (sizeEnabled) model.sizeYM = model.headerSizeY = sizeY + model.Spacing;
+		static if (sizeCalculationEnabled) model.sizeYM = model.headerSizeY = sizeY + model.Spacing;
 
 		final switch(state)
 		{
@@ -191,7 +191,7 @@ struct DefaultVisitorImpl(Features)
 			return true;
 		}
 
-		static if (sizeEnabled) model.sizeYM = model.headerSizeY = sizeY + model.Spacing;
+		static if (sizeCalculationEnabled) model.sizeYM = model.headerSizeY = sizeY + model.Spacing;
 
 		derivedVisitor.enterNode!(order, Data)(data, model);
 
