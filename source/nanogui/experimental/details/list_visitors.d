@@ -32,7 +32,6 @@ struct RenderingVisitor
         default_visitor.path = path;
 		default_visitor.posX = 0;
         default_visitor.posY = py;
-		default_visitor.sizeX = sizeX;
 		_adjustmentY = adjustment - py;
 
 		assert(adjustment <= 0);
@@ -50,14 +49,12 @@ struct RenderingVisitor
 
 	void indent()
 	{
-		posX = posX + 20;
-		sizeX -= 20;
+		default_visitor.indent(20);
 	}
 
 	void unindent()
 	{
-		posX = posX - 20;
-		sizeX += 20;
+		default_visitor.indent(-20);
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
