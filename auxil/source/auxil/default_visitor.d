@@ -32,15 +32,19 @@ alias DefaultVisitor   = DefaultVisitorImpl!FeaturesSizeTreePath;
 struct DefaultVisitorImpl(Features)
 {
 	enum sizeCalculationEnabled = is(typeof(Features.SizeCalculationEnabled));
+	enum sizeEnabled = is(typeof(Features.SizeEnabled)) || sizeCalculationEnabled;
 	enum treePathEnabled = is(typeof(Features.TreePathEnabled));
 
-	static if (sizeCalculationEnabled)
+	static if (sizeEnabled)
 	{
-		SizeType sizeY;
+		SizeType sizeX, sizeY;
 
-		this(SizeType s) @safe @nogc nothrow
+		@disable this();
+
+		this(SizeType sx, SizeType sy) @safe @nogc nothrow
 		{
-			sizeY = s;
+			sizeX = sx;
+			sizeY = sy;
 		}
 	}
 

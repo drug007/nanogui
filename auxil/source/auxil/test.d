@@ -19,7 +19,8 @@ struct PrettyPrintingVisitor
 
 	this(float size) @nogc
 	{
-		default_visitor = DefaultVisitor(size);
+		// sizeX doesn't matter in this case
+		default_visitor = DefaultVisitor(0, size);
 	}
 
 	auto processItem(T...)(T msg)

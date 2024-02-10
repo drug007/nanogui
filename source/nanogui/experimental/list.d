@@ -99,7 +99,7 @@ public:
 		{
 			const scroll_position = mScroll * (_model.size - size.y);
 			import nanogui.experimental.utils : MeasuringVisitor;
-			auto mv = MeasuringVisitor(fontSize);
+			auto mv = MeasuringVisitor(0, fontSize);
 			_model.traversalForward(_data, mv);
 			mScroll = scroll_position / (_model.size - size.y);
 			_model_changed = false;
