@@ -99,15 +99,20 @@ unittest
 
 	model.orientation.should.be == Orientation.Vertical;
 
-	// model.orientation = Orientation.Horizontal;
+	model.orientation = Orientation.Horizontal;
 	model.collapsed = false;
 
 
 	// measure size
 	{
-		auto mv = MeasuringVisitor(0, 9);
+		auto mv = MeasuringVisitor(32, 9);
 		model.traversalForward(data, mv);
 	}
+
+	model.headerSizeY.should.be == 33;
+	model.i.size.should.be == 33;
+	model.f.size.should.be == 33;
+	model.size.should.be == 99;
 
 	import std;
 	writeln(model);
