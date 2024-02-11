@@ -77,7 +77,7 @@ struct RelativeMeasurer
 	}
 }
 
-version(unittest) @Name("horizontal")
+version(unittest) @Name("horizontal.TrivialAggregate")
 @safe
 unittest
 {
@@ -102,7 +102,6 @@ unittest
 	model.orientation = Orientation.Horizontal;
 	model.collapsed = false;
 
-
 	// measure size
 	{
 		auto mv = MeasuringVisitor(32, 9);
@@ -113,26 +112,4 @@ unittest
 	model.i.size.should.be == 33;
 	model.f.size.should.be == 33;
 	model.size.should.be == 99;
-
-	import std;
-	writeln(model);
-	auto visitor = RelativeMeasurer();
-	visitor.posX = 0;
-	visitor.posY = 0;
-	model.traversalForward(data, visitor);
-	import std;
-	writeln(model);
-
-	() @trusted
-	{
-		visitor.output[].each!writeln;
-	} ();
-
-	version(none) () @trusted
-	{
-		import core.stdc.stdio : printf;
-		visitor.output[$-1] = 0;
-		printf("---\n%s\n---\nlength: %ld\n",
-			visitor.output[].ptr, visitor.output.length);
-	} ();
 }
