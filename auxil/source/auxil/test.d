@@ -1195,6 +1195,7 @@ unittest
 		auto mv = MeasuringVisitor(0, 9);
 		model.traversalForward(data, mv);
 	}
+	visitor.posX = 0;
 	visitor.posY = 0;
 	model.traversalForward(data, visitor);
 	visitor.output.should.be == [

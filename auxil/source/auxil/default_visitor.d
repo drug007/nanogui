@@ -51,18 +51,23 @@ struct DefaultVisitorImpl(Features)
 
 		this(SizeType sx, SizeType sy) @safe @nogc nothrow
 		{
-			_size[Orientation.Vertical] = sx;
-			_size[Orientation.Horizontal] = sy;
+			_size[Orientation.Horizontal] = sx;
+			_size[Orientation.Vertical] = sy;
 		}
 
 		auto sizeX()
 		{
-			return _size[Orientation.Vertical];
+			return _size[Orientation.Horizontal];
 		}
 
 		auto sizeY()
 		{
-			return _size[Orientation.Horizontal];
+			return _size[Orientation.Vertical];
+		}
+
+		auto size()
+		{
+			return _size;
 		}
 	}
 
@@ -87,7 +92,7 @@ struct DefaultVisitorImpl(Features)
 		State state;
 		TreePath tree_path, path;
 		private SizeType[2] _pos, _deferred_change, _destination;
-		private Orientation _orientation;
+		private Orientation _orientation = Orientation.Vertical;
 
 		SizeType posX() const { return _pos[Orientation.Horizontal]; }
 		SizeType posX(SizeType value) { _pos[Orientation.Horizontal] = value; return value; }
@@ -186,7 +191,7 @@ struct DefaultVisitorImpl(Features)
 			return true;
 		}
 
-		static if (sizeCalculationEnabled) model.sizeYM = model.headerSizeY = sizeY + model.Spacing;
+		static if (sizeCalculationEnabled) model.sizeYM = model.headerSizeY = size[model.orientation] + model.Spacing;
 
 		final switch(state)
 		{
@@ -226,7 +231,7 @@ struct DefaultVisitorImpl(Features)
 			return true;
 		}
 
-		static if (sizeCalculationEnabled) model.sizeYM = model.headerSizeY = sizeY + model.Spacing;
+		static if (sizeCalculationEnabled) model.sizeYM = model.headerSizeY = size[model.orientation] + model.Spacing;
 
 		derivedVisitor.enterNode!(order, Data)(data, model);
 
