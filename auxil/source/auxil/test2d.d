@@ -105,7 +105,7 @@ unittest
 
 	// measure size
 	{
-		auto mv = MeasuringVisitor(9);
+		auto mv = MeasuringVisitor(0, 9);
 		model.traversalForward(data, mv);
 	}
 

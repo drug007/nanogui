@@ -818,7 +818,7 @@ version(unittest)
 
 			// measure size
 			{
-				auto mv = MeasuringVisitor(9);
+				auto mv = MeasuringVisitor(0, 9);
 				model.traversalForward(data, mv);
 			}
 		}
@@ -1118,7 +1118,7 @@ unittest
 
 	model.collapsed = false;
 	{
-		auto mv = MeasuringVisitor(9);
+		auto mv = MeasuringVisitor(0, 9);
 		model.traversalForward(data, mv);
 	}
 	visitor.posY = 0;
@@ -1192,7 +1192,7 @@ unittest
 
 	model.collapsed = false;
 	{
-		auto mv = MeasuringVisitor(9);
+		auto mv = MeasuringVisitor(0, 9);
 		model.traversalForward(data, mv);
 	}
 	visitor.posY = 0;
@@ -1291,7 +1291,7 @@ unittest
 	auto d = StructNullable();
 	auto m = makeModel(d);
 	m.collapsed = false;
-	auto visitor = DefaultVisitor(19);
+	auto visitor = DefaultVisitor(0, 19);
 	m.traversalForward(d, visitor);
 	import std;
 	writeln(m);
