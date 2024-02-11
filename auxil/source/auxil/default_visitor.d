@@ -43,6 +43,10 @@ struct DefaultVisitorImpl(Features)
 	enum sizeEnabled = is(typeof(Features.SizeEnabled)) || sizeCalculationEnabled;
 	enum treePathEnabled = is(typeof(Features.TreePathEnabled));
 
+	private Orientation _orientation = Orientation.Vertical;
+
+	Orientation orientation() const { return _orientation; }
+
 	static if (sizeEnabled)
 	{
 		private SizeType[2] _size;
@@ -92,7 +96,6 @@ struct DefaultVisitorImpl(Features)
 		State state;
 		TreePath tree_path, path;
 		private SizeType[2] _pos, _deferred_change, _destination;
-		private Orientation _orientation = Orientation.Vertical;
 
 		SizeType posX() const { return _pos[Orientation.Horizontal]; }
 		SizeType posX(SizeType value) { _pos[Orientation.Horizontal] = value; return value; }
@@ -101,8 +104,6 @@ struct DefaultVisitorImpl(Features)
 
 		SizeType destY() const { return _destination[Orientation.Vertical]; }
 		SizeType destY(SizeType value) { _destination[Orientation.Vertical] = value; return value; }
-
-		Orientation orientation() const { return _orientation; }
 
 		void clear()
 		{
@@ -172,10 +173,14 @@ struct DefaultVisitorImpl(Features)
 	void indent() {}
 	void unindent() {}
 	bool complete() @safe @nogc { return false; }
-	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model) {}
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
+
+	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
+	{
+		static if (is(typeof(model.orientation))) _orientation = model.orientation;
+	}
 
 	// DerivedVisitor is "ansector" of this struct. Because the method is a template one and can not be virtual
 	// (so no polyphormism at all) the actual type of "ansector" is passed directly

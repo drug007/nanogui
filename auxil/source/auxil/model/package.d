@@ -671,7 +671,7 @@ struct ScalarModel(alias A)
 			return true;
 		}
 
-		static if (Visitor.sizeCalculationEnabled) this.sizeYM = visitor.sizeY + this.Spacing;
+		static if (Visitor.sizeCalculationEnabled) this.sizeYM = visitor.size[visitor.orientation] + this.Spacing;
 		static if (hasTreePath) with(visitor) 
 		{
 			visitor.updatePositionSinking!order(sizeYM);
