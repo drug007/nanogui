@@ -313,14 +313,16 @@ class MyGui : SdlBackend
 				layout2.setAlignment = Alignment.Fill;
 			}
 
+			import std.random : uniform, Random;
+			auto rnd = Random(19937);
+
 			Item[] data;
 			enum total = 1_000_000;
 			data.reserve(total);
 			foreach(i; 0..total)
 			{
 				import std.conv : text;
-				import std.random : uniform;
-				const x = uniform(0, 6);
+				const x = uniform(0, 6, rnd);
 				switch(x)
 				{
 					case 0:

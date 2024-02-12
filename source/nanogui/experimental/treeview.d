@@ -47,8 +47,8 @@ public:
 		_data = data;
 		_model = makeModel(_data);
 		import nanogui.experimental.utils : MeasuringVisitor;
-		auto v = MeasuringVisitor(fontSize);
-		_model.visitForward(_data, v);
+		auto v = MeasuringVisitor(0, fontSize);
+		_model.traversalForward(_data, v);
 	}
 
 	/// The caption of this TreeView.
@@ -116,8 +116,8 @@ public:
 					{
 						setPropertyByTreePath!"collapsed"(_data, _model, tree_path.value[], !value.get);
 						import nanogui.experimental.utils : MeasuringVisitor;
-						auto mv = MeasuringVisitor(fontSize);
-						_model.visitForward(_data, mv);
+						auto mv = MeasuringVisitor(0, fontSize);
+						_model.traversalForward(_data, mv);
 						screen.needToPerfomLayout = true;
 					}
 				}
@@ -172,10 +172,10 @@ public:
 		//scope(exit) ctx.mouse += mPos;
 
 		auto renderer = RenderingVisitor(ctx);
-		renderer.destination = ctx.position.y + size.y;
+		renderer.destY = ctx.position.y + size.y;
 		import nanogui.layout : Orientation;
 		renderer.ctx.orientation = Orientation.Vertical;
-		_model.visitForward(_data, renderer);
+		_model.traversalForward(_data, renderer);
 		tree_path = renderer.selected_item;
 	}
 
@@ -187,7 +187,7 @@ public:
 
 protected:
 
-	import nanogui.experimental.utils : makeModel, visit, visitForward, TreePath;
+	import nanogui.experimental.utils : makeModel, traversal, traversalForward, TreePath;
 
 	/// The caption text of this TreeView.
 	string mCaption;
@@ -216,8 +216,8 @@ protected:
 				{
 					_model.collapsed = !v;
 					import nanogui.experimental.utils : MeasuringVisitor;
-					auto mv = MeasuringVisitor(fontSize);
-					_model.visitForward(_data, mv);
+					auto mv = MeasuringVisitor(0, fontSize);
+					_model.traversalForward(_data, mv);
 					screen.needToPerfomLayout = true;
 				}
 		}
@@ -235,20 +235,16 @@ protected:
 
 private struct RenderingVisitor
 {
-	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath;
+	import nanogui.experimental.utils : drawItem, indent, unindent, TreePath, DefaultVisitorImpl;
 	import auxil.model;
+	import auxil.common : Order;
+	import auxil.default_visitor : TreePathVisitor;
 
 	NanoContext ctx;
-	DefaultVisitorImpl!(SizeEnabled.no, TreePathEnabled.yes) default_visitor;
+	TreePathVisitor default_visitor;
 	alias default_visitor this;
 
 	TreePath selected_item;
-	float finish;
-
-	bool complete()
-	{
-		return ctx.position.y > finish;
-	}
 
 	void indent()
 	{

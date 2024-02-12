@@ -2,7 +2,9 @@ module auxil.test;
 
 version(unittest) import unit_threaded : Name;
 
+import auxil.common : Order;
 import auxil.model;
+import auxil.default_visitor;
 
 @safe private
 struct PrettyPrintingVisitor
@@ -17,7 +19,8 @@ struct PrettyPrintingVisitor
 
 	this(float size) @nogc
 	{
-		default_visitor = DefaultVisitor(size);
+		// sizeX doesn't matter in this case
+		default_visitor = DefaultVisitor(0, size);
 	}
 
 	auto processItem(T...)(T msg)
@@ -42,7 +45,7 @@ struct PrettyPrintingVisitor
 
 	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
-		position = 0;
+		posY = 0;
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
@@ -52,7 +55,7 @@ struct PrettyPrintingVisitor
 
 		static if (hasRenderHeader!data)
 		{
-			import auxil.model : FixedAppender;
+			import auxil.fixedappender : FixedAppender;
 			FixedAppender!512 app;
 			data.renderHeader(app);
 			() @trusted { processItem(app[]); } ();
@@ -104,18 +107,18 @@ unittest
 	auto visitor = PrettyPrintingVisitor(9);
 	auto d = StructWithStruct();
 	auto m = makeModel(d);
-	m.visitForward(d, visitor);
-	assert(m.size == 10);
+	m.traversalForward(d, visitor);
+	assert(m.sizeYM == 10);
 	d.d = 0;
 	d.l = 1;
 	d.t.f = 2;
 	d.t.i = 3;
 	d.t.s = "s";
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 	m.collapsed = false;
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 	m.t.collapsed = false;
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 }
 
 version(unittest) @Name("static_array")
@@ -133,7 +136,7 @@ unittest
 	auto visitor = PrettyPrintingVisitor(9);
 	visitor.processItem;
 	m.collapsed = false;
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 
 	visitor.output ~= '\0';
 	version(none)
@@ -162,15 +165,15 @@ unittest
 	visitor.processItem;
 	m.collapsed = false;
 	m.model.length = d.length;
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 
 	d ~= [4.4f, 5.5f];
 	m.model.length = d.length;
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 
 	d = d[2..3];
 	m.model.length = d.length;
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 
 	visitor.output ~= '\0';
 	version(none)
@@ -213,7 +216,7 @@ version(unittest) @Name("aggregate_with_only_member")
 
 	auto visitor = PrettyPrintingVisitor(9);
 	visitor.processItem;
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 
 	visitor.output ~= '\0';
 
@@ -260,7 +263,7 @@ unittest
 
 	auto visitor = PrettyPrintingVisitor(9);
 	visitor.processItem;
-	m.visitForward(d, visitor);
+	m.traversalForward(d, visitor);
 
 	visitor.output ~= '\0';
 
@@ -339,7 +342,7 @@ unittest
 
 		auto visitor = PrettyPrintingVisitor(9);
 		visitor.processItem;
-		m.visitForward(d, visitor);
+		m.traversalForward(d, visitor);
 
 		visitor.output ~= '\0';
 
@@ -364,7 +367,7 @@ unittest
 
 		auto visitor = PrettyPrintingVisitor(9);
 		visitor.processItem;
-		m.visitForward(d, visitor);
+		m.traversalForward(d, visitor);
 
 		visitor.output ~= '\0';
 
@@ -399,7 +402,7 @@ nan
 
 		auto visitor = PrettyPrintingVisitor(9);
 		visitor.processItem;
-		m.visitForward(d, visitor);
+		m.traversalForward(d, visitor);
 
 		visitor.output ~= '\0';
 
@@ -432,7 +435,7 @@ nan
 
 		auto visitor = PrettyPrintingVisitor(9);
 		visitor.processItem;
-		m.visitForward(d, visitor);
+		m.traversalForward(d, visitor);
 
 		visitor.output ~= '\0';
 
@@ -456,6 +459,8 @@ unittest
 {
 	import taggedalgebraic : TaggedAlgebraic, Void, get;
 	import unit_threaded : should, be;
+
+	import auxil.property_visitor;
 
 	static struct Struct
 	{
@@ -518,16 +523,16 @@ unittest
 
 	auto visitor = PrettyPrintingVisitor(9);
 	visitor.processItem;
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 
 	data[4] ~= "recently added 4th element";
 	model[4].update(data[4]);
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 
 	data[4] = data[4].get!(string[])[3..$];
 	data[4].get!(string[])[0] = "former 4th element, now the only one";
 	model[4].update(data[4]);
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 
 	visitor.output ~= '\0';
 	version(none)
@@ -601,15 +606,15 @@ unittest
 
 	auto visitor = PrettyPrintingVisitor(14);
 	visitor.processItem;
-	model.visitForward(data[], visitor);
-	assert(model.size == visitor.size + model.Spacing);
+	model.traversalForward(data[], visitor);
+	assert(model.sizeYM == visitor.sizeY + model.Spacing);
 
 	model.collapsed = false;
-	model.visitForward(data[], visitor);
+	model.traversalForward(data[], visitor);
 
-	assert(model.size == 4*(visitor.size + model.Spacing));
+	assert(model.sizeYM == 4*(visitor.sizeY + model.Spacing));
 	foreach(e; model.model)
-		assert(e.size == (visitor.size + model.Spacing));
+		assert(e.sizeYM == (visitor.sizeY + model.Spacing));
 
 	visitor.output ~= '\0';
 	version(none)
@@ -634,6 +639,8 @@ unittest
 {
 	import taggedalgebraic : TaggedAlgebraic, Void, get;
 	import unit_threaded : should, be;
+
+	import auxil.property_visitor;
 
 	static struct Struct
 	{
@@ -667,54 +674,54 @@ unittest
 	assert(model.length == data.length);
 	assert(model[4].get!(Model!(string[])).length == data[4].length);
 
-	model.size.should.be == 0;
+	model.sizeYM.should.be == 0;
 	auto visitor = PrettyPrintingVisitor(17);
-	model.visitForward(data, visitor);
+	model.traversalForward(data, visitor);
 
 	model.collapsed.should.be == true;
-	model.size.should.be ~ (visitor.size + model.Spacing);
-	model.size.should.be ~ 18.0;
-	visitor.position.should.be ~ 0.0;
+	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing);
+	model.sizeYM.should.be ~ 18.0;
+	visitor.posY.should.be ~ 0.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [], false);
-	model.visitForward(data, visitor);
-	model.size.should.be ~ (visitor.size + model.Spacing)*7;
-	model.size.should.be ~ 18.0*7;
-	visitor.position.should.be ~ 6*18.0;
+	model.traversalForward(data, visitor);
+	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing)*7;
+	model.sizeYM.should.be ~ 18.0*7;
+	visitor.posY.should.be ~ 6*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [3], false);
-	model.visitForward(data, visitor);
-	model.size.should.be ~ (visitor.size + model.Spacing)*9;
-	model.size.should.be ~ 18.0*9;
-	visitor.position.should.be ~ (6+2)*18.0;
+	model.traversalForward(data, visitor);
+	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing)*9;
+	model.sizeYM.should.be ~ 18.0*9;
+	visitor.posY.should.be ~ (6+2)*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [4], false);
-	model.visitForward(data, visitor);
-	model.size.should.be ~ (visitor.size + model.Spacing)*12;
-	model.size.should.be ~ 18.0*12;
-	visitor.position.should.be ~ (6+2+3)*18.0;
+	model.traversalForward(data, visitor);
+	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing)*12;
+	model.sizeYM.should.be ~ 18.0*12;
+	visitor.posY.should.be ~ (6+2+3)*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [5], false);
-	model.visitForward(data, visitor);
-	model.size.should.be ~ (visitor.size + model.Spacing)*15;
-	model.size.should.be ~ 18.0*15;
-	visitor.position.should.be ~ (6+2+3+3)*18.0;
+	model.traversalForward(data, visitor);
+	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing)*15;
+	model.sizeYM.should.be ~ 18.0*15;
+	visitor.posY.should.be ~ (6+2+3+3)*18.0;
 
-	visitor.destination = visitor.destination.nan;
-	model.visitForward(data, visitor);
-	model.size.should.be == 270;
-	visitor.position.should.be == 252;
+	visitor.destY = visitor.destY.nan;
+	model.traversalForward(data, visitor);
+	model.sizeYM.should.be == 270;
+	visitor.posY.should.be == 252;
 
-	visitor.position = 0;
-	visitor.destination = 100;
-	model.visitForward(data, visitor);
-	model.size.should.be == 126;
-	visitor.position.should.be == 90;
+	visitor.posY = 0;
+	visitor.destY = 100;
+	model.traversalForward(data, visitor);
+	model.sizeYM.should.be == 126;
+	visitor.posY.should.be == 90;
 }
 
 struct RelativeMeasurer
 {
-	DefaultVisitorImpl!(SizeEnabled.no, TreePathEnabled.yes) default_visitor;
+	TreePathVisitor default_visitor;
 	alias default_visitor this;
 
 	TreePosition[] output;
@@ -727,18 +734,18 @@ struct RelativeMeasurer
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		static if (order == Order.Sinking)
-			output ~= TreePosition(tree_path.value, position);
+			output ~= TreePosition(tree_path.value, posY);
 	}
 
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		static if (order == Order.Bubbling)
-			output ~= TreePosition(tree_path.value, position);
+			output ~= TreePosition(tree_path.value, posY);
 	}
 
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		output ~= TreePosition(tree_path.value, position);
+		output ~= TreePosition(tree_path.value, posY);
 	}
 }
 
@@ -783,6 +790,8 @@ version(unittest)
 {
 	import unit_threaded;
 
+	import auxil.property_visitor;
+
 	class Fixture : TestCase
 	{
 		import unit_threaded : should, be;
@@ -809,8 +818,8 @@ version(unittest)
 
 			// measure size
 			{
-				auto mv = MeasuringVisitor(9);
-				model.visitForward(data, mv);
+				auto mv = MeasuringVisitor(0, 9);
+				model.traversalForward(data, mv);
 			}
 		}
 
@@ -851,9 +860,9 @@ version(unittest)
 	{
 		override void test()
 		{
-			v.position = 0;
-			model.visitForward(data, v);
-			model.size.should.be == 180;
+			v.posY = 0;
+			model.traversalForward(data, v);
+			model.sizeYM.should.be == 180;
 			v.output.should.be == [
 				TreePosition([ ],         0),
 				TreePosition([0],        10),
@@ -874,11 +883,11 @@ version(unittest)
 				TreePosition([4, 3, 2], 160),
 				TreePosition([5],       170),
 			];
-			v.position.should.be == 170;
+			v.posY.should.be == 170;
 
-			v.position = 0;
+			v.posY = 0;
 			v.path.value = [4,2,1];
-			model.visitForward(data, v);
+			model.traversalForward(data, v);
 			v.output.should.be == [
 				TreePosition([4, 2, 1],  0),
 				TreePosition([4, 3],    10),
@@ -897,70 +906,70 @@ version(unittest)
 			// default
 			{
 				v.path.clear;
-				v.position = 0;
-				v.destination = v.destination.nan;
-				model.visitForward(data, v);
+				v.posY = 0;
+				v.destY = v.destY.nan;
+				model.traversalForward(data, v);
 
-				v.position.should.be == 170;
-				v.path.value[].should.be == [];
+				v.posY.should.be == 170;
+				v.path.value[].should.be == (int[]).init;
 			}
 
 			// next position is between two elements
 			{
 				v.path.clear;
-				v.position = 0;
-				v.destination = 15;
-				model.visitForward(data, v);
+				v.posY = 0;
+				v.destY = 15;
+				model.traversalForward(data, v);
 
-				v.position.should.be == 10;
-				v.destination.should.be == 15;
+				v.posY.should.be == 10;
+				v.destY.should.be == 15;
 				v.path.value[].should.be == [0];
 			}
 
 			// next position is equal to start of an element
 			{
 				v.path.clear;
-				v.position = 0;
-				v.destination = 30;
-				model.visitForward(data, v);
+				v.posY = 0;
+				v.destY = 30;
+				model.traversalForward(data, v);
 
-				v.position.should.be == 30;
-				v.destination.should.be == 30;
+				v.posY.should.be == 30;
+				v.destY.should.be == 30;
 				v.path.value[].should.be == [2];
 			}
 
 			// start path is not null
 			{
 				v.path.value = [3, 0];
-				v.position = 0;
-				v.destination = 55;
-				model.visitForward(data, v);
+				v.posY = 0;
+				v.destY = 55;
+				model.traversalForward(data, v);
 
-				v.position.should.be == 50;
-				v.destination.should.be == 55;
+				v.posY.should.be == 50;
+				v.destY.should.be == 55;
 				v.path.value[].should.be == [4, 2];
 			}
 
 			// reverse order, start path is not null
 			{
 				v.path.value = [4, 1];
-				v.position = 90;
-				v.destination = 41;
+				v.posY = 90;
+				v.destY = 41;
 
-				model.visitBackward(data, v);
+				model.traversalBackward(data, v);
 
-				v.position.should.be == 40;
-				v.destination.should.be == 41;
+				v.posY.should.be == 40;
+				v.destY.should.be == 41;
 				v.path.value[].should.be == [3];
 
 				// bubble to the next element
-				v.destination = 19;
+				v.destY = 19;
 
-				model.visitBackward(data, v);
+				model.traversalBackward(data, v);
 
 				v.path.value[].should.be == [0];
-				v.position.should.be == 10;
-				v.destination.should.be == 19;
+				v.posY.should.be == 10;
+				v.destY.should.be == 19;
 				v.output.should.be == [
 					TreePosition([3], 40),
 					TreePosition([2], 30),
@@ -976,124 +985,124 @@ version(unittest)
 		override void test()
 		{
 			v.path.clear;
-			v.position = 0;
+			v.posY = 0;
 
 			// the element height is 10 px
 
 			// scroll 7 px forward
-			visit(model, data, v, 7);
+			traversal(model, data, v, 7);
 			// current element is the root one
-			v.path.value[].should.be == [];
+			v.path.value[].should.be == (int[]).init;
 			// position of the current element is 0 px
-			v.position.should.be == 0;
+			v.posY.should.be == 0;
 			// the window starts from 7th px
-			v.destination.should.be == 7;
+			v.destY.should.be == 7;
 
 			// scroll the next 7th px forward
-			visit(model, data, v, 14);
+			traversal(model, data, v, 14);
 			// the current element is the first child element
 			v.path.value[].should.be == [0];
 			// position of the current element is 10 px
-			v.position.should.be == 10;
+			v.posY.should.be == 10;
 			// the window starts from 14th px
-			v.destination.should.be == 14;
+			v.destY.should.be == 14;
 
 			// scroll the next 7th px forward
-			visit(model, data, v, 21);
+			traversal(model, data, v, 21);
 			// the current element is the second child element
 			v.path.value[].should.be == [1];
 			// position of the current element is 20 px
-			v.position.should.be == 20;
+			v.posY.should.be == 20;
 			// the window starts from 21th px
-			v.destination.should.be == 21;
+			v.destY.should.be == 21;
 
 			// scroll the next 7th px forward
-			visit(model, data, v, 28);
+			traversal(model, data, v, 28);
 			// the current element is the second child element
 			v.path.value[].should.be == [1];
 			// position of the current element is 20 px
-			v.position.should.be == 20;
+			v.posY.should.be == 20;
 			// the window starts from 28th px
-			v.destination.should.be == 28;
+			v.destY.should.be == 28;
 
 			// scroll the next 7th px forward
-			visit(model, data, v, 35);
+			traversal(model, data, v, 35);
 			// the current element is the third child element
 			v.path.value[].should.be == [2];
 			// position of the current element is 30 px
-			v.position.should.be == 30;
+			v.posY.should.be == 30;
 			// the window starts from 35th px
-			v.destination.should.be == 35;
+			v.destY.should.be == 35;
 
 			// scroll 7th px backward
-			visit(model, data, v, 27);
+			traversal(model, data, v, 27);
 			// the current element is the second child element
 			v.path.value[].should.be == [1];
 			// position of the current element is 20 px
-			v.position.should.be == 20;
+			v.posY.should.be == 20;
 			// the window starts from 27th px
-			v.destination.should.be == 27;
+			v.destY.should.be == 27;
 
 			// scroll the next 9th px backward
-			visit(model, data, v, 18);
+			traversal(model, data, v, 18);
 			// the current element is the first child element
 			v.path.value[].should.be == [0];
 			// position of the current element is 10 px
-			v.position.should.be == 10;
+			v.posY.should.be == 10;
 			// the window starts from 18th px
-			v.destination.should.be == 18;
+			v.destY.should.be == 18;
 
 			// scroll the next 6th px backward
-			visit(model, data, v, 12);
+			traversal(model, data, v, 12);
 			// the current element is the first child element
 			v.path.value[].should.be == [0];
 			// position of the current element is 10 px
-			v.position.should.be == 10;
+			v.posY.should.be == 10;
 			// the window starts from 12th px
-			v.destination.should.be == 12;
+			v.destY.should.be == 12;
 
 			// scroll the next 5th px backward
-			visit(model, data, v, 7);
+			traversal(model, data, v, 7);
 			// the current element is the root element
-			v.path.value[].should.be == [];
+			v.path.value[].should.be == (int[]).init;
 			// position of the current element is 0 px
-			v.position.should.be == 0;
+			v.posY.should.be == 0;
 			// the window starts from 7th px
-			v.destination.should.be == 7;
+			v.destY.should.be == 7;
 
 			// scroll 76 px forward
-			visit(model, data, v, 83);
+			traversal(model, data, v, 83);
 			// // the current element is the second child element
 			// v.path.value[].should.be == [4, 0];
 			// // position of the current element is 20 px
-			// v.position.should.be == 80;
+			// v.posY.should.be == 80;
 			// the window starts from 27th px
-			v.destination.should.be == 83;
+			v.destY.should.be == 83;
 
-			visit(model, data, v, 81);
+			traversal(model, data, v, 81);
 			v.path.value[].should.be == [4, 0];
-			v.position.should.be == 80;
-			v.destination.should.be == 81;
+			v.posY.should.be == 80;
+			v.destY.should.be == 81;
 
-			visit(model, data, v, 80);
+			traversal(model, data, v, 80);
 			v.path.value[].should.be == [4, 0];
-			v.position.should.be == 80;
-			v.destination.should.be == 80;
+			v.posY.should.be == 80;
+			v.destY.should.be == 80;
 
-			visit(model, data, v, 79.1);
+			traversal(model, data, v, 79.1);
 			v.path.value[].should.be == [4];
-			v.position.should.be == 70;
-			v.destination.should.be ~ 79.1;
+			v.posY.should.be == 70;
+			v.destY.should.be ~ 79.1;
 
-			visit(model, data, v, 133.4);
+			traversal(model, data, v, 133.4);
 			v.path.value[].should.be == [4, 3];
-			v.position.should.be == 130;
-			v.destination.should.be ~ 133.4;
+			v.posY.should.be == 130;
+			v.destY.should.be ~ 133.4;
 
-			visit(model, data, v, 0);
-			v.path.value[].should.be == [];
-			v.position.should.be == 0;
-			v.destination.should.be ~ 0.0;
+			traversal(model, data, v, 0);
+			v.path.value[].should.be == (int[]).init;
+			v.posY.should.be == 0;
+			v.destY.should.be ~ 0.0;
 		}
 	}
 }
@@ -1109,11 +1118,11 @@ unittest
 
 	model.collapsed = false;
 	{
-		auto mv = MeasuringVisitor(9);
-		model.visitForward(data, mv);
+		auto mv = MeasuringVisitor(0, 9);
+		model.traversalForward(data, mv);
 	}
-	visitor.position = 0;
-	model.visitForward(data, visitor);
+	visitor.posY = 0;
+	model.traversalForward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([ ],  0),
 		TreePosition([0], 10),
@@ -1122,9 +1131,9 @@ unittest
 		TreePosition([3], 40),
 	];
 
-	visitor.position.should.be == 40;
+	visitor.posY.should.be == 40;
 
-	model.visitBackward(data, visitor);
+	model.traversalBackward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([3], 40),
 		TreePosition([2], 30),
@@ -1134,15 +1143,15 @@ unittest
 	];
 
 	visitor.path.value = [1,];
-	visitor.position = 20;
-	model.visitForward(data, visitor);
+	visitor.posY = 20;
+	model.traversalForward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([1], 20),
 		TreePosition([2], 30),
 		TreePosition([3], 40),
 	];
-	visitor.position = 20;
-	model.visitBackward(data, visitor);
+	visitor.posY = 20;
+	model.traversalBackward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([1], 20),
 		TreePosition([0], 10),
@@ -1183,11 +1192,12 @@ unittest
 
 	model.collapsed = false;
 	{
-		auto mv = MeasuringVisitor(9);
-		model.visitForward(data, mv);
+		auto mv = MeasuringVisitor(0, 9);
+		model.traversalForward(data, mv);
 	}
-	visitor.position = 0;
-	model.visitForward(data, visitor);
+	visitor.posX = 0;
+	visitor.posY = 0;
+	model.traversalForward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([], 0),
 		TreePosition([0], 10),
@@ -1196,53 +1206,53 @@ unittest
 		TreePosition([3], 40),
 		TreePosition([4], 50),
 	];
-	visitor.position.should.be == 50;
+	visitor.posY.should.be == 50;
 
 	{
 		visitor.path.clear;
-		visitor.position = 0;
-		visitor.destination = 30;
-		model.visitForward(data, visitor);
+		visitor.posY = 0;
+		visitor.destY = 30;
+		model.traversalForward(data, visitor);
 		visitor.output.should.be == [
 			TreePosition([], 0),
 			TreePosition([0], 10),
 			TreePosition([1], 20),
 			TreePosition([2], 30),
 		];
-		visitor.position.should.be == 30;
+		visitor.posY.should.be == 30;
 	}
 
 	{
 		visitor.path.clear;
-		visitor.position = 30;
-		visitor.destination = visitor.position + 30;
-		model.visitForward(data, visitor);
+		visitor.posY = 30;
+		visitor.destY = visitor.posY + 30;
+		model.traversalForward(data, visitor);
 		visitor.output.should.be == [
 			TreePosition([], 30),
 			TreePosition([0], 40),
 			TreePosition([1], 50),
 			TreePosition([2], 60),
 		];
-		visitor.position.should.be == 60;
+		visitor.posY.should.be == 60;
 	}
 
 	{
 		visitor.path.value = [0];
-		visitor.position = 130;
-		visitor.destination = visitor.position + 20;
-		model.visitForward(data, visitor);
+		visitor.posY = 130;
+		visitor.destY = visitor.posY + 20;
+		model.traversalForward(data, visitor);
 		visitor.output.should.be == [
 			TreePosition([0], 130),
 			TreePosition([1], 140),
 			TreePosition([2], 150),
 		];
-		visitor.position.should.be == 150;
+		visitor.posY.should.be == 150;
 	}
 
 	visitor.path.value = [2];
-	visitor.position = 30;
-	visitor.destination = visitor.destination.nan;
-	model.visitForward(data, visitor);
+	visitor.posY = 30;
+	visitor.destY = visitor.destY.nan;
+	model.traversalForward(data, visitor);
 
 	visitor.output.should.be == [
 		TreePosition([2], 30),
@@ -1251,8 +1261,8 @@ unittest
 	];
 
 	visitor.path.clear;
-	visitor.destination = visitor.destination.nan;
-	model.visitBackward(data, visitor);
+	visitor.destY = visitor.destY.nan;
+	model.traversalBackward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([4], 50),
 		TreePosition([3], 40),
@@ -1282,8 +1292,8 @@ unittest
 	auto d = StructNullable();
 	auto m = makeModel(d);
 	m.collapsed = false;
-	auto visitor = DefaultVisitor(19);
-	m.visitForward(d, visitor);
+	auto visitor = DefaultVisitor(0, 19);
+	m.traversalForward(d, visitor);
 	import std;
 	writeln(m);
 }

@@ -3,9 +3,11 @@ module nanogui.experimental.utils;
 import nanogui.common : NanoContext;
 import nanogui.common : Vector2f, Vector2i;
 
-public import auxil.sizeindex;
 public import auxil.model;
 public import auxil.traits;
+public import auxil.tree_path;
+public import auxil.default_visitor;
+public import auxil.property_visitor;
 
 private string enumToString(E)(E e) @nogc @safe nothrow
 	if (is(E == enum))
@@ -87,7 +89,6 @@ private auto drawString(Char)(ref NanoContext ctx, float height, const(Char)[] s
 	}
 	ctx.textAlign(ctx.algn);
 	ctx.text(ctx.position.x, ctx.position.y, str);
-	ctx.position.y += height;
 
 	return inside;
 }
