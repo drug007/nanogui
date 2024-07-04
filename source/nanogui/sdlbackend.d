@@ -144,6 +144,13 @@ class SdlBackend : Screen
 			return super.mouseButtonCallbackEvent(btn, action, modifiers, Clock.currTime.stdTime);
 		};
 
+		_sdlApp.onResize = delegate(int w, int h)
+		{
+				mLastInteraction = Clock.currTime.stdTime;
+
+				resizeEvent(Vector2i(w, h));
+		};
+
 		_sdlApp.onKeyboardChar = delegate(dchar codepoint)
 		{
 			return keyboardCharacterEvent(codepoint);

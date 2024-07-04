@@ -387,14 +387,14 @@ class Screen : Widget
 	}
 
 	/// Window resize event handler
-	bool resizeEvent(Vector2i size)
+	bool resizeEvent(Vector2i sz)
 	{
+		size = sz/mScale;
+		mNeedToDraw = true;
 		if (mResizeCallback) {
 			mResizeCallback(size);
-			mNeedToDraw = true;
-			return true;
 		}
-		return false;
+		return true;
 	}
 
 	Logger logger() { return null; };
