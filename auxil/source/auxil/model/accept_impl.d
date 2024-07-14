@@ -27,6 +27,16 @@ mixin template acceptImpl()
 		enum hasTreePath = Visitor.treePathEnabled;
 		enum hasSize     = Visitor.sizeCalculationEnabled;
 
+		// If the range is empty then it is not processed
+		// TODO: should be a tunable parameter per a node(!)
+		static if (dataHasStaticArrayModel!Data || 
+		           dataHasRandomAccessRangeModel!Data ||
+		           dataHasAssociativeArrayModel!Data)
+		{
+			if (!data.length)
+				return false;
+		}
+
 		if (visitor.doEnterNode!(order, Data)(data, this, visitor))
 			return true;
 
