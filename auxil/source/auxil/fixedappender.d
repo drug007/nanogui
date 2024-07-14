@@ -1,7 +1,8 @@
 module auxil.fixedappender;
 
-struct FixedAppender(size_t Size)
+struct FixedAppender(size_t S)
 {
+	alias Size = S;
 	void put(char c) pure
 	{
 		import std.exception : enforce;
