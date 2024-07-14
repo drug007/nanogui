@@ -100,8 +100,40 @@ struct RaRModel(alias A)// if (dataHasRandomAccessRangeModel!(TypeOf!A))
 	static assert(isProcessible!Data);
 
 	alias ElementType = typeof(Data.init[0]);
-	Vector!(Model!ElementType, Mallocator) model;
-	alias model this;
+
+	// emulation of Vector!(Model!ElementType, Mallocator)
+
+	static struct Rep
+	{
+		// The size does not depend on real type,
+		// it allows to break recursion in type definition
+		enum Size = Vector!int.sizeof;
+		ubyte[Size] dummy;
+	}
+
+	Rep _representation;
+
+	ref auto model()
+	{
+		return *(cast(Vector!(Model!ElementType, Mallocator)*) &_representation);
+	}
+
+	ref auto opSlice()
+	{
+		return model()[];
+	}
+
+	auto length()
+	{
+		return model.length;
+	}
+
+	ref auto opIndex(size_t idx)
+	{
+		return model()[idx];
+	}
+
+	// end of emulation of Vector!(Model!ElementType, Mallocator)
 
 	this()(const(Data) data) if (Data.sizeof <= (void*).sizeof)
 	{
