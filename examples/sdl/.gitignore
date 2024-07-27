@@ -13,3 +13,4 @@ nanogui-sdl-test-*
 *.obj
 *.lst
 /example-sdl
+dub.selections.json
