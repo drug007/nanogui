@@ -29,7 +29,7 @@ jobs:
 
     # Checkout the repository
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: '[POSIX] Build'
       if: runner.os != 'Windows'
