@@ -131,7 +131,7 @@ struct RenderingVisitor
 			import nanogui.experimental.utils : hasRenderHeader;
 			static if (hasRenderHeader!data)
 			{
-				import auxil.model : FixedAppender;
+				import auxil.fixedappender : FixedAppender;
 				FixedAppender!512 app;
 				data.renderHeader(app);
 				auto header = app[];

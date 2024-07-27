@@ -634,6 +634,55 @@ Caption: float[]
 	));
 }
 
+version(unittest) @Name("tree")
+unittest
+{
+	import std.experimental.allocator.mallocator : Mallocator;
+	import automem.vector : Vector;
+
+	struct Node
+	{
+		string value;
+		Node[] children;
+	}
+
+	Node[] data;
+	data ~= Node("0.1f");
+	data ~= Node("0.2f");
+	data ~= Node("0.3f");
+
+	auto model = makeModel(data[]);
+
+	auto visitor = PrettyPrintingVisitor(14);
+	visitor.processItem;
+	model.traversalForward(data[], visitor);
+	assert(model.sizeYM == visitor.sizeY + model.Spacing);
+
+	model.collapsed = false;
+	model.traversalForward(data[], visitor);
+
+	assert(model.sizeYM == 4*(visitor.sizeY + model.Spacing));
+	foreach(e; model.model)
+		assert(e.sizeYM == (visitor.sizeY + model.Spacing));
+
+	visitor.output ~= '\0';
+	version(none)
+	{
+		import core.stdc.stdio : printf;
+		printf("%s\nlength: %ld\n", visitor.output[].ptr, visitor.output.length);
+	}
+
+	import std.algorithm : equal;
+	assert(visitor.output[].equal("
+Caption: Node[]
+Caption: Node[]
+	Caption: Node
+	Caption: Node
+	Caption: Node
+\0"
+	));
+}
+
 version(unittest) @Name("size_measuring")
 unittest
 {
