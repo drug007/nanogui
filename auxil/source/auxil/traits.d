@@ -224,6 +224,7 @@ package template isMemberDrawable(alias value, string member)
 template isMemberDrawableAndNotIgnored(alias value, string member)
 {
 	import std.algorithm : among;
+	import std.ascii : isUpper;
 	import std.meta : AliasSeq, Filter;
 	import std.traits : isSomeFunction, isType, Unqual;
 
@@ -232,7 +233,10 @@ template isMemberDrawableAndNotIgnored(alias value, string member)
 	else
 		alias T = Unqual!(typeof(value));
 
-	static if (member.among("__ctor", "__dtor", "this", "~this"))
+	// check if a member represented by alias A is an operator like opAssign, opCmp etc
+	enum isOpOperator(alias A) = (A.length > 2 && A[0..2] == "op") && isUpper(A[2]);
+
+	static if (member.among("__ctor", "__dtor", "this", "~this") || isOpOperator!member)
 		enum isMemberDrawableAndNotIgnored = false;
 	else static if (isSymbol!(__traits(getMember, T, member)))
 	{
