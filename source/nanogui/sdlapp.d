@@ -43,7 +43,7 @@ class SdlApp
 				The system failed to load the library. Usually this means that either the library or one of its dependencies could not be found.
 				*/
 			}
-			else if(SDLSupport.badLibrary) {
+			else if(ret == SDLSupport.badLibrary) {
 				/*
 				This indicates that the system was able to find and successfully load the library, but one or more symbols the binding expected to find was missing. This usually indicates that the loaded library is of a lower API version than the binding was configured to load, e.g., an SDL 2.0.2 library loaded by an SDL 2.0.10 configuration.
 
