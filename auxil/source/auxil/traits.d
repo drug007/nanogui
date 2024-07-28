@@ -301,6 +301,7 @@ struct renderedAsMember(string N)
 	enum string name = N;
 }
 struct ignored{}
+struct skipHeader{}
 private enum bool isRenderedAs(A) = is(A : renderedAs!T, T);
 private enum bool isRenderedAs(alias a) = false;
 package alias getRenderedAs(T : renderedAs!Proxy, Proxy) = Proxy;

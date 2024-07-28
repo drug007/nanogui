@@ -101,6 +101,12 @@ struct RaRModel(alias A)// if (dataHasRandomAccessRangeModel!(TypeOf!A))
 
 	alias ElementType = typeof(Data.init[0]);
 
+	import std.meta : AliasSeq, anySatisfy;
+	enum isSkipHeader(alias A) = __traits(isSame, auxil.traits.skipHeader, A);
+	static if (anySatisfy!(isSkipHeader, AliasSeq!(__traits(getAttributes, A))))
+		// if true then the header is not processed and children always are processed
+		enum skipHeaderValue = true;
+
 	// emulation of Vector!(Model!ElementType, Mallocator)
 
 	static struct Rep

@@ -196,7 +196,13 @@ struct DefaultVisitorImpl(Features)
 			return true;
 		}
 
-		static if (sizeCalculationEnabled) model.sizeYM = model.headerSizeY = size[model.orientation] + model.Spacing;
+		static if (sizeCalculationEnabled)
+		{
+			if (model.skipHeader)
+				model.sizeYM = model.headerSizeY = 0;
+			else
+				model.sizeYM = model.headerSizeY = size[model.orientation] + model.Spacing;
+		}
 
 		final switch(state)
 		{
@@ -220,8 +226,11 @@ struct DefaultVisitorImpl(Features)
 
 		if (state.among(State.first, State.rest))
 		{
-			updatePositionSinking!order(model.headerSizeY);
-			derivedVisitor.enterNode!(order, Data)(data, model);
+			if (!model.skipHeader)
+			{
+				updatePositionSinking!order(model.headerSizeY);
+				derivedVisitor.enterNode!(order, Data)(data, model);
+			}
 			checkTraversalCompletionSinking!order();
 		}
 
@@ -236,9 +245,16 @@ struct DefaultVisitorImpl(Features)
 			return true;
 		}
 
-		static if (sizeCalculationEnabled) model.sizeYM = model.headerSizeY = size[model.orientation] + model.Spacing;
+		static if (sizeCalculationEnabled)
+		{
+			if (model.skipHeader)
+				model.sizeYM = model.headerSizeY = 0;
+			else
+				model.sizeYM = model.headerSizeY = size[model.orientation] + model.Spacing;
+		}
 
-		derivedVisitor.enterNode!(order, Data)(data, model);
+		if (!model.skipHeader)
+			derivedVisitor.enterNode!(order, Data)(data, model);
 
 		return false;
 	}
@@ -250,16 +266,19 @@ struct DefaultVisitorImpl(Features)
 
 		if (state.among(State.first, State.rest))
 		{
-			updatePositionBubbling!order(-model.headerSizeY);
+			if (!model.skipHeader)
+				updatePositionBubbling!order(-model.headerSizeY);
 			checkTraversalCompletionBubbling!order();
 
-			derivedVisitor.leaveNode!order(data, model);
+			if (!model.skipHeader)
+				derivedVisitor.leaveNode!order(data, model);
 		}
 	}
 
 	void doLeaveNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
 		if (!treePathEnabled)
 	{
-		derivedVisitor.leaveNode!order(data, model);
+		if (!model.skipHeader)
+			derivedVisitor.leaveNode!order(data, model);
 	}
 }
