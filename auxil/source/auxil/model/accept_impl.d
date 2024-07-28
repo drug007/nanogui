@@ -32,6 +32,12 @@ mixin template acceptImpl()
 		if (0 == getLength!(Data, data))
 			return false;
 
+		static if (is(typeof(data.skipThis)))
+		{
+			if (data.skipThis)
+				return false;
+		}
+
 		if (visitor.doEnterNode!(order, Data)(data, this, visitor))
 			return true;
 
