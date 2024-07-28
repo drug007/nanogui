@@ -15,11 +15,12 @@ import std.range : isRandomAccessRange, ElementType;
 import nanogui.widget;
 import nanogui.common : MouseButton, Vector2f, Vector2i, NanoContext;
 import nanogui.experimental.utils : Model, isProcessible;
+import nanogui.experimental.details.list_visitors : RenderingVisitor;
 
 /**
  * Tree view widget.
  */
-class List(D) : Widget
+class List(D, Renderer = RenderingVisitor) : Widget
 	if (isProcessible!D)
 {
 public:
@@ -320,7 +321,6 @@ public:
 		ctx.translate(mPos.x, mPos.y);
 		ctx.intersectScissor(0, 0, sizeX, mSize.y);
 
-		import nanogui.experimental.details.list_visitors : RenderingVisitor;
 		import nanogui.layout : Orientation;
 
 		// the size of invisible part of the first item
@@ -328,7 +328,7 @@ public:
 		const auto invisiblePartSize = rm.posY - rm.destY;
 		assert(invisiblePartSize <= 0);
 
-		auto renderer = RenderingVisitor(ctx, Orientation.Vertical, rm.path, rm.posY, invisiblePartSize, sizeX);
+		auto renderer = Renderer(ctx, Orientation.Vertical, rm.path, rm.posY, invisiblePartSize, sizeX);
 		traversal(_model, _data, renderer, _scroll_position + size.y);
 		tree_path = renderer.selectedItem;
 
