@@ -84,7 +84,7 @@ struct RenderingVisitor
 			NVGPaint bg = ctx.boxGradient(
 				ctx.position.x + 1.5f, ctx.position.y + 1.5f,
 				ctx.size[ctx.orientation] - 2.0f, ctx.size[ctx.orientation] - 2.0f, 3, 3,
-				true/*pushed*/ ? Color(0, 0, 0, 100) : Color(0, 0, 0, 32),
+				model.collapsed ? Color(0, 0, 0, 32) : Color(0, 0, 0, 100),
 				Color(0, 0, 0, 180)
 			);
 
