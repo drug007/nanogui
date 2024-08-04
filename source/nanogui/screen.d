@@ -397,6 +397,12 @@ class Screen : Widget
 		return true;
 	}
 
+
+	void resizeCallback(void delegate(Vector2i) dg)
+	{
+		mResizeCallback = dg;
+	}
+
 	Logger logger() { return null; }
 
 	/// Return the ratio between pixel and device coordinates (e.g. >= 2 on Mac Retina displays)
