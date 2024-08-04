@@ -397,7 +397,7 @@ class Screen : Widget
 		return true;
 	}
 
-	Logger logger() { return null; };
+	Logger logger() { return null; }
 
 	/// Return the ratio between pixel and device coordinates (e.g. >= 2 on Mac Retina displays)
 	float pixelRatio() const { return mPixelRatio; }

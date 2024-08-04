@@ -37,7 +37,10 @@ uint timer_callback(uint interval, void *param) nothrow
 class MyGlCanvas : GLCanvas
 {
 	import std.typecons : scoped;
-	import gfm.opengl;
+	import gfm.opengl : GLProgram, VertexSpecification, GLBuffer;
+	import bindbc.opengl : GLboolean, glGetBooleanv, glEnable, glDisable, glDrawElements, 
+		GL_ARRAY_BUFFER, GL_STATIC_DRAW, GL_ELEMENT_ARRAY_BUFFER, GL_DEPTH_TEST, GL_TRIANGLES,
+		GL_UNSIGNED_INT;
 	import gfm.math;
 	import nanogui.common;
 
@@ -314,7 +317,7 @@ class MyGui : SdlBackend
 			}
 
 			import std.random : uniform, Random;
-			auto rnd = Random(19937);
+			auto rnd = Random(19_937);
 
 			Item[] data;
 			enum total = 1_000_000;
@@ -465,7 +468,7 @@ class MyGui : SdlBackend
 
 		{
 			static bool bvar = true;
-			static int ivar = 12345678;
+			static int ivar = 12_345_678;
 			static double dvar = 3.1415926;
 			static float fvar = 3.1415926;
 			static string strval = "A string";

@@ -133,9 +133,11 @@ protected:
 		ctx.stroke;
 	}
 
-import gfm.opengl : GLTexture2D, GLFBO, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
+import gfm.opengl : GLTexture2D, GLFBO, GLRenderBuffer;
+
+import bindbc.opengl : GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
 	GL_CLAMP_TO_EDGE, GL_RGBA, GL_UNSIGNED_BYTE, glClear, GL_COLOR_BUFFER_BIT,
-	GL_DEPTH_BUFFER_BIT, GL_STENCIL_BUFFER_BIT, GLRenderBuffer, GL_DEPTH_COMPONENT;
+	GL_DEPTH_BUFFER_BIT, GL_STENCIL_BUFFER_BIT, GL_DEPTH_COMPONENT;
 
     /// The background color (what is used with ``glClearColor``).
     Color mBackgroundColor;

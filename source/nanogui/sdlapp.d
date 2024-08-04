@@ -4,7 +4,6 @@ import std.exception: enforce;
 
 import std.experimental.logger: Logger, FileLogger, globalLogLevel, LogLevel;
 
-import gfm.opengl: OpenGL;
 import gfm.sdl2: SDL2, SDL2Window, SDL_Event, SDL_Cursor, SDL_SetCursor, 
 	SDL_FreeCursor, SDL_Delay;
 
@@ -21,7 +20,7 @@ class SdlApp
 			setlocale(LC_NUMERIC, "C");
 		}
 
-		import gfm.opengl : GLSupport, loadOpenGL;
+		import bindbc.opengl : GLSupport, loadOpenGL;
 		import bindbc.sdl : SDLSupport, sdlSupport, loadSDL, SDL_INIT_VIDEO, SDL_INIT_EVENTS,
 			SDL_GL_SetAttribute, SDL_WINDOWPOS_UNDEFINED, SDL_GL_CONTEXT_MAJOR_VERSION,
 			SDL_GL_CONTEXT_MINOR_VERSION,SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE,
@@ -88,16 +87,10 @@ class SdlApp
 			import std.exception;
 			enforce(0);
 		}
-
-		_gl = new OpenGL(_log);
-
-		// redirect OpenGL output to our Logger
-		_gl.redirectDebugOutput();
 	}
 
 	~this()
 	{
-		_gl.destroy();
 		window.destroy();
 		_sdl2.destroy();
 	}
@@ -403,7 +396,6 @@ protected:
 	int pauseTimeMs;
 
 	Logger _log;
-	OpenGL _gl;
 	SDL2 _sdl2;
 }
 
