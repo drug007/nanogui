@@ -20,12 +20,8 @@ mixin template acceptImpl()
 			pragma(msg, "Warning: ", Data, " is a value type and has size larger than 24 bytes");
 
 		// static assert(Data.sizeof <= 24 || __traits(isRef, data));
-		import std.algorithm : among;
 
-		enum Sinking     = order == Order.Sinking;
-		enum Bubbling    = !Sinking; 
-		enum hasTreePath = Visitor.treePathEnabled;
-		enum hasSize     = Visitor.sizeCalculationEnabled;
+		enum Sinking = order == Order.Sinking;
 
 		// If the range is empty then it is not processed
 		// TODO: should be a tunable parameter per a node(!)
@@ -51,38 +47,18 @@ mixin template acceptImpl()
 			visitor.indent;
 			scope(exit) visitor.unindent;
 
+			// data length should be equal to model length
+			assert(getLength!(Data, data) == length);
+
 			if (!visitor.doBeforeChildren!(order, Data)(data, this, visitor))
 				return false;
+			scope(exit) visitor.doAfterChildren!(order, Data)(data, this, visitor);
 
-			auto len = length();
-			static if (is(typeof(model.length)))
-				assert(len == model.length);
-			if (!len)
-				return false;
+			// Number of first child to visit
+			// set by visitor
+			// depends on order, children count and current tree path value
+			size_t start_value = visitor.getStartValue!order(this);
 
-			static if (hasTreePath) visitor.tree_path.put(0);
-			static if (hasTreePath) scope(exit) visitor.tree_path.popBack;
-
-			size_t start_value;
-			static if (Bubbling)
-			{
-				start_value = len;
-				start_value--;
-			}
-			static if (hasTreePath)
-			{
-				if (visitor.state.among(visitor.State.seeking, visitor.State.first))
-				{
-					auto idx = visitor.tree_path.value.length;
-					if (idx && visitor.path.value.length >= idx)
-					{
-						start_value = visitor.path.value[idx-1];
-						// position should change only if we've got the initial path
-						// and don't get the end
-						if (visitor.state == visitor.State.seeking) visitor.clear;
-					}
-				}
-			}
 			static if (dataHasStaticArrayModel!Data || 
 			           dataHasRandomAccessRangeModel!Data ||
 			           dataHasAssociativeArrayModel!Data)
@@ -133,9 +109,6 @@ mixin template acceptImpl()
 						assert(0);
 				}
 			}
-		}
-		else
-		{
 		}
 
 		return false;

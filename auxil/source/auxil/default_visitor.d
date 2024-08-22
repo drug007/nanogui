@@ -102,7 +102,50 @@ struct DefaultVisitorImpl(Features)
 				return false;
 			}
 		}
+
+		if (!model.length)
+			return false;
+
+		static if (treePathEnabled) derivedVisitor.tree_path.put(0);
+
 		return true;
+	}
+
+	void doAfterChildren(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
+	{
+		static if (treePathEnabled) derivedVisitor.tree_path.popBack;
+	}
+
+	size_t getStartValue(Order order, Model)(ref Model model)
+	{
+		assert(model.length);
+
+		static if (order == Order.Bubbling)
+		{
+			size_t startValue = model.length;
+			startValue--; // to avoid warning about decrement unsigned type value
+		}
+		else
+			size_t startValue = 0;
+
+		static if (treePathEnabled)
+		{
+			import std.algorithm : among;
+
+			if (this.state.among(this.State.seeking, this.State.first))
+			{
+				auto idx = this.tree_path.value.length;
+				if (idx && this.path.value.length >= idx)
+				{
+					startValue = this.path.value[idx-1];
+					// position should change only if we've got the initial path
+					// and don't get the end
+					if (this.state == this.State.seeking) this.clear;
+				}
+			}
+		}
+
+		return startValue;
 	}
 
 	static if (sizeEnabled && treePathEnabled)
