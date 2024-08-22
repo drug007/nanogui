@@ -51,15 +51,8 @@ mixin template acceptImpl()
 			visitor.indent;
 			scope(exit) visitor.unindent;
 
-			static if (Bubbling && hasTreePath)
-			{
-				// Edge case if the start path starts from this collapsable exactly
-				// then the childs of the collapsable aren't processed
-				if (visitor.path.value.length && visitor.tree_path.value[] == visitor.path.value[])
-				{
-					return false;
-				}
-			}
+			if (!visitor.doBeforeChildren!(order, Data)(data, this, visitor))
+				return false;
 
 			auto len = getLength!(Data, data);
 			static if (is(typeof(model.length)))

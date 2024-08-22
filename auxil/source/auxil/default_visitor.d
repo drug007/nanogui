@@ -91,6 +91,20 @@ struct DefaultVisitorImpl(Features)
 			tree_path.back = i;
 	}
 
+	bool doBeforeChildren(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
+	{
+		static if (order == Order.Bubbling && treePathEnabled)
+		{
+			// Edge case if the start path starts from this collapsable exactly
+			// then the childs of the collapsable aren't processed
+			if (derivedVisitor.path.value.length && derivedVisitor.tree_path.value[] == derivedVisitor.path.value[])
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
 	static if (sizeEnabled && treePathEnabled)
 	{
 		// Выравнивание в зависимости от ориентации
