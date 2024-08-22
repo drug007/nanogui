@@ -99,7 +99,7 @@ mixin template acceptImpl()
 				foreach(i; TwoFacedRange!order(start_value, data.length))
 				{
 					visitor.setTreePath(cast(int) i);
-					static if (hasSize) scope(exit) this.sizeYM += model[i].sizeYM;
+					scope(exit) visitor.afterChildVisiting(this, model[i]);
 					auto idx = getIndex!(Data)(this, i);
 					if (model[i].accept!order(data[idx], visitor))
 					{
@@ -122,7 +122,7 @@ mixin template acceptImpl()
 							enum FieldNo = (Sinking) ? i : len2 - i - 1;
 							enum member = DrawableMembers!Data[FieldNo];
 							visitor.setTreePath(cast(int) FieldNo);
-							static if (hasSize) scope(exit) this.sizeYM += mixin("this." ~ member).sizeYM;
+							scope(exit) visitor.afterChildVisiting(this, mixin("this." ~ member));
 							if (mixin("this." ~ member).accept!order(mixin("data." ~ member), visitor))
 							{
 								return true;

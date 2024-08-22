@@ -75,6 +75,15 @@ struct DefaultVisitorImpl(Features)
 		}
 	}
 
+	/// After child visiting update parent size
+	void afterChildVisiting(ParentModel, ChildModel)(ref ParentModel parent, ref ChildModel child)
+	{
+		static if (sizeCalculationEnabled)
+		{
+			parent.sizeYM += child.sizeYM;
+		}
+	}
+
 	/// Update current tree path
 	void setTreePath(int i)
 	{
