@@ -84,6 +84,11 @@ struct StaticArrayModel(alias A)// if (dataHasStaticArrayModel!(TypeOf!A))
 			model[i] = Model!ElementType(data[i]);
 	}
 
+	auto length()
+	{
+		return model.length;
+	}
+
 	mixin acceptImpl;
 }
 
@@ -211,6 +216,11 @@ struct AssocArrayModel(alias A)// if (dataHasAssociativeArrayModel!(TypeOf!A))
 		update(taget!Data(v));
 	}
 
+	auto length()
+	{
+		return model.length;
+	}
+
 	mixin acceptImpl;
 }
 
@@ -306,6 +316,11 @@ struct TaggedAlgebraicModel(alias A)// if (dataHasTaggedAlgebraicModel!(TypeOf!A
 		tamodel = makeModel(data);
 	}
 
+	auto length()
+	{
+		return 1;
+	}
+
 	bool accept(Order order, Visitor)(ref const(Data) data, ref Visitor visitor)
 	{
 		final switch (data.kind) {
@@ -356,6 +371,11 @@ template AggregateModel(alias A) // if (dataHasAggregateModel!(TypeOf!A) && !is(
 					mixin("single_member_model = Model!Member(data.%1$s);".format(member));
 			}
 
+			size_t length()
+			{
+				return DrawableMembers!Data.length;
+			}
+
 			bool accept(Order order, Visitor)(auto ref const(T) data, ref Visitor visitor)
 			{
 				return single_member_model.accept!order(mixin("data." ~ member), visitor);
@@ -390,6 +410,11 @@ template AggregateModel(alias A) // if (dataHasAggregateModel!(TypeOf!A) && !is(
 					else
 						mixin("this.%1$s = Model!(Data.%1$s)(data.%1$s);".format(member));
 				}
+			}
+
+			size_t length()
+			{
+				return DrawableMembers!Data.length;
 			}
 
 			mixin acceptImpl;

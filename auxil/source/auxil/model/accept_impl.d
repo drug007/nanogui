@@ -29,7 +29,7 @@ mixin template acceptImpl()
 
 		// If the range is empty then it is not processed
 		// TODO: should be a tunable parameter per a node(!)
-		if (0 == getLength!(Data, data))
+		if (0 == length)
 			return false;
 
 		static if (is(typeof(data.skipThis)))
@@ -54,7 +54,7 @@ mixin template acceptImpl()
 			if (!visitor.doBeforeChildren!(order, Data)(data, this, visitor))
 				return false;
 
-			auto len = getLength!(Data, data);
+			auto len = length();
 			static if (is(typeof(model.length)))
 				assert(len == model.length);
 			if (!len)
