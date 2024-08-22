@@ -75,6 +75,13 @@ struct DefaultVisitorImpl(Features)
 		}
 	}
 
+	/// Update current tree path
+	void setTreePath(int i)
+	{
+		static if (treePathEnabled)
+			tree_path.back = i;
+	}
+
 	static if (sizeEnabled && treePathEnabled)
 	{
 		// Выравнивание в зависимости от ориентации
