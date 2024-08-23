@@ -42,7 +42,7 @@ mixin template acceptImpl()
 			visitor.doLeaveNode!(order, Data)(data, this, visitor);
 		}
 
-		if (!this.collapsed || skipHeader)
+		if (!this.collapsed)
 		{
 			visitor.indent;
 			scope(exit) visitor.unindent;
@@ -113,15 +113,4 @@ mixin template acceptImpl()
 
 		return false;
 	}
-
-	// Helper to set skipHeader feature
-	// skipHeaderValue is set in appropriate model only,
-	// and skipHeader is set for every model
-	/// skipHeader true means that the header of the range
-	/// should be processed but its content (children) should be
-	/// processed despite collapsed state
-	static if (is(typeof(skipHeaderValue)))
-		enum skipHeader = skipHeaderValue;
-	else
-		enum skipHeader = false;
 }
