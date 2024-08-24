@@ -735,10 +735,10 @@ struct ScalarModel(alias A)
 
 			if (state.among(State.first, State.rest))
 			{
-				static if (Sinking) visitor.processLeaf!order(data, this);
 				visitor.checkTraversalCompletionBubbling!order();
 				visitor.checkTraversalCompletionSinking!order();
-				static if (Bubbling) visitor.processLeaf!order(data, this);
+
+				visitor.processLeaf!order(data, this);
 			}
 		}
 		else

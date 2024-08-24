@@ -282,8 +282,9 @@ struct DefaultVisitorImpl(Features)
 		if (state.among(State.first, State.rest))
 		{
 			static if (order == Order.Sinking) updatePosition(model.headerSizeY);
-			derivedVisitor.enterNode!(order, Data)(data, model);
 			checkTraversalCompletionSinking!order();
+
+			derivedVisitor.enterNode!(order, Data)(data, model);
 		}
 
 		return false;
