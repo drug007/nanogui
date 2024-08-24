@@ -703,9 +703,12 @@ struct ScalarModel(alias A)
 		enum Bubbling    = !Sinking; 
 		enum hasTreePath = Visitor.treePathEnabled;
 
-		static if (hasTreePath)
+		if (visitor.complete)
+			return true;
+
+		static if (hasTreePath) with(visitor)
 		{
-			with(visitor) final switch(state)
+			final switch(state)
 			{
 				case State.seeking:
 					if (tree_path.value == path.value)
@@ -718,23 +721,17 @@ struct ScalarModel(alias A)
 					// do nothing
 				break;
 				case State.finishing:
-				{
 					return true;
-				}
 			}
-		}
-		if (visitor.complete)
-		{
-			return true;
+
+			if (!state.among(State.first, State.rest))
+				return false;
 		}
 
 		static if (Visitor.sizeCalculationEnabled) this.sizeYM = visitor.size[visitor.orientation] + this.Spacing;
 		static if (hasTreePath) with(visitor) 
 		{
 			visitor.updatePosition(Sinking ? sizeYM : -sizeYM);
-
-			if (!state.among(State.first, State.rest))
-				return false;
 
 			visitor.checkTraversalCompletionBubbling!order();
 			visitor.checkTraversalCompletionSinking!order();

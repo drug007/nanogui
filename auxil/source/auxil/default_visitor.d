@@ -253,9 +253,7 @@ struct DefaultVisitorImpl(Features)
 		import std.algorithm : among;
 
 		if (derivedVisitor.complete)
-		{
 			return true;
-		}
 
 		static if (sizeCalculationEnabled) model.sizeYM = model.headerSizeY = size[model.orientation] + model.Spacing;
 
@@ -277,10 +275,10 @@ struct DefaultVisitorImpl(Features)
 			}
 		}
 
-		derivedVisitor._orientation = model.orientation;
-
 		if (!state.among(State.first, State.rest))
 			return false;
+
+		derivedVisitor._orientation = model.orientation;
 
 		static if (order == Order.Sinking) updatePosition(model.headerSizeY);
 		checkTraversalCompletionSinking!order();
@@ -294,9 +292,7 @@ struct DefaultVisitorImpl(Features)
 		if (!treePathEnabled)
 	{
 		if (derivedVisitor.complete)
-		{
 			return true;
-		}
 
 		static if (sizeCalculationEnabled) model.sizeYM = model.headerSizeY = size[model.orientation] + model.Spacing;
 
