@@ -184,22 +184,10 @@ struct DefaultVisitorImpl(Features)
 		}
 	}
 
-	package void updatePositionSinking(Order order, Change)(Change change)
+	package void updatePosition(Change)(Change change)
 	{
-		static if (order == Order.Sinking)
-		{
-			_pos[_orientation] += _deferred_change[_orientation];
-			_deferred_change[_orientation] = change;
-		}
-	}
-
-	package void updatePositionBubbling(Order order, Change)(Change change)
-	{
-		static if (order == Order.Bubbling)
-		{
-			_pos[_orientation] += _deferred_change[_orientation];
-			_deferred_change[_orientation] = change;
-		}
+		_pos[_orientation] += _deferred_change[_orientation];
+		_deferred_change[_orientation] = change;
 	}
 
 	package void checkTraversalCompletionSinking(Order order)()
@@ -293,7 +281,7 @@ struct DefaultVisitorImpl(Features)
 
 		if (state.among(State.first, State.rest))
 		{
-			updatePositionSinking!order(model.headerSizeY);
+			static if (order == Order.Sinking) updatePosition(model.headerSizeY);
 			derivedVisitor.enterNode!(order, Data)(data, model);
 			checkTraversalCompletionSinking!order();
 		}
@@ -323,7 +311,7 @@ struct DefaultVisitorImpl(Features)
 
 		if (state.among(State.first, State.rest))
 		{
-			updatePositionBubbling!order(-model.headerSizeY);
+			static if (order == Order.Bubbling) updatePosition(-model.headerSizeY);
 			checkTraversalCompletionBubbling!order();
 
 			derivedVisitor.leaveNode!order(data, model);
