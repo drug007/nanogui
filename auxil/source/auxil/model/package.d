@@ -733,16 +733,14 @@ struct ScalarModel(alias A)
 		{
 			visitor.updatePosition(Sinking ? sizeYM : -sizeYM);
 
-			if (state.among(State.first, State.rest))
-			{
-				visitor.checkTraversalCompletionBubbling!order();
-				visitor.checkTraversalCompletionSinking!order();
+			if (!state.among(State.first, State.rest))
+				return false;
 
-				visitor.processLeaf!order(data, this);
-			}
+			visitor.checkTraversalCompletionBubbling!order();
+			visitor.checkTraversalCompletionSinking!order();
 		}
-		else
-			visitor.processLeaf!order(data, this);
+
+		visitor.processLeaf!order(data, this);
 
 		return false;
 	}

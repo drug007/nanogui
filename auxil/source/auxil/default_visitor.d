@@ -279,13 +279,13 @@ struct DefaultVisitorImpl(Features)
 
 		derivedVisitor._orientation = model.orientation;
 
-		if (state.among(State.first, State.rest))
-		{
-			static if (order == Order.Sinking) updatePosition(model.headerSizeY);
-			checkTraversalCompletionSinking!order();
+		if (!state.among(State.first, State.rest))
+			return false;
 
-			derivedVisitor.enterNode!(order, Data)(data, model);
-		}
+		static if (order == Order.Sinking) updatePosition(model.headerSizeY);
+		checkTraversalCompletionSinking!order();
+
+		derivedVisitor.enterNode!(order, Data)(data, model);
 
 		return false;
 	}
@@ -310,13 +310,13 @@ struct DefaultVisitorImpl(Features)
 	{
 		import std.algorithm : among;
 
-		if (state.among(State.first, State.rest))
-		{
-			static if (order == Order.Bubbling) updatePosition(-model.headerSizeY);
-			checkTraversalCompletionBubbling!order();
+		if (!state.among(State.first, State.rest))
+			return;
 
-			derivedVisitor.leaveNode!order(data, model);
-		}
+		static if (order == Order.Bubbling) updatePosition(-model.headerSizeY);
+		checkTraversalCompletionBubbling!order();
+
+		derivedVisitor.leaveNode!order(data, model);
 	}
 
 	void doLeaveNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
