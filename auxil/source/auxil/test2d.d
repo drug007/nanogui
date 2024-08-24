@@ -91,16 +91,21 @@ unittest
 		float f = 10e6;
 	}
 
-	auto data = TrivialStruct();
+	auto data = [TrivialStruct(), TrivialStruct(), TrivialStruct()];
 	auto model = makeModel(data);
-	import std;
-	writeln(model);
+
 	model.collapsed = false;
 
 	model.orientation.should.be == Orientation.Vertical;
 
-	model.orientation = Orientation.Horizontal;
-	model.collapsed = false;
+	model[0].orientation = Orientation.Vertical;
+	model[0].collapsed = false;
+
+	model[1].orientation = Orientation.Horizontal;
+	model[1].collapsed = false;
+
+	model[2].orientation = Orientation.Vertical;
+	model[2].collapsed = false;
 
 	// measure size
 	{
@@ -108,8 +113,21 @@ unittest
 		model.traversalForward(data, mv);
 	}
 
-	model.headerSizeY.should.be == 33;
-	model.i.size.should.be == 33;
-	model.f.size.should.be == 33;
-	model.size.should.be == 99;
+	model[0].header_size.should.be == 10;
+	model[0].i.size.should.be == 10;
+	model[0].f.size.should.be == 10;
+	model[0].size.should.be == 30;
+
+	model[1].header_size.should.be == 33;
+	model[1].i.size.should.be == 33;
+	model[1].f.size.should.be == 33;
+	model[1].size.should.be == 99;
+
+	model[2].header_size.should.be == 10;
+	model[2].i.size.should.be == 10;
+	model[2].f.size.should.be == 10;
+	model[2].size.should.be == 30;
+
+	model.header_size.should.be == 10;
+	model.size.should.be == 80;
 }

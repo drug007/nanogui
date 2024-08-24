@@ -118,7 +118,7 @@ struct RaRModel(alias A)// if (dataHasRandomAccessRangeModel!(TypeOf!A))
 
 	Rep _representation;
 
-	ref auto model()
+	ref auto model() @trusted inout
 	{
 		return *(cast(Vector!(Model!ElementType, Mallocator)*) &_representation);
 	}
@@ -140,6 +140,32 @@ struct RaRModel(alias A)// if (dataHasRandomAccessRangeModel!(TypeOf!A))
 
 	// end of emulation of Vector!(Model!ElementType, Mallocator)
 
+	void toString(scope void delegate(const(char)[]) sink) const
+    {
+		import std.conv : to;
+
+		sink(typeof(this).stringof);
+		sink("(");
+		sink(sizeYM.to!string);
+		sink(", ");
+		sink(headerSizeY.to!string);
+		sink(", ");
+		sink(_placeholder.to!string);
+		sink(", [");
+
+		if (model.length)
+		{
+			sink(model[0].to!string);
+
+			foreach(ref e; model[1..$])
+			{
+				sink(", ");
+				sink(e.to!string);
+			}
+		}
+		sink("])");
+	}
+
 	this()(const(Data) data) if (Data.sizeof <= (void*).sizeof)
 	{
 		update(data);
@@ -150,7 +176,7 @@ struct RaRModel(alias A)// if (dataHasRandomAccessRangeModel!(TypeOf!A))
 		update(data);
 	}
 
-	void update(ref const(Data) data)
+	void update(ref const(Data) data) @trusted
 	{
 		model.length = data.length;
 		foreach(i, ref e; model)

@@ -80,6 +80,16 @@ struct DefaultVisitorImpl(Features)
 	{
 		static if (sizeCalculationEnabled)
 		{
+			static if (is(typeof(child.orientation)))
+			{
+				if (parent.orientation != child.orientation)
+				{
+					// if orientations mismatch use parent orientation
+					parent.sizeYM += size[parent.orientation] + parent.Spacing;
+					return;
+				}
+			}
+
 			parent.sizeYM += child.sizeYM;
 		}
 	}
@@ -175,6 +185,9 @@ struct DefaultVisitorImpl(Features)
 		SizeType posY() const { return _pos[Orientation.Vertical]; }
 		SizeType posY(SizeType value) { _pos[Orientation.Vertical] = value; return value; }
 
+		SizeType destX() const { return _destination[Orientation.Horizontal]; }
+		SizeType destX(SizeType value) { _destination[Orientation.Horizontal] = value; return value; }
+
 		SizeType destY() const { return _destination[Orientation.Vertical]; }
 		SizeType destY(SizeType value) { _destination[Orientation.Vertical] = value; return value; }
 
@@ -211,7 +224,7 @@ struct DefaultVisitorImpl(Features)
 	}
 
 	void toString(scope void delegate(const(char)[]) sink) const
-    {
+	{
 		import std.conv : to;
 
 		sink(typeof(this).stringof);
@@ -291,6 +304,8 @@ struct DefaultVisitorImpl(Features)
 			return true;
 
 		static if (sizeCalculationEnabled) model.sizeYM = model.headerSizeY = size[model.orientation] + model.Spacing;
+
+		derivedVisitor._orientation = model.orientation;
 
 		derivedVisitor.enterNode!(order, Data)(data, model);
 
