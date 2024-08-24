@@ -732,9 +732,7 @@ struct ScalarModel(alias A)
 		static if (hasTreePath) with(visitor) 
 		{
 			visitor.updatePosition(Sinking ? sizeYM : -sizeYM);
-
-			visitor.checkTraversalCompletionBubbling!order();
-			visitor.checkTraversalCompletionSinking!order();
+			visitor.checkTraversalCompletion!order();
 		}
 
 		visitor.processLeaf!order(data, this);

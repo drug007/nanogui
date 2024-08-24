@@ -190,27 +190,23 @@ struct DefaultVisitorImpl(Features)
 		_deferred_change[_orientation] = change;
 	}
 
-	package void checkTraversalCompletionSinking(Order order)()
+	package void checkTraversalCompletion(Order order)()
 	{
 		static if (order == Order.Sinking)
 		{
-			if (_pos[_orientation]+_deferred_change[_orientation] > _destination[_orientation])
-			{
-				state = State.finishing;
-				path = tree_path;
-			}
+			bool finished = (_pos[_orientation]+_deferred_change[_orientation] > _destination[_orientation]);
 		}
-	}
-
-	package void checkTraversalCompletionBubbling(Order order)()
-	{
-		static if (order == Order.Bubbling)
+		else
 		{
-			if (_pos[_orientation] <= _destination[_orientation])
-			{
-				state = State.finishing;
-				path = tree_path;
-			}
+			static assert(order == Order.Bubbling);
+
+			bool finished = (_pos[_orientation] <= _destination[_orientation]);
+		}
+
+		if (finished)
+		{
+			state = State.finishing;
+			path = tree_path;
 		}
 	}
 
@@ -281,7 +277,7 @@ struct DefaultVisitorImpl(Features)
 		derivedVisitor._orientation = model.orientation;
 
 		static if (order == Order.Sinking) updatePosition(model.headerSizeY);
-		checkTraversalCompletionSinking!order();
+		checkTraversalCompletion!order();
 
 		derivedVisitor.enterNode!(order, Data)(data, model);
 
@@ -310,7 +306,7 @@ struct DefaultVisitorImpl(Features)
 			return;
 
 		static if (order == Order.Bubbling) updatePosition(-model.headerSizeY);
-		checkTraversalCompletionBubbling!order();
+		checkTraversalCompletion!order();
 
 		derivedVisitor.leaveNode!order(data, model);
 	}
