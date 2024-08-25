@@ -82,7 +82,20 @@ struct DefaultVisitorImpl(Features)
 		{
 			static if (is(typeof(child.orientation)))
 			{
-				if (parent.orientation != child.orientation)
+				Orientation childOrientation = void;
+				// TaggedAlgebraic payload has orientation if any its member has it. So
+				// is(typeof(child.hasOrientation) may be true but the current TaggedAlgebraic
+				// payload may does not have this property so additional check availablity of this
+				// property in runtime
+				static if (is(typeof(child.hasOrientation) == bool))
+				{
+					// in runtime check if the current value type has orientation
+					childOrientation = child.hasOrientation ? child.orientation : parent.orientation;
+				}
+				else
+					childOrientation = child.orientation;
+
+				if (parent.orientation != childOrientation)
 				{
 					// if orientations mismatch use parent orientation
 					parent.sizeYM += size[parent.orientation] + parent.Spacing;
