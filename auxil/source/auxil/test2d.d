@@ -54,6 +54,18 @@ struct RelativeMeasurer
 
 	TreePosition[] output;
 
+	void indent()
+	{
+		if (orientation == orientation.Vertical)
+			posX = posX + 15;
+	}
+
+	void unindent()
+	{
+		if (orientation == orientation.Vertical)
+			posX = posX - 15;
+	}
+
 	void enterTree(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		output = null;
@@ -130,4 +142,56 @@ unittest
 
 	model.header_size.should.be == 10;
 	model.size.should.be == 80;
+
+	() @trusted {
+		auto rm = RelativeMeasurer();
+		rm.clear;
+		rm.posX = 0;
+		rm.posY = 0;
+		rm.destX = 1000;
+		rm.destY = 1000;
+		model.traversalForward(data, rm);
+
+		int i;
+		rm.output[i].path[].length.should.be == 0;
+		rm.output[i].x.should.be == 0;
+		rm.output[i].y.should.be == 0;
+		i++;
+
+		rm.output[i].path[].should.be == [0];
+		rm.output[i].x.should.be == 15;
+		rm.output[i].y.should.be == 10;
+		i++;
+
+		rm.output[i].path[].should.be == [0, 0];
+		rm.output[i].x.should.be == 30;
+		rm.output[i].y.should.be == 20;
+		i++;
+
+		rm.output[i].path[].should.be == [0, 1];
+		rm.output[i].x.should.be == 30;
+		rm.output[i].y.should.be == 30;
+		i++;
+
+		rm.output[i].path[].should.be == [1];
+		rm.output[i].x.should.be == 15;
+		i++;
+
+		rm.output[i].path[].should.be == [1, 0];
+		rm.output[i].x.should.be == 48;
+		i++;
+
+		rm.output[i].path[].should.be == [1, 1];
+		rm.output[i].x.should.be == 81;
+		i++;
+
+		rm.output[i].path[].should.be == [2];
+		i++;
+
+		rm.output[i].path[].should.be == [2, 0];
+		i++;
+
+		rm.output[i].path[].should.be == [2, 1];
+		i++;
+	} ();
 }
