@@ -216,6 +216,15 @@ struct DefaultVisitorImpl(Features)
 		_deferred_change[_orientation] = change;
 	}
 
+	/// Update current position and keep deferred change
+	/// useful when orientation is changed to return to the previous
+	/// orientation later
+	package void changeOrientation()
+	{
+		static if (is(typeof(_pos)))
+			_pos[_orientation] += _deferred_change[_orientation];
+	}
+
 	package void checkTraversalCompletion(Order order)()
 	{
 		static if (order == Order.Sinking)
@@ -299,6 +308,12 @@ struct DefaultVisitorImpl(Features)
 
 		if (!state.among(State.first, State.rest))
 			return false;
+
+
+		if (model.orientation != derivedVisitor.orientation)
+		{
+			changeOrientation();
+		}
 
 		derivedVisitor._orientation = model.orientation;
 

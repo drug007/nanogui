@@ -175,23 +175,29 @@ unittest
 
 		rm.output[i].path[].should.be == [1];
 		rm.output[i].x.should.be == 15;
+		rm.output[i].y.should.be == 40;
 		i++;
 
 		rm.output[i].path[].should.be == [1, 0];
 		rm.output[i].x.should.be == 48;
+		rm.output[i].y.should.be == 40;
 		i++;
 
 		rm.output[i].path[].should.be == [1, 1];
 		rm.output[i].x.should.be == 81;
+		rm.output[i].y.should.be == 40;
 		i++;
 
 		rm.output[i].path[].should.be == [2];
+		rm.output[i].y.should.be == 50;
 		i++;
 
 		rm.output[i].path[].should.be == [2, 0];
+		rm.output[i].y.should.be == 60;
 		i++;
 
 		rm.output[i].path[].should.be == [2, 1];
+		rm.output[i].y.should.be == 70;
 		i++;
 	} ();
 }
