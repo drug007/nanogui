@@ -6,6 +6,13 @@ version(unittest) import unit_threaded : Name;
 
 import auxil.common : Order, SizeType, Orientation;
 
+/// Stores the data needed afterwards
+struct StackRecord
+{
+	SizeType position;
+	Orientation orientation;
+}
+
 struct FeaturesNull {}
 
 struct FeaturesSize
@@ -186,12 +193,15 @@ struct DefaultVisitorImpl(Features)
 
 	static if (treePathEnabled)
 	{
+		import std.experimental.allocator.mallocator : Mallocator;
+		import automem : Vector;
 		import auxil.tree_path : TreePath;
 
 		enum State { seeking, first, rest, finishing, }
 		State state;
 		TreePath tree_path, path;
 		private SizeType[2] _pos, _deferred_change, _destination;
+		private Vector!(StackRecord, Mallocator) _stack;
 
 		SizeType posX() const { return _pos[Orientation.Horizontal]; }
 		SizeType posX(SizeType value) { _pos[Orientation.Horizontal] = value; return value; }
@@ -203,6 +213,23 @@ struct DefaultVisitorImpl(Features)
 
 		SizeType destY() const { return _destination[Orientation.Vertical]; }
 		SizeType destY(SizeType value) { _destination[Orientation.Vertical] = value; return value; }
+
+		package void pushRecord(SizeType pos, Orientation o) @trusted
+		{
+			_stack.put(StackRecord(pos, o));
+		}
+
+		package void popRecord()
+		{
+			_stack.popBack;
+		}
+
+		package ref auto getRecord() const
+		{
+			import std.array : back;
+
+			return _stack[$-1];
+		}
 
 		void clear()
 		{
@@ -221,7 +248,7 @@ struct DefaultVisitorImpl(Features)
 	/// orientation later
 	package void changeOrientation()
 	{
-		static if (is(typeof(_pos)))
+		static if (treePathEnabled)
 			_pos[_orientation] += _deferred_change[_orientation];
 	}
 
@@ -312,7 +339,10 @@ struct DefaultVisitorImpl(Features)
 
 		if (model.orientation != derivedVisitor.orientation)
 		{
-			changeOrientation();
+			if (derivedVisitor.orientation == Orientation.Vertical)
+			{
+				changeOrientation();
+			}
 		}
 
 		derivedVisitor._orientation = model.orientation;
@@ -347,6 +377,11 @@ struct DefaultVisitorImpl(Features)
 
 		if (!state.among(State.first, State.rest))
 			return;
+
+			if (derivedVisitor.orientation == Orientation.Horizontal)
+			{
+				popRecord;
+			}
 
 		static if (order == Order.Bubbling) updatePosition(-model.headerSizeY);
 		checkTraversalCompletion!order();

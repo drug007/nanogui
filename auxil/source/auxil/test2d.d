@@ -189,14 +189,17 @@ unittest
 		i++;
 
 		rm.output[i].path[].should.be == [2];
+		rm.output[i].x.should.be == 15;
 		rm.output[i].y.should.be == 50;
 		i++;
 
 		rm.output[i].path[].should.be == [2, 0];
+		rm.output[i].x.should.be == 30;
 		rm.output[i].y.should.be == 60;
 		i++;
 
 		rm.output[i].path[].should.be == [2, 1];
+		rm.output[i].x.should.be == 30;
 		rm.output[i].y.should.be == 70;
 		i++;
 	} ();
