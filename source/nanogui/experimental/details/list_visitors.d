@@ -21,10 +21,9 @@ struct RenderingVisitor
 
 	private TreePath _selected_item;
 
-    this(ref NanoContext ctx, Orientation o, ref TreePath path, SizeType py, SizeType adjustment, SizeType sizeX)
+    this(ref NanoContext ctx, ref TreePath path, SizeType py, SizeType adjustment, SizeType sizeX)
     {
         _ctxPtr = &ctx;
-        ctx.orientation = o;
 		// Так как ориентация вертикальная, то размер по У должен быть уже рассчитан при вызове
 		// MeasuringVisitor и хранится в model. Поэтому размер по У не используется и задается
 		// только размер по Х

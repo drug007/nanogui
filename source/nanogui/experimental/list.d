@@ -328,7 +328,7 @@ public:
 		const auto invisiblePartSize = rm.posY - rm.destY;
 		assert(invisiblePartSize <= 0);
 
-		auto renderer = Renderer(ctx, Orientation.Vertical, rm.path, rm.posY, invisiblePartSize, sizeX);
+		auto renderer = Renderer(ctx, rm.path, rm.posY, invisiblePartSize, sizeX);
 		traversal(_model, _data, renderer, _scroll_position + size.y);
 		tree_path = renderer.selectedItem;
 
