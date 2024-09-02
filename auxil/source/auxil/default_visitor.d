@@ -180,14 +180,15 @@ struct DefaultVisitorImpl(Features)
 
 	static if (sizeEnabled && treePathEnabled)
 	{
-		// Выравнивание в зависимости от ориентации
 		void indent(SizeType size)
 		{
-			import auxil.common : nextAxisIndex;
-
-			_pos[_orientation.nextAxisIndex] += size;
 			if (_orientation == Orientation.Vertical)
-				_size[_orientation] -= size;
+			{
+				_pos[Orientation.Horizontal] += size;
+					_size[_orientation] -= size;
+			}
+			else
+				assert(0, "No indent in horizontal orientation");
 		}
 	}
 

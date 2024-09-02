@@ -48,12 +48,14 @@ struct RenderingVisitor
 
 	void indent()
 	{
-		default_visitor.indent(20);
+		if (orientation == orientation.Vertical)
+			default_visitor.indent(20);
 	}
 
 	void unindent()
 	{
-		default_visitor.indent(-20);
+		if (orientation == orientation.Vertical)
+			default_visitor.indent(-20);
 	}
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
