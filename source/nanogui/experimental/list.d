@@ -180,6 +180,18 @@ public:
 			calculateScrollableState;
 			screen.needToPerfomLayout = true;
 		}
+
+		import auxil.common : Orientation;
+
+		void orientation(int[] path, Orientation value)
+		{
+			import nanogui.experimental.utils : setPropertyByTreePath;
+
+			setPropertyByTreePath!"orientation"(_data, _model, path, value);
+			_model_changed = true;
+			calculateScrollableState;
+			screen.needToPerfomLayout = true;
+		}
 	}
 
 	override bool mouseEnterEvent(Vector2i p, bool enter)
