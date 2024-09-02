@@ -504,16 +504,13 @@ class MyGui : SdlBackend
 		}
 
 		{
-			auto window = new Window(screen, "TreeView demo", true);
+			auto window = new Window(screen, "Virtual list #2", true);
 			window.position(Vector2i(600, 130));
-			window.size = Vector2i(240, 360);
-			window.layout(new BoxLayout(Orientation.Vertical));
-
-			import nanogui.experimental.treeview;
-			new TreeView!float(window, "TreeView_______", 10f, null);
-			new TreeView!(float[])(window, "TreeView_2_____", [11f, 22f, 33, 44], null);
-			new TreeView!Test(window, "TreeView_3_____", Test(), null);
-			new TreeView!Test2(window, "TreeView_4_____", Test2(), null);
+			window.size = Vector2i(480, 360);
+			auto layout = new BoxLayout(Orientation.Vertical);
+			window.layout(layout);
+			layout.margin = 5;
+			layout.setAlignment = Alignment.Fill;
 
 			auto items = [
 				Item(0.3f),
@@ -523,7 +520,11 @@ class MyGui : SdlBackend
 				Item(Test(99, 100, "another text")),
 				Item(Test2(9.9, 11, Test(-1, -20, "nested Test"))),
 			];
-			new TreeView!(Item[])(window, "TaggedAlgebraic[]", items, null);
+
+			import nanogui.experimental.list;
+			auto list = new List!(typeof(items))(window, items);
+			list.collapsed = false;
+			list.setId = "virtual list2";
 		}
 
 		// now we should do layout manually yet
