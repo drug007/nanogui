@@ -76,29 +76,32 @@ struct RenderingVisitor
 			ctx.strokeWidth(1.0f);
 			ctx.beginPath;
 			ctx.rect(ctx.position.x + 1.0f, ctx.position.y + 1.0f, ctx.size.x - 2, model.size-2);
-			ctx.strokeColor(Color(255, 0, 0, 255));
+			ctx.strokeColor(NVGColor(255, 0, 0, 255));
 			ctx.stroke;
 		}
 
+		// Least size
+		const sz = (ctx.size[0] < ctx.size[1]) ? ctx.size[0] : ctx.size[1];
 		{
 			// background for icon
 			NVGPaint bg = ctx.boxGradient(
 				ctx.position.x + 1.5f, ctx.position.y + 1.5f,
-				ctx.size[ctx.orientation] - 2.0f, ctx.size[ctx.orientation] - 2.0f, 3, 3,
+				sz - 2.0f, sz - 2.0f, 3, 3,
 				model.collapsed ? Color(0, 0, 0, 32) : Color(0, 0, 0, 100),
 				Color(0, 0, 0, 180)
 			);
 
 			ctx.beginPath;
 			ctx.roundedRect(ctx.position.x + 1.0f, ctx.position.y + 1.0f,
-				ctx.size[ctx.orientation] - 2.0f, ctx.size[ctx.orientation] - 2.0f, 3);
+				sz - 2.0f, sz - 2.0f, 3);
 			ctx.fillPaint(bg);
 			ctx.fill;
 		}
 
 		{
+			ctx.size.x += sz;
 			// icon
-			ctx.fontSize(ctx.size.y);
+			ctx.fontSize(sz);
 			ctx.fontFace("icons");
 			ctx.fillColor(model.enabled ? ctx.theme.mIconColor
 			                            : ctx.theme.mDisabledTextColor);
@@ -111,21 +114,20 @@ struct RenderingVisitor
 			dchar[1] symb;
 			symb[0] = model.collapsed ? Entypo.ICON_CHEVRON_RIGHT :
 			                            Entypo.ICON_CHEVRON_DOWN;
-			if (drawItem(ctx, ctx.size[ctx.orientation], symb[]))
+			if (drawItem(ctx, sz, symb[]))
 				_selected_item = tree_path;
 		}
 
 		{
 			// Caption
-			const shift = 1.6f * ctx.size.y;
-			ctx.position.x += shift;
-			ctx.size.x -= shift;
+			ctx.position.x += sz;
+			ctx.size.x -= sz;
 			scope(exit)
 			{
-				ctx.position.x -= shift;
-				ctx.size.x += shift;
+				ctx.position.x -= sz;
+				ctx.size.x += sz;
 			}
-			ctx.fontSize(ctx.size.y);
+			ctx.fontSize(sz);
 			ctx.fontFace("sans");
 			ctx.fillColor(model.enabled ? ctx.theme.mTextColor : ctx.theme.mDisabledTextColor);
 
@@ -140,7 +142,7 @@ struct RenderingVisitor
 			else
 				auto header = Data.stringof;
 
-			if (drawItem(ctx, model.header_size, header))
+			if (drawItem(ctx, model.size, header))
 				_selected_item = tree_path;
 		}
 	}
@@ -163,7 +165,7 @@ struct RenderingVisitor
 			ctx.strokeWidth(1.0f);
 			ctx.beginPath;
 			ctx.rect(ctx.position.x + 1.0f, ctx.position.y + 1.0f, ctx.size.x - 2, model.size - 2);
-			ctx.strokeColor(Color(255, 0, 0, 255));
+			ctx.strokeColor(NVGColor(255, 0, 0, 255));
 			ctx.stroke;
 		}
 
