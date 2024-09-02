@@ -65,8 +65,16 @@ struct RenderingVisitor
 
 		ctx.position.x = posX;
 		ctx.position.y = posY + _adjustmentY;
-		ctx.size.x = sizeX;
-		ctx.size.y = model.header_size;
+		if (orientation == orientation.Vertical)
+		{
+			ctx.size.x = sizeX;
+			ctx.size.y = model.header_size;
+		}
+		else
+		{
+			ctx.size.x = model.collapsed ? sizeX : model.header_size;
+			ctx.size.y = 17;
+		}
 		import std.math : isFinite;
 		assert(isFinite(ctx.size.x));
 		assert(isFinite(ctx.size.y));
@@ -154,8 +162,16 @@ struct RenderingVisitor
 
 		ctx.position.x = posX;
 		ctx.position.y = posY + _adjustmentY;
-		ctx.size.x = sizeX;
-		ctx.size.y = model.size;
+		if (orientation == orientation.Vertical)
+		{
+			ctx.size.x = sizeX;
+			ctx.size.y = model.size;
+		}
+		else
+		{
+			ctx.size.x = model.size;
+			ctx.size.y = 17;
+		}
 		import std.math : isFinite;
 		assert(isFinite(ctx.size.x));
 		assert(isFinite(ctx.size.y));

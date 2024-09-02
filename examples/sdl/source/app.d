@@ -524,6 +524,8 @@ class MyGui : SdlBackend
 			import nanogui.experimental.list;
 			auto list = new List!(typeof(items))(window, items);
 			list.collapsed = false;
+			import auxil.common : Orientation;
+			list.orientation([5], Orientation.Horizontal);
 			list.setId = "virtual list2";
 		}
 	}
