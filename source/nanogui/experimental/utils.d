@@ -63,6 +63,12 @@ private auto drawString(Char)(ref NanoContext ctx, float height, const(Char)[] s
 	if (ctx.size[ctx.orientation] <= 0)
 		return false;
 
+	import nanogui.common : NanoContext, save, restore, intersectScissor;
+	ctx.save;
+	scope(exit) ctx.restore;
+	ctx.intersectScissor(ctx.position.x, ctx.position.y,
+		ctx.size.x, ctx.size.y);
+
 	bool inside;
 	if (isPointInRect(ctx.position, ctx.size, ctx.mouse))
 	{
