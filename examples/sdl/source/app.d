@@ -526,9 +526,6 @@ class MyGui : SdlBackend
 			list.collapsed = false;
 			list.setId = "virtual list2";
 		}
-
-		// now we should do layout manually yet
-		screen.performLayout(ctx);
 	}
 }
 

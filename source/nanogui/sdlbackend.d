@@ -208,6 +208,8 @@ class SdlBackend : Screen
 	{
 		onVisibleForTheFirstTime();
 
+		screen.performLayout(ctx);
+
 		_sdlApp.run();
 	}
 
