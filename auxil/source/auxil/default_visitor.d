@@ -185,7 +185,7 @@ struct DefaultVisitorImpl(Features)
 			if (_orientation == Orientation.Vertical)
 			{
 				_pos[Orientation.Horizontal] += size;
-					_size[_orientation] -= size;
+				_size[Orientation.Horizontal] -= size;
 			}
 			else
 				assert(0, "No indent in horizontal orientation");

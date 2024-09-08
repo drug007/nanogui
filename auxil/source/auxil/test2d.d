@@ -57,13 +57,13 @@ struct RelativeMeasurer
 	void indent()
 	{
 		if (orientation == orientation.Vertical)
-			posX = posX + 15;
+			default_visitor.indent(15);
 	}
 
 	void unindent()
 	{
 		if (orientation == orientation.Vertical)
-			posX = posX - 15;
+			default_visitor.indent(-15);
 	}
 
 	void enterTree(Order order, Data, Model)(ref const(Data) data, ref Model model)
