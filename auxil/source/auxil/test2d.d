@@ -8,20 +8,23 @@ import auxil.default_visitor;
 
 struct TreePosition
 {
+@nogc:
 	import std.experimental.allocator.mallocator : Mallocator;
 	import automem : Vector;
 
 	Vector!(int, Mallocator) path;
-	SizeType x, y;
+	SizeType x, y, w, h;
 
 	@disable this();
 
-	this(P)(P p, SizeType x, SizeType y)
+	this(P)(P p, SizeType x, SizeType y, SizeType w, SizeType h)
 		if (!is(P == void[]))
 	{
 		path = p;
 		this.x = x;
 		this.y = y;
+		this.w = w;
+		this.h = h;
 	}
 
 	/// Handy ctor for case this([], size)
@@ -49,10 +52,15 @@ struct TreePosition
 
 struct RelativeMeasurer
 {
-	TreePathVisitor default_visitor;
+	DefaultVisitor default_visitor;
 	alias default_visitor this;
 
 	TreePosition[] output;
+
+	this(SizeType w, SizeType h)
+	{
+		default_visitor = DefaultVisitor(w, h);
+	}
 
 	void indent()
 	{
@@ -74,19 +82,195 @@ struct RelativeMeasurer
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		static if (order == Order.Sinking)
-			output ~= TreePosition(tree_path.value, posX, posY);
+			output ~= TreePosition(tree_path.value[], posX, posY, sizeX, sizeY);
 	}
 
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
 		static if (order == Order.Bubbling)
-			output ~= TreePosition(tree_path.value, posX, posY);
+			output ~= TreePosition(tree_path.value[], posX, posY, sizeX, sizeY);
 	}
 
 	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		output ~= TreePosition(tree_path.value, posX, posY);
+		output ~= TreePosition(tree_path.value[], posX, posY, sizeX, sizeY);
 	}
+}
+
+void printLogToSvg(Log)(string filename, double scale, ref Log log) @trusted
+{
+	import printed.canvas : SVGDocument;
+	import printed.canvas;
+
+	import auxil.common : Orientation;
+
+	auto svg = new SVGDocument (420, 297);
+	const k = scale;
+	with (svg)
+	{
+		lineWidth(k);
+		foreach(e; log)
+		{
+			const x = k*e.x;
+			const y = k*e.y;
+			const w = k*e.w;
+			const h = k*e.h;
+
+			strokeStyle = brush("#00ff00");
+			fillStyle = brush("#eee");
+			fillRect(x*k, y*k, w*k, h*k);
+			beginPath(x*k, y*k);
+			lineTo((x+w)*k, y*k);
+			lineTo((x+w)*k, (y+h)*k);
+			lineTo(x*k, (y+h)*k);
+			lineTo(x*k, y*k);
+			closePath;
+			fillAndStroke;
+		}
+	}
+
+	static import std.file;
+	std.file.write(filename ~ ".svg", svg.bytes);
+}
+
+version(unittest) @Name("vertical.TrivialAggregate")
+@safe
+unittest
+{
+	import unit_threaded : should, be;
+
+	import auxil.common : Orientation;
+
+	static struct TrivialStruct
+	{
+		int i = -1;
+		float f = 10e6;
+	}
+
+	auto data = [TrivialStruct(), TrivialStruct(), TrivialStruct()];
+	auto model = makeModel(data);
+
+	model.collapsed = false;
+
+	model.orientation.should.be == Orientation.Vertical;
+
+	model[0].orientation = Orientation.Vertical;
+	model[0].collapsed = false;
+
+	model[1].orientation = Orientation.Vertical;
+	model[1].collapsed = false;
+
+	model[2].orientation = Orientation.Vertical;
+	model[2].collapsed = false;
+
+	const width = 99;
+	const height = 9;
+	// measure size
+	{
+		auto mv = MeasuringVisitor(width, height);
+		model.traversalForward(data, mv);
+	}
+
+	model[0].header_size.should.be == 10;
+	model[0].i.size.should.be == 10;
+	model[0].f.size.should.be == 10;
+	model[0].size.should.be == 30;
+
+	model[1].header_size.should.be == 10;
+	model[1].i.size.should.be == 10;
+	model[1].f.size.should.be == 10;
+	model[1].size.should.be == 30;
+
+	model[2].header_size.should.be == 10;
+	model[2].i.size.should.be == 10;
+	model[2].f.size.should.be == 10;
+	model[2].size.should.be == 30;
+
+	model.header_size.should.be == 10;
+	model.size.should.be == 100;
+
+	() @trusted {
+		auto rm = RelativeMeasurer(width, height);
+		rm.clear;
+		rm.posX = 0;
+		rm.posY = 0;
+		rm.destX = 1000;
+		rm.destY = 1000;
+		model.traversalForward(data, rm);
+
+		printLogToSvg("vertical.TrivialAggregate", 1.0, rm.output);
+
+		int i;
+		rm.output[i].path[].length.should.be == 0;
+		rm.output[i].x.should.be == 0;
+		rm.output[i].y.should.be == 0;
+		rm.output[i].w.should.be == width;
+		rm.output[i].h.should.be == height;
+		i++;
+
+		rm.output[i].path[].should.be == [0];
+		rm.output[i].x.should.be == 15;
+		rm.output[i].y.should.be == 10;
+		rm.output[i].w.should.be == width - rm.output[i].x;
+		rm.output[i].h.should.be == height;
+		i++;
+
+		rm.output[i].path[].should.be == [0, 0];
+		rm.output[i].x.should.be == 30;
+		rm.output[i].y.should.be == 20;
+		rm.output[i].w.should.be == width - rm.output[i].x;
+		rm.output[i].h.should.be == height;
+		i++;
+
+		rm.output[i].path[].should.be == [0, 1];
+		rm.output[i].x.should.be == 30;
+		rm.output[i].y.should.be == 30;
+		rm.output[i].w.should.be == width - rm.output[i].x;
+		rm.output[i].h.should.be == height;
+		i++;
+
+		rm.output[i].path[].should.be == [1];
+		rm.output[i].x.should.be == 15;
+		rm.output[i].y.should.be == 40;
+		rm.output[i].w.should.be == width - rm.output[i].x;
+		rm.output[i].h.should.be == height;
+		i++;
+
+		rm.output[i].path[].should.be == [1, 0];
+		rm.output[i].x.should.be == 30;
+		rm.output[i].y.should.be == 50;
+		rm.output[i].w.should.be == width - rm.output[i].x;
+		rm.output[i].h.should.be == height;
+		i++;
+
+		rm.output[i].path[].should.be == [1, 1];
+		rm.output[i].x.should.be == 30;
+		rm.output[i].y.should.be == 60;
+		rm.output[i].w.should.be == width - rm.output[i].x;
+		rm.output[i].h.should.be == height;
+		i++;
+
+		rm.output[i].path[].should.be == [2];
+		rm.output[i].x.should.be == 15;
+		rm.output[i].y.should.be == 70;
+		rm.output[i].w.should.be == width - rm.output[i].x;
+		rm.output[i].h.should.be == height;
+		i++;
+
+		rm.output[i].path[].should.be == [2, 0];
+		rm.output[i].x.should.be == 30;
+		rm.output[i].y.should.be == 80;
+		rm.output[i].w.should.be == width - rm.output[i].x;
+		rm.output[i].h.should.be == height;
+		i++;
+
+		rm.output[i].path[].should.be == [2, 1];
+		rm.output[i].x.should.be == 30;
+		rm.output[i].y.should.be == 90;
+		rm.output[i].w.should.be == width - rm.output[i].x;
+		rm.output[i].h.should.be == height;
+		i++;
+	} ();
 }
 
 version(unittest) @Name("horizontal.TrivialAggregate")
@@ -119,9 +303,12 @@ unittest
 	model[2].orientation = Orientation.Vertical;
 	model[2].collapsed = false;
 
+	const width = 99;
+	const height = 9;
+
 	// measure size
 	{
-		auto mv = MeasuringVisitor(32, 9);
+		auto mv = MeasuringVisitor(width, height);
 		model.traversalForward(data, mv);
 	}
 
@@ -144,7 +331,7 @@ unittest
 	model.size.should.be == 80;
 
 	() @trusted {
-		auto rm = RelativeMeasurer();
+		auto rm = RelativeMeasurer(width, height);
 		rm.clear;
 		rm.posX = 0;
 		rm.posY = 0;

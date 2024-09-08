@@ -7,9 +7,7 @@ targetType "library"
 dependency "taggedalgebraic" version="~>0.11.22"
 dependency "automem" version="~>0.6.9"
 dependency "nogc" version="~>0.5.0"
-
-configuration "library" {
-}
+dependency "printed" version="~>1.2.9" optional=true
 
 configuration "unittest" {
 	targetType "executable"
