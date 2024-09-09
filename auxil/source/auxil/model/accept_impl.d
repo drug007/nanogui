@@ -67,8 +67,15 @@ mixin template acceptImpl()
 
 				foreach(i; TwoFacedRange!order(start_value, data.length))
 				{
+					static if (is(typeof(visitor.pushRecord)))
+						visitor.pushRecord;
 					visitor.setTreePath(cast(int) i);
-					scope(exit) visitor.afterChildVisiting(this, model[i]);
+					scope(exit)
+					{
+						visitor.afterChildVisiting(this, model[i]);
+						static if (is(typeof(visitor.popRecord)))
+							visitor.popRecord;
+					}
 					auto idx = getIndex!(Data)(this, i);
 					if (model[i].accept!order(data[idx], visitor))
 					{
@@ -88,10 +95,17 @@ mixin template acceptImpl()
 						// reverse fields order if Order.Bubbling
 						case (Sinking) ? i : len2 - i - 1:
 						{
+							static if (is(typeof(visitor.pushRecord)))
+								visitor.pushRecord;
 							enum FieldNo = (Sinking) ? i : len2 - i - 1;
 							enum member = DrawableMembers!Data[FieldNo];
 							visitor.setTreePath(cast(int) FieldNo);
-							scope(exit) visitor.afterChildVisiting(this, mixin("this." ~ member));
+							scope(exit)
+							{
+								visitor.afterChildVisiting(this, mixin("this." ~ member));
+								static if (is(typeof(visitor.popRecord)))
+									visitor.popRecord;
+							}
 							if (mixin("this." ~ member).accept!order(mixin("data." ~ member), visitor))
 							{
 								return true;

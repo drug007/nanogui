@@ -9,8 +9,15 @@ import auxil.common : Order, SizeType, Orientation;
 /// Stores the data needed afterwards
 struct StackRecord
 {
-	SizeType position;
+	SizeType position, size;
 	Orientation orientation;
+
+	this(SizeType pos, SizeType sz, Orientation o) @nogc
+	{
+		position = pos;
+		size = sz;
+		orientation = o;
+	}
 }
 
 struct FeaturesNull {}
@@ -215,14 +222,24 @@ struct DefaultVisitorImpl(Features)
 		SizeType destY() const { return _destination[Orientation.Vertical]; }
 		SizeType destY(SizeType value) { _destination[Orientation.Vertical] = value; return value; }
 
-		package void pushRecord(SizeType pos, Orientation o) @trusted
+		static if (sizeEnabled)
 		{
-			_stack.put(StackRecord(pos, o));
-		}
+			package void pushRecord() @trusted @nogc
+			{
+				const na = _orientation == Orientation.Horizontal ? Orientation.Vertical : Orientation.Horizontal;
+				_stack.put(StackRecord(_pos[na], _size[na], orientation));
+			}
 
-		package void popRecord()
-		{
-			_stack.popBack;
+			package void popRecord()
+			{
+				assert(!_stack.empty);
+
+				_orientation = _stack[$-1].orientation;
+				const na = _orientation == Orientation.Horizontal ? Orientation.Vertical : Orientation.Horizontal;
+				_pos[na] = _stack[$-1].position;
+				_size[na] = _stack[$-1].size;
+				_stack.popBack;
+			}
 		}
 
 		package ref auto getRecord() const
@@ -378,11 +395,6 @@ struct DefaultVisitorImpl(Features)
 
 		if (!state.among(State.first, State.rest))
 			return;
-
-			if (derivedVisitor.orientation == Orientation.Horizontal)
-			{
-				popRecord;
-			}
 
 		static if (order == Order.Bubbling) updatePosition(-model.headerSizeY);
 		checkTraversalCompletion!order();
