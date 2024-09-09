@@ -303,8 +303,9 @@ unittest
 	model[2].orientation = Orientation.Vertical;
 	model[2].collapsed = false;
 
-	const width = 99;
+	const width = 100;
 	const height = 9;
+	const spacing = 1;
 
 	// measure size
 	{
@@ -312,20 +313,20 @@ unittest
 		model.traversalForward(data, mv);
 	}
 
-	model[0].header_size.should.be == 10;
-	model[0].i.size.should.be == 10;
-	model[0].f.size.should.be == 10;
-	model[0].size.should.be == 30;
+	model[0].header_size.should.be == height+spacing;
+	model[0].i.size.should.be == height+spacing;
+	model[0].f.size.should.be == height+spacing;
+	model[0].size.should.be == 3*(height+spacing);
 
-	model[1].header_size.should.be == 33;
-	model[1].i.size.should.be == 33;
-	model[1].f.size.should.be == 33;
-	model[1].size.should.be == 99;
+	model[1].header_size.should.be == (width+spacing);
+	model[1].i.size.should.be == (width+spacing);
+	model[1].f.size.should.be == (width+spacing);
+	model[1].size.should.be == 3*(width+spacing);
 
-	model[2].header_size.should.be == 10;
-	model[2].i.size.should.be == 10;
-	model[2].f.size.should.be == 10;
-	model[2].size.should.be == 30;
+	model[2].header_size.should.be == (height+spacing);
+	model[2].i.size.should.be == (height+spacing);
+	model[2].f.size.should.be == (height+spacing);
+	model[2].size.should.be == 3*(height+spacing);
 
 	model.header_size.should.be == 10;
 	model.size.should.be == 80;
@@ -339,39 +340,53 @@ unittest
 		rm.destY = 1000;
 		model.traversalForward(data, rm);
 
+		printLogToSvg("horizontal.TrivialAggregate", 1, rm.output);
+
 		int i;
 		rm.output[i].path[].length.should.be == 0;
 		rm.output[i].x.should.be == 0;
 		rm.output[i].y.should.be == 0;
+		rm.output[i].w.should.be == width;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [0];
 		rm.output[i].x.should.be == 15;
 		rm.output[i].y.should.be == 10;
+		rm.output[i].w.should.be == width - rm.output[i].x;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [0, 0];
 		rm.output[i].x.should.be == 30;
 		rm.output[i].y.should.be == 20;
+		rm.output[i].w.should.be == width - rm.output[i].x;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [0, 1];
 		rm.output[i].x.should.be == 30;
 		rm.output[i].y.should.be == 30;
+		rm.output[i].w.should.be == width - rm.output[i].x;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [1];
 		rm.output[i].x.should.be == 15;
 		rm.output[i].y.should.be == 40;
+		rm.output[i].w.should.be == width - rm.output[i].x;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [1, 0];
-		rm.output[i].x.should.be == 48;
+		rm.output[i].x.should.be == width+spacing;
 		rm.output[i].y.should.be == 40;
+		rm.output[i].w.should.be == 85; // width - indentation
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [1, 1];
-		rm.output[i].x.should.be == 81;
+		rm.output[i].x.should.be == (width + spacing) + (85 + spacing); // размер первого элемента плюс размер второго
 		rm.output[i].y.should.be == 40;
 		i++;
 
