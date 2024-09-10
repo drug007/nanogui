@@ -50,23 +50,22 @@ struct PrettyPrintingVisitor
 
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		import std.conv : to;
 		import auxil.traits : hasRenderHeader;
 
-		static if (hasRenderHeader!data)
+		static if (Model.Collapsable)
 		{
-			import auxil.fixedappender : FixedAppender;
-			FixedAppender!512 app;
-			data.renderHeader(app);
-			() @trusted { processItem(app[]); } ();
+			static if (hasRenderHeader!data)
+			{
+				import auxil.fixedappender : FixedAppender;
+				FixedAppender!512 app;
+				data.renderHeader(app);
+				() @trusted { processItem(app[]); } ();
+			}
+			else
+				processItem("Caption: ", Data.stringof);
 		}
 		else
-			processItem("Caption: ", Data.stringof);
-	}
-
-	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
-	{
-		processItem(data);
+			processItem(data);
 	}
 }
 
@@ -791,11 +790,6 @@ struct RelativeMeasurer
 		static if (order == Order.Bubbling)
 			output ~= TreePosition(tree_path.value, posY);
 	}
-
-	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
-	{
-		output ~= TreePosition(tree_path.value, posY);
-	}
 }
 
 struct TreePosition
@@ -1240,12 +1234,15 @@ unittest
 	auto visitor = RelativeMeasurer();
 
 	model.collapsed = false;
+	model.collapsed.should.be == false;
 	{
 		auto mv = MeasuringVisitor(0, 9);
 		model.traversalForward(data, mv);
 	}
 	visitor.posX = 0;
 	visitor.posY = 0;
+import std.stdio;
+debug writeln("---");
 	model.traversalForward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([], 0),

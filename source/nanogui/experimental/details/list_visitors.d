@@ -88,69 +88,80 @@ struct RenderingVisitor
 			ctx.stroke;
 		}
 
-		// Least size
-		const sz = (ctx.size[0] < ctx.size[1]) ? ctx.size[0] : ctx.size[1];
+		static if (Model.Collapsable)
 		{
-			// background for icon
-			NVGPaint bg = ctx.boxGradient(
-				ctx.position.x + 1.5f, ctx.position.y + 1.5f,
-				sz - 2.0f, sz - 2.0f, 3, 3,
-				model.collapsed ? Color(0, 0, 0, 32) : Color(0, 0, 0, 100),
-				Color(0, 0, 0, 180)
-			);
-
-			ctx.beginPath;
-			ctx.roundedRect(ctx.position.x + 1.0f, ctx.position.y + 1.0f,
-				sz - 2.0f, sz - 2.0f, 3);
-			ctx.fillPaint(bg);
-			ctx.fill;
-		}
-
-		{
-			ctx.size.x += sz;
-			// icon
-			ctx.fontSize(sz);
-			ctx.fontFace("icons");
-			ctx.fillColor(model.enabled ? ctx.theme.mIconColor
-			                            : ctx.theme.mDisabledTextColor);
-			NVGTextAlign algn;
-			algn.center = true;
-			algn.middle = true;
-			ctx.textAlign(algn);
-
-			import nanogui.entypo : Entypo;
-			dchar[1] symb;
-			symb[0] = model.collapsed ? Entypo.ICON_CHEVRON_RIGHT :
-			                            Entypo.ICON_CHEVRON_DOWN;
-			if (drawItem(ctx, sz, symb[]))
-				_selected_item = tree_path;
-		}
-
-		{
-			// Caption
-			ctx.position.x += sz;
-			ctx.size.x -= sz;
-			scope(exit)
+			// Least size
+			const sz = (ctx.size[0] < ctx.size[1]) ? ctx.size[0] : ctx.size[1];
 			{
-				ctx.position.x -= sz;
+				// background for icon
+				NVGPaint bg = ctx.boxGradient(
+					ctx.position.x + 1.5f, ctx.position.y + 1.5f,
+					sz - 2.0f, sz - 2.0f, 3, 3,
+					model.collapsed ? Color(0, 0, 0, 32) : Color(0, 0, 0, 100),
+					Color(0, 0, 0, 180)
+				);
+
+				ctx.beginPath;
+				ctx.roundedRect(ctx.position.x + 1.0f, ctx.position.y + 1.0f,
+					sz - 2.0f, sz - 2.0f, 3);
+				ctx.fillPaint(bg);
+				ctx.fill;
+			}
+
+			{
 				ctx.size.x += sz;
-			}
-			ctx.fontSize(sz);
-			ctx.fontFace("sans");
-			ctx.fillColor(model.enabled ? ctx.theme.mTextColor : ctx.theme.mDisabledTextColor);
+				// icon
+				ctx.fontSize(sz);
+				ctx.fontFace("icons");
+				ctx.fillColor(model.enabled ? ctx.theme.mIconColor
+											: ctx.theme.mDisabledTextColor);
+				NVGTextAlign algn;
+				algn.center = true;
+				algn.middle = true;
+				ctx.textAlign(algn);
 
-			import nanogui.experimental.utils : hasRenderHeader;
-			static if (hasRenderHeader!data)
+				import nanogui.entypo : Entypo;
+				dchar[1] symb;
+				symb[0] = model.collapsed ? Entypo.ICON_CHEVRON_RIGHT :
+											Entypo.ICON_CHEVRON_DOWN;
+				if (drawItem(ctx, sz, symb[]))
+					_selected_item = tree_path;
+			}
+
 			{
-				import auxil.fixedappender : FixedAppender;
-				FixedAppender!512 app;
-				data.renderHeader(app);
-				auto header = app[];
-			}
-			else
-				auto header = Data.stringof;
+				// Caption
+				ctx.position.x += sz;
+				ctx.size.x -= sz;
+				scope(exit)
+				{
+					ctx.position.x -= sz;
+					ctx.size.x += sz;
+				}
+				ctx.fontSize(sz);
+				ctx.fontFace("sans");
+				ctx.fillColor(model.enabled ? ctx.theme.mTextColor : ctx.theme.mDisabledTextColor);
 
-			if (drawItem(ctx, model.size, header))
+				import nanogui.experimental.utils : hasRenderHeader;
+				static if (hasRenderHeader!data)
+				{
+					import auxil.fixedappender : FixedAppender;
+					FixedAppender!512 app;
+					data.renderHeader(app);
+					auto header = app[];
+				}
+				else
+					auto header = Data.stringof;
+
+				if (drawItem(ctx, model.size, header))
+					_selected_item = tree_path;
+			}
+		}
+		else
+		{
+			ctx.fontSize(ctx.size.y);
+			ctx.fontFace("sans");
+			ctx.fillColor(ctx.theme.mTextColor);
+			if (drawItem(ctx, model.size, data))
 				_selected_item = tree_path;
 		}
 	}

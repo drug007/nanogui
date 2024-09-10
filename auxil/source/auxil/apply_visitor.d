@@ -39,11 +39,6 @@ private struct ApplyVisitor(T)
 			}
 		}
 
-		processLeaf!order(data, model);
-	}
-
-	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
-	{
 		static if (is(Data == T))
 		{
 			assert(!completed);

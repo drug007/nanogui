@@ -312,7 +312,6 @@ struct DefaultVisitorImpl(Features)
 	bool complete() @safe @nogc { return false; }
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
-	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 
 	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{

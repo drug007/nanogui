@@ -53,3 +53,54 @@ mixin template State()
         return (_placeholder & (1 << Field.Orientation)) ? Orientation.Horizontal : Orientation.Vertical;
     }
 }
+
+mixin template StateScalar()
+{
+    import auxil.common : SizeType, Orientation;
+
+	enum Spacing = 1;
+	SizeType sizeYM = 0;
+	alias headerSizeY = sizeYM;
+
+	int _placeholder = 0 << Field.Orientation;
+
+	private enum Field { Collapsed, Enabled, Orientation}
+
+    @property typeof(sizeYM) size() const { return sizeYM; }
+    @property typeof(headerSizeY) header_size() const { return headerSizeY; }
+
+	@property void collapsed(bool v)
+	{
+		// do nothing
+	}
+
+	@property bool collapsed() const
+	{
+		return true;
+	}
+
+	@property void enabled(bool v)
+	{
+		// do nothing
+	}
+
+	@property bool enabled() const
+	{
+		return true;
+	}
+
+	@property void orientation(Orientation v)
+	{
+		if (orientation != v)
+		{
+			if (v == Orientation.Horizontal)
+				_placeholder |=   1 << Field.Orientation;
+			else
+				_placeholder &= ~(1 << Field.Orientation);
+		}
+	}
+	@property Orientation orientation() const
+    {
+        return (_placeholder & (1 << Field.Orientation)) ? Orientation.Horizontal : Orientation.Vertical;
+    }
+}

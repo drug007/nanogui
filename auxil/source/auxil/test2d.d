@@ -90,11 +90,6 @@ struct RelativeMeasurer
 		static if (order == Order.Bubbling)
 			output ~= TreePosition(tree_path.value[], posX, posY, sizeX, sizeY);
 	}
-
-	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
-	{
-		output ~= TreePosition(tree_path.value[], posX, posY, sizeX, sizeY);
-	}
 }
 
 void printLogToSvg(Log)(string filename, double scale, ref Log log) @trusted

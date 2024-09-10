@@ -23,10 +23,13 @@ mixin template acceptImpl()
 
 		enum Sinking = order == Order.Sinking;
 
-		// If the range is empty then it is not processed
-		// TODO: should be a tunable parameter per a node(!)
-		if (0 == length)
-			return false;
+		static if (Collapsable)
+		{
+			// If the range is empty then it is not processed
+			// TODO: should be a tunable parameter per a node(!)
+			if (0 == length)
+				return false;
+		}
 
 		static if (is(typeof(data.skipThis)))
 		{
@@ -42,7 +45,7 @@ mixin template acceptImpl()
 			visitor.doLeaveNode!(order, Data)(data, this, visitor);
 		}
 
-		if (!this.collapsed)
+		static if (Collapsable) if (!this.collapsed)
 		{
 			visitor.indent;
 			scope(exit) visitor.unindent;

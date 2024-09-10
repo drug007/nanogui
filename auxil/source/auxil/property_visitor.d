@@ -58,11 +58,6 @@ private struct PropertyVisitor(string propertyName, Value)
 		else
 			value.nullify;
 
-		processLeaf!order(data, model);
-	}
-
-	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
-	{
 		assert(!completed);
 		completed = tree_path.value[] == path.value[];
 	}

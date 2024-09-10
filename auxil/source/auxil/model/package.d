@@ -4,7 +4,7 @@ import std.traits : isInstanceOf;
 import taggedalgebraic : TaggedAlgebraic, taget = get;
 import auxil.traits;
 import auxil.common;
-import auxil.model.state : State;
+import auxil.model.state : State, StateScalar;
 import auxil.model.accept_impl : acceptImpl;
 
 version(unittest) import unit_threaded : Name;
@@ -724,12 +724,9 @@ struct ScalarModel(alias A)
 {
 	import auxil.common : SizeType;
 
-	enum Spacing = 1;
-	SizeType sizeYM = 0;
-
-    @property typeof(sizeYM) size() const { return sizeYM; }
-
 	enum Collapsable = false;
+	enum size_t length = 0;
+	mixin StateScalar;
 
 	alias Data = TypeOf!A;
 	static assert(isProcessible!Data);
@@ -738,50 +735,7 @@ struct ScalarModel(alias A)
 	{
 	}
 
-	private bool accept(Order order, Visitor)(auto ref const(Data) data, ref Visitor visitor)
-	{
-		import std.algorithm : among;
-
-		enum Sinking     = order == Order.Sinking;
-		enum Bubbling    = !Sinking; 
-		enum hasTreePath = Visitor.treePathEnabled;
-
-		if (visitor.complete)
-			return true;
-
-		static if (hasTreePath) with(visitor)
-		{
-			final switch(state)
-			{
-				case State.seeking:
-					if (tree_path.value == path.value)
-						state = State.first;
-				break;
-				case State.first:
-					state = State.rest;
-				break;
-				case State.rest:
-					// do nothing
-				break;
-				case State.finishing:
-					return true;
-			}
-
-			if (!state.among(State.first, State.rest))
-				return false;
-		}
-
-		static if (Visitor.sizeCalculationEnabled) this.sizeYM = visitor.size[visitor.orientation] + this.Spacing;
-		static if (hasTreePath) with(visitor) 
-		{
-			visitor.updatePosition(Sinking ? sizeYM : -sizeYM);
-			visitor.checkTraversalCompletion!order();
-		}
-
-		visitor.processLeaf!order(data, this);
-
-		return false;
-	}
+	mixin acceptImpl;
 }
 
 auto makeModel(T)(auto ref const(T) data)
@@ -810,7 +764,7 @@ private auto getLength(Data, alias data)()
 	else static if (dataHasAggregateModel!Data)
 		return DrawableMembers!Data.length;
 	else
-		static assert(0);
+		return 0;
 }
 
 void traversal(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor, SizeType destination)
@@ -929,7 +883,7 @@ unittest
 	static assert(FieldNameTuple!(typeof(m))                                 == AliasSeq!("single_member_model"));
 	static assert(FieldNameTuple!(typeof(m.single_member_model))             == AliasSeq!("proxy", "proxy_model"));
 	static assert(FieldNameTuple!(typeof(m.single_member_model.proxy))       == AliasSeq!(""));
-	static assert(FieldNameTuple!(typeof(m.single_member_model.proxy_model)) == AliasSeq!("sizeYM"));
+	static assert(FieldNameTuple!(typeof(m.single_member_model.proxy_model)) == AliasSeq!("sizeYM", "_placeholder"));
 
 	@renderedAs!string
 	Duration d;
@@ -978,7 +932,9 @@ unittest
 	}
 
 	// check if Model!T has collapsed member
-	enum modelHasCollapsed(T) = is(typeof(Model!T.collapsed) == bool);
+	enum modelHasCollapsed(T) = is(typeof(Model!T.Collapsable) == bool) 
+		                     && (Model!T.Collapsable == true) 
+		                     && is(typeof(Model!T.collapsed) == bool);
 
 	// Model of plain old data has no collapsed member
 	assert(!modelHasCollapsed!float);
