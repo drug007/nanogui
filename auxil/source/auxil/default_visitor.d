@@ -323,7 +323,6 @@ struct DefaultVisitorImpl(Features)
 	// IOW when SomeVisitor calls doEnterNode inside this method the type of `this` is always DefaultVisitorImpl so
 	// the type of SomeVisitor should be passed directly to call the proper version of the enterNode method
 	bool doEnterNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
-		if (treePathEnabled)
 	{
 		import std.algorithm : among;
 
@@ -332,53 +331,41 @@ struct DefaultVisitorImpl(Features)
 
 		static if (sizeCalculationEnabled) model.sizeYM = model.headerSizeY = size[model.orientation] + model.Spacing;
 
-		final switch(state)
+		static if (treePathEnabled)
 		{
-			case State.seeking:
-				if (tree_path.value == path.value)
-					state = State.first;
-			break;
-			case State.first:
-				state = State.rest;
-			break;
-			case State.rest:
-				// do nothing
-			break;
-			case State.finishing:
+			final switch(state)
 			{
-				return true;
+				case State.seeking:
+					if (tree_path.value == path.value)
+						state = State.first;
+				break;
+				case State.first:
+					state = State.rest;
+				break;
+				case State.rest:
+					// do nothing
+				break;
+				case State.finishing:
+				{
+					return true;
+				}
 			}
-		}
 
-		if (!state.among(State.first, State.rest))
-			return false;
+			if (!state.among(State.first, State.rest))
+				return false;
 
 
-		if (model.orientation != derivedVisitor.orientation)
-		{
-			if (derivedVisitor.orientation == Orientation.Vertical)
+			if (model.orientation != derivedVisitor.orientation)
 			{
-				changeOrientation();
+				if (derivedVisitor.orientation == Orientation.Vertical)
+				{
+					changeOrientation();
+				}
 			}
+
+			static if (order == Order.Sinking) updatePosition(model.headerSizeY);
+			checkTraversalCompletion!order();
 		}
-
-		derivedVisitor._orientation = model.orientation;
-
-		static if (order == Order.Sinking) updatePosition(model.headerSizeY);
-		checkTraversalCompletion!order();
-
-		derivedVisitor.enterNode!(order, Data)(data, model);
-
-		return false;
-	}
-
-	bool doEnterNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
-		if (!treePathEnabled)
-	{
-		if (derivedVisitor.complete)
-			return true;
-
-		static if (sizeCalculationEnabled) model.sizeYM = model.headerSizeY = size[model.orientation] + model.Spacing;
 
 		derivedVisitor._orientation = model.orientation;
 
@@ -388,22 +375,18 @@ struct DefaultVisitorImpl(Features)
 	}
 
 	void doLeaveNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
-		if (treePathEnabled)
 	{
-		import std.algorithm : among;
+		static if (treePathEnabled)
+		{
+			import std.algorithm : among;
 
-		if (!state.among(State.first, State.rest))
-			return;
+			if (!state.among(State.first, State.rest))
+				return;
 
-		static if (order == Order.Bubbling) updatePosition(-model.headerSizeY);
-		checkTraversalCompletion!order();
+			static if (order == Order.Bubbling) updatePosition(-model.headerSizeY);
+			checkTraversalCompletion!order();
+		}
 
-		derivedVisitor.leaveNode!order(data, model);
-	}
-
-	void doLeaveNode(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
-		if (!treePathEnabled)
-	{
 		derivedVisitor.leaveNode!order(data, model);
 	}
 }
