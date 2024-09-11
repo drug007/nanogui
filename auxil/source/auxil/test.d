@@ -107,7 +107,7 @@ unittest
 	auto d = StructWithStruct();
 	auto m = makeModel(d);
 	m.traversalForward(d, visitor);
-	assert(m.sizeYM == 10);
+	m.sizeYM.should.be == 10;
 	d.d = 0;
 	d.l = 1;
 	d.t.f = 2;
