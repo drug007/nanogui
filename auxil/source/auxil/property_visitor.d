@@ -41,6 +41,19 @@ private struct PropertyVisitor(string propertyName, Value)
 		this.value = value;
 	}
 
+	bool complete() const
+	{
+		return completed;
+	}
+
+	void enterTree(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+	}
+
+	void leaveTree(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+	}
+
 	bool complete()
 	{
 		return completed;

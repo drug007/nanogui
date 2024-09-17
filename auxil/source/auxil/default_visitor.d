@@ -318,6 +318,10 @@ struct DefaultVisitorImpl(Features)
 		static if (is(typeof(model.orientation))) _orientation = model.orientation;
 	}
 
+	void leaveTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
+	{
+	}
+
 	// DerivedVisitor is "ansector" of this struct. Because the method is a template one and can not be virtual
 	// (so no polyphormism at all) the actual type of "ansector" is passed directly
 	// IOW when SomeVisitor calls doEnterNode inside this method the type of `this` is always DefaultVisitorImpl so

@@ -788,6 +788,7 @@ void traversalForward(Model, Data, Visitor)(ref Model model, auto ref const(Data
 	}
 	visitor.enterTree!order(data, model);
 	model.accept!order(data, visitor);
+	visitor.leaveTree!order(data, model);
 }
 
 void traversalBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor)
@@ -800,6 +801,7 @@ void traversalBackward(Model, Data, Visitor)(ref Model model, auto ref Data data
 	}
 	visitor.enterTree!order(data, model);
 	model.accept!order(data, visitor);
+	visitor.leaveTree!order(data, model);
 }
 
 version(unittest) @Name("null_visitor")
