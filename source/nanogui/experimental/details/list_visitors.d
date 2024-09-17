@@ -165,43 +165,6 @@ struct RenderingVisitor
 				_selected_item = tree_path;
 		}
 	}
-
-	void processLeaf(Order order, Data, Model)(ref const(Data) data, ref Model model)
-	{
-		ctx.save;
-		scope(exit) ctx.restore;
-
-		ctx.position.x = posX;
-		ctx.position.y = posY + _adjustmentY;
-		if (orientation == orientation.Vertical)
-		{
-			ctx.size.x = sizeX;
-			ctx.size.y = model.size;
-		}
-		else
-		{
-			ctx.size.x = model.size;
-			ctx.size.y = 17;
-		}
-		import std.math : isFinite;
-		assert(isFinite(ctx.size.x));
-		assert(isFinite(ctx.size.y));
-
-		version(none)
-		{
-			ctx.strokeWidth(1.0f);
-			ctx.beginPath;
-			ctx.rect(ctx.position.x + 1.0f, ctx.position.y + 1.0f, ctx.size.x - 2, model.size - 2);
-			ctx.strokeColor(NVGColor(255, 0, 0, 255));
-			ctx.stroke;
-		}
-
-		ctx.fontSize(ctx.size.y);
-		ctx.fontFace("sans");
-		ctx.fillColor(ctx.theme.mTextColor);
-		if (drawItem(ctx, model.size, data))
-			_selected_item = tree_path;
-	}
 }
 
 // This visitor updates the current path to the first visible element
