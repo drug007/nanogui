@@ -75,7 +75,7 @@ mixin template acceptImpl()
 					visitor.setTreePath(cast(int) i);
 					scope(exit)
 					{
-						visitor.afterChildVisiting(this, model[i]);
+						visitor.doAfterChildVisiting(this, model[i], visitor);
 						static if (is(typeof(visitor.popRecord)))
 							visitor.popRecord;
 					}
@@ -105,7 +105,7 @@ mixin template acceptImpl()
 							visitor.setTreePath(cast(int) FieldNo);
 							scope(exit)
 							{
-								visitor.afterChildVisiting(this, mixin("this." ~ member));
+								visitor.doAfterChildVisiting(this, mixin("this." ~ member), visitor);
 								static if (is(typeof(visitor.popRecord)))
 									visitor.popRecord;
 							}

@@ -24,7 +24,7 @@ struct FeaturesNull {}
 
 struct FeaturesSize
 {
-	bool SizeCalculationEnabled;
+	bool SizeEnabled;
 }
 
 struct FeaturesTreePath
@@ -34,27 +34,17 @@ struct FeaturesTreePath
 
 struct FeaturesSizeTreePath
 {
-	bool SizeCalculationEnabled, TreePathEnabled;
-}
-
-// Предусмотрено использование размера по обоим осям для отрисовки
-// (на чтение, без расчета размера), а также пути для навигации
-struct FeaturesRenderer
-{
 	bool SizeEnabled, TreePathEnabled;
 }
 
 alias NullVisitor      = DefaultVisitorImpl!FeaturesNull;
-alias MeasuringVisitor = DefaultVisitorImpl!FeaturesSize;
 alias TreePathVisitor  = DefaultVisitorImpl!FeaturesTreePath;
 alias DefaultVisitor   = DefaultVisitorImpl!FeaturesSizeTreePath;
-alias DefaultRenderingVisitor  = DefaultVisitorImpl!FeaturesRenderer;
 
 /// Default implementation of Visitor
 struct DefaultVisitorImpl(Features)
 {
-	enum sizeCalculationEnabled = is(typeof(Features.SizeCalculationEnabled));
-	enum sizeEnabled = is(typeof(Features.SizeEnabled)) || sizeCalculationEnabled;
+	enum sizeEnabled = is(typeof(Features.SizeEnabled));
 	enum treePathEnabled = is(typeof(Features.TreePathEnabled));
 
 	private Orientation _orientation = Orientation.Vertical;
@@ -89,38 +79,6 @@ struct DefaultVisitorImpl(Features)
 		}
 	}
 
-	/// After child visiting update parent size
-	void afterChildVisiting(ParentModel, ChildModel)(ref ParentModel parent, ref ChildModel child)
-	{
-		static if (sizeCalculationEnabled)
-		{
-			static if (is(typeof(child.orientation)))
-			{
-				Orientation childOrientation = void;
-				// TaggedAlgebraic payload has orientation if any its member has it. So
-				// is(typeof(child.hasOrientation) may be true but the current TaggedAlgebraic
-				// payload may does not have this property so additional check availablity of this
-				// property in runtime
-				static if (is(typeof(child.hasOrientation) == bool))
-				{
-					// in runtime check if the current value type has orientation
-					childOrientation = child.hasOrientation ? child.orientation : parent.orientation;
-				}
-				else
-					childOrientation = child.orientation;
-
-				if (parent.orientation != childOrientation)
-				{
-					// if orientations mismatch use parent orientation
-					parent.sizeYM += size[parent.orientation] + parent.Spacing;
-					return;
-				}
-			}
-
-			parent.sizeYM += child.sizeYM;
-		}
-	}
-
 	/// Update current tree path
 	void setTreePath(int i)
 	{
@@ -151,6 +109,11 @@ struct DefaultVisitorImpl(Features)
 	void doAfterChildren(Order order, Data, Model, DerivedVisitor)(ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
 	{
 		static if (treePathEnabled) derivedVisitor.tree_path.popBack;
+	}
+
+	void doAfterChildVisiting(ParentModel, ChildModel, DerivedVisitor)(ref ParentModel parent, ref ChildModel child, ref DerivedVisitor derivedVisitor)
+	{
+		derivedVisitor.afterChildVisiting(parent, child);
 	}
 
 	size_t getStartValue(Order order, Model)(ref Model model)
@@ -312,6 +275,7 @@ struct DefaultVisitorImpl(Features)
 	bool complete() @safe @nogc { return false; }
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
+	void afterChildVisiting(ParentModel, ChildModel)(ref ParentModel parent, ref ChildModel child) {}
 
 	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
 	{
@@ -332,8 +296,6 @@ struct DefaultVisitorImpl(Features)
 
 		if (derivedVisitor.complete)
 			return true;
-
-		static if (sizeCalculationEnabled) model.sizeYM = model.headerSizeY = size[model.orientation] + model.Spacing;
 
 		static if (treePathEnabled)
 		{
@@ -393,4 +355,61 @@ struct DefaultVisitorImpl(Features)
 
 		derivedVisitor.leaveNode!order(data, model);
 	}
+}
+
+struct MeasuringVisitor
+{
+	DefaultVisitorImpl!FeaturesSize impl;
+
+	alias impl this;
+
+	@disable this();
+
+	this(SizeType sx, SizeType sy) @safe @nogc nothrow
+	{
+		impl = DefaultVisitorImpl!FeaturesSize(sx, sy);
+	}
+
+	bool enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	{
+		model.sizeYM = model.headerSizeY = size[model.orientation] + model.Spacing;
+
+		return false;
+	}
+
+	/// After child visiting update parent size
+	void afterChildVisiting(ParentModel, ChildModel)(ref ParentModel parent, ref ChildModel child)
+	{
+		static if (is(typeof(child.orientation)))
+		{
+			Orientation childOrientation = void;
+			// TaggedAlgebraic payload has orientation if any of its member has it. So
+			// is(typeof(child.hasOrientation) may be true but the current TaggedAlgebraic
+			// payload may does not have this property so additional check availablity of this
+			// property in runtime
+			static if (is(typeof(child.hasOrientation) == bool))
+			{
+				// in runtime check if the current value type has orientation
+				childOrientation = child.hasOrientation ? child.orientation : parent.orientation;
+			}
+			else
+				childOrientation = child.orientation;
+
+			if (parent.orientation != childOrientation)
+			{
+				// if orientations mismatch use parent orientation
+				parent.sizeYM += size[parent.orientation] + parent.Spacing;
+				return;
+			}
+		}
+
+		parent.sizeYM += child.sizeYM;
+	}
+}
+
+auto makeDefaultMeasuring(Model, Data)(ref Model model, auto ref const(Data) data, SizeType sx, SizeType sy)
+{
+    import auxil.model : traversalForward;
+    auto defaultLayout = MeasuringVisitor(sx, sy);
+    model.traversalForward(data, defaultLayout);
 }

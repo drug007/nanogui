@@ -106,6 +106,9 @@ unittest
 	auto visitor = PrettyPrintingVisitor(9);
 	auto d = StructWithStruct();
 	auto m = makeModel(d);
+	enum width = 0, height = 9;
+	m.makeDefaultMeasuring(d, width, height);
+
 	m.traversalForward(d, visitor);
 	m.sizeYM.should.be == 10;
 	d.d = 0;
@@ -603,12 +606,16 @@ unittest
 
 	auto model = makeModel(data[]);
 
+	enum width = 0, height = 14;
+	model.makeDefaultMeasuring(data[], width, height);
+
 	auto visitor = PrettyPrintingVisitor(14);
 	visitor.processItem;
 	model.traversalForward(data[], visitor);
 	assert(model.sizeYM == visitor.sizeY + model.Spacing);
 
 	model.collapsed = false;
+	model.makeDefaultMeasuring(data[], width, height);
 	model.traversalForward(data[], visitor);
 
 	assert(model.sizeYM == 4*(visitor.sizeY + model.Spacing));
@@ -650,14 +657,18 @@ unittest
 	data ~= Node("0.2f");
 	data ~= Node("0.3f");
 
-	auto model = makeModel(data[]);
+	enum width = 0, height = 14;
 
-	auto visitor = PrettyPrintingVisitor(14);
+	auto model = makeModel(data[]);
+	model.makeDefaultMeasuring(data, width, height);
+
+	auto visitor = PrettyPrintingVisitor(height);
 	visitor.processItem;
 	model.traversalForward(data[], visitor);
-	assert(model.sizeYM == visitor.sizeY + model.Spacing);
+	model.sizeYM.should.be == visitor.sizeY + model.Spacing;
 
 	model.collapsed = false;
+	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data[], visitor);
 
 	assert(model.sizeYM == 4*(visitor.sizeY + model.Spacing));
@@ -719,11 +730,13 @@ unittest
 	];
 
 	auto model = makeModel(data);
-	assert(model.length == data.length);
-	assert(model[4].get!(Model!(string[])).length == data[4].length);
-
+	model.length.should.be == data.length;
+	model[4].get!(Model!(string[])).length.should.be == data[4].length;
 	model.sizeYM.should.be == 0;
-	auto visitor = PrettyPrintingVisitor(17);
+
+	enum width = 0, height = 17;
+	model.makeDefaultMeasuring(data, width, height);
+	auto visitor = PrettyPrintingVisitor(height);
 	model.traversalForward(data, visitor);
 
 	model.collapsed.should.be == true;
@@ -732,38 +745,44 @@ unittest
 	visitor.posY.should.be ~ 0.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [], false);
+	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data, visitor);
 	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing)*7;
 	model.sizeYM.should.be ~ 18.0*7;
 	visitor.posY.should.be ~ 6*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [3], false);
+	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data, visitor);
 	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing)*9;
 	model.sizeYM.should.be ~ 18.0*9;
 	visitor.posY.should.be ~ (6+2)*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [4], false);
+	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data, visitor);
 	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing)*12;
 	model.sizeYM.should.be ~ 18.0*12;
 	visitor.posY.should.be ~ (6+2+3)*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [5], false);
+	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data, visitor);
 	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing)*15;
 	model.sizeYM.should.be ~ 18.0*15;
 	visitor.posY.should.be ~ (6+2+3+3)*18.0;
 
 	visitor.destY = visitor.destY.nan;
+	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data, visitor);
 	model.sizeYM.should.be == 270;
 	visitor.posY.should.be == 252;
 
 	visitor.posY = 0;
 	visitor.destY = 100;
+	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data, visitor);
-	model.sizeYM.should.be == 126;
+	model.sizeYM.should.be == 270;
 	visitor.posY.should.be == 90;
 }
 
@@ -1317,29 +1336,4 @@ debug writeln("---");
 		TreePosition([0], 10),
 		TreePosition([],   0),
 	];
-}
-
-version(unittest) @Name("new_paradigm")
-unittest
-{
-	static struct TrivialStruct
-	{
-		int i;
-		float f;
-	}
-
-	static struct StructNullable
-	{
-		import std.typecons : Nullable;
-		int i;
-		Nullable!float f;
-	}
-
-	auto d = StructNullable();
-	auto m = makeModel(d);
-	m.collapsed = false;
-	auto visitor = DefaultVisitor(0, 19);
-	m.traversalForward(d, visitor);
-	import std;
-	writeln(m);
 }

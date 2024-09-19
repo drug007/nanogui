@@ -8,12 +8,12 @@ struct RenderingVisitor
     import nanogui.layout : Orientation;
 	import auxil.model;
 	import auxil.common : Order, SizeType;
-	import auxil.default_visitor : DefaultRenderingVisitor;
+	import auxil.default_visitor : DefaultVisitor;
 
     import arsd.nanovega;
 
 	private NanoContext* _ctxPtr;
-	DefaultRenderingVisitor default_visitor;
+	DefaultVisitor default_visitor;
 	alias default_visitor this;
 	// Координата начала текущего окна вывода виджета плюс (отрицательная )
 	// поправка на невидимую часть первого видимого элемента
@@ -27,7 +27,7 @@ struct RenderingVisitor
 		// Так как ориентация вертикальная, то размер по У должен быть уже рассчитан при вызове
 		// MeasuringVisitor и хранится в model. Поэтому размер по У не используется и задается
 		// только размер по Х
-		default_visitor = DefaultRenderingVisitor(sizeX, 0);
+		default_visitor = DefaultVisitor(sizeX, 0);
         default_visitor.path = path;
 		default_visitor.posX = 0;
         default_visitor.posY = py;
