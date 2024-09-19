@@ -333,7 +333,9 @@ struct DefaultVisitorImpl(Features)
 			checkTraversalCompletion!order();
 		}
 
-		derivedVisitor._orientation = model.orientation;
+		// if the model is not leaf make its orientation current one
+		static if (Model.Collapsable)
+			derivedVisitor._orientation = model.orientation;
 
 		derivedVisitor.enterNode!(order, Data)(data, model);
 
@@ -372,8 +374,12 @@ struct MeasuringVisitor
 
 	bool enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
 	{
-		model.sizeYM = model.headerSizeY = size[model.orientation] + model.Spacing;
-
+		// leaves have no orientation so the visitor orientation is used
+		static if (Model.Collapsable)
+			const currentOrientation = model.orientation;
+		else
+			const currentOrientation = orientation;
+		model.sizeYM = model.headerSizeY = size[currentOrientation] + model.Spacing;
 		return false;
 	}
 

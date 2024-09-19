@@ -282,7 +282,7 @@ unittest
 		float f = 10e6;
 	}
 
-	auto data = [TrivialStruct(), TrivialStruct(), TrivialStruct()];
+	auto data = [TrivialStruct(1, 1), TrivialStruct(2, 2), TrivialStruct(3, 3)];
 	auto model = makeModel(data);
 
 	model.collapsed = false;
