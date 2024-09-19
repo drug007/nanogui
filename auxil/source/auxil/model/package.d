@@ -786,9 +786,9 @@ void traversalForward(Model, Data, Visitor)(ref Model model, auto ref const(Data
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
 		visitor.clear;
 	}
-	visitor.enterTree!order(data, model);
+	visitor.doEnterTree!order(data, model, visitor);
 	model.accept!order(data, visitor);
-	visitor.leaveTree!order(data, model);
+	visitor.doLeaveTree!order(data, model, visitor);
 }
 
 void traversalBackward(Model, Data, Visitor)(ref Model model, auto ref Data data, ref Visitor visitor)
@@ -799,9 +799,9 @@ void traversalBackward(Model, Data, Visitor)(ref Model model, auto ref Data data
 		visitor.state = (visitor.path.value.length) ? visitor.State.seeking : visitor.State.rest;
 		visitor.clear;
 	}
-	visitor.enterTree!order(data, model);
+	visitor.doEnterTree!order(data, model, visitor);
 	model.accept!order(data, visitor);
-	visitor.leaveTree!order(data, model);
+	visitor.doLeaveTree!order(data, model, visitor);
 }
 
 version(unittest) @Name("null_visitor")

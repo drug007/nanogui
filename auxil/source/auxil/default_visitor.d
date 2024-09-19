@@ -276,14 +276,19 @@ struct DefaultVisitorImpl(Features)
 	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) {}
 	void afterChildVisiting(ParentModel, ChildModel)(ref ParentModel parent, ref ChildModel child) {}
+	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model) {}
+	void leaveTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model) {}
 
-	void enterTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
+	void doEnterTree(Order order, Data, Model, DerivedVisitor)(auto ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
 	{
 		static if (is(typeof(model.orientation))) _orientation = model.orientation;
+
+		derivedVisitor.enterTree!order(data, model);
 	}
 
-	void leaveTree(Order order, Data, Model)(auto ref const(Data) data, ref Model model)
+	void doLeaveTree(Order order, Data, Model, DerivedVisitor)(auto ref const(Data) data, ref Model model, ref DerivedVisitor derivedVisitor)
 	{
+		derivedVisitor.leaveTree!order(data, model);
 	}
 
 	// DerivedVisitor is "ansector" of this struct. Because the method is a template one and can not be virtual
