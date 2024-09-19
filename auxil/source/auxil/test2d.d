@@ -282,6 +282,82 @@ unittest
 		float f = 10e6;
 	}
 
+	auto data = TrivialStruct(1, 1);
+	auto model = makeModel(data);
+
+	model.collapsed = false;
+
+	model.orientation = Orientation.Horizontal;
+
+	const width = 100;
+	const height = 9;
+	const spacing = 1;
+
+	// measure size
+	{
+		auto mv = MeasuringVisitor(width, height);
+		model.traversalForward(data, mv);
+	}
+
+	model.header_size.should.be == width+spacing;
+	model.i.size.should.be == width+spacing;
+	model.f.size.should.be == width+spacing;
+	model.size.should.be == 3*(width+spacing);
+
+	model.header_size.should.be == 101;
+	model.size.should.be == 303;
+
+	() @trusted {
+		auto rm = RelativeMeasurer(width, height);
+		rm.clear;
+		rm.posX = 0;
+		rm.posY = 0;
+		rm.destX = 1000;
+		rm.destY = 1000;
+		enum spacing = 1;
+		model.traversalForward(data, rm);
+
+		printLogToSvg("horizontal.TrivialAggregate", 1, rm.output);
+
+		int i;
+		rm.output[i].path[].length.should.be == 0;
+		rm.output[i].x.should.be == 0;
+		rm.output[i].y.should.be == 0;
+		rm.output[i].w.should.be == width;
+		rm.output[i].h.should.be == height;
+		i++;
+
+		rm.output[i].path[].should.be == [0];
+		rm.output[i].x.should.be == width+spacing;
+		rm.output[i].y.should.be == 0;
+		rm.output[i].w.should.be == width;
+		rm.output[i].h.should.be == height;
+		i++;
+
+		rm.output[i].path[].should.be == [1];
+		rm.output[i].x.should.be == 2*(width+spacing);
+		rm.output[i].y.should.be == 0;
+		rm.output[i].w.should.be == width;
+		rm.output[i].h.should.be == height;
+
+		rm.output.length.should.be == 3;
+	} ();
+}
+
+version(unittest) @Name("mixed.Aggregate")
+@safe
+unittest
+{
+	import unit_threaded : should, be;
+
+	import auxil.common : Orientation;
+
+	static struct TrivialStruct
+	{
+		int i = -1;
+		float f = 10e6;
+	}
+
 	auto data = [TrivialStruct(1, 1), TrivialStruct(2, 2), TrivialStruct(3, 3)];
 	auto model = makeModel(data);
 
@@ -335,7 +411,7 @@ unittest
 		rm.destY = 1000;
 		model.traversalForward(data, rm);
 
-		printLogToSvg("horizontal.TrivialAggregate", 1, rm.output);
+		printLogToSvg("mixed.Aggregate", 1, rm.output);
 
 		int i;
 		rm.output[i].path[].length.should.be == 0;
