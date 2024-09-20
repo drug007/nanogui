@@ -8,12 +8,22 @@ import auxil.default_visitor;
 
 struct TreePosition
 {
+@safe:
 @nogc:
 	import std.experimental.allocator.mallocator : Mallocator;
 	import automem : Vector;
 
 	Vector!(int, Mallocator) path;
 	SizeType x, y, w, h;
+
+	this(SizeType x, SizeType y, SizeType w, SizeType h, int[] path) 
+	{
+		this.x = x;
+		this.y = y;
+		this.w = w;
+		this.h = h;
+		this.path = path;
+	}
 
 	@disable this();
 
@@ -52,6 +62,7 @@ struct TreePosition
 
 struct RelativeMeasurer
 {
+	@safe:
 	DefaultVisitor default_visitor;
 	alias default_visitor this;
 
@@ -79,13 +90,13 @@ struct RelativeMeasurer
 		output = null;
 	}
 
-	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	void enterNode(Order order, Data, Model)(ref const(Data) data, ref Model model) @trusted
 	{
 		static if (order == Order.Sinking)
 			output ~= TreePosition(tree_path.value[], posX, posY, sizeX, sizeY);
 	}
 
-	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model)
+	void leaveNode(Order order, Data, Model)(ref const(Data) data, ref Model model) @trusted
 	{
 		static if (order == Order.Bubbling)
 			output ~= TreePosition(tree_path.value[], posX, posY, sizeX, sizeY);
@@ -342,6 +353,77 @@ unittest
 
 		rm.output.length.should.be == 3;
 	} ();
+}
+
+version(unittest) @Name("horizontal.ArrayOfTrivialAggregates.1")
+@safe
+unittest
+{
+	import std.range : zip;
+
+	import unit_threaded : should, be;
+
+	import auxil.common : Orientation;
+
+	static struct TrivialStruct
+	{
+		int i = -1;
+		float f = 10e6;
+	}
+
+	auto data = [TrivialStruct(1, 1)];
+	auto model = makeModel(data);
+
+	model.collapsed = false;
+	model.orientation = Orientation.Horizontal;
+
+	model[0].collapsed = false;
+	model[0].orientation = Orientation.Horizontal;
+
+	const width = 100;
+	const height = 9;
+	const spacing = 1;
+	const sizeX = width + spacing;
+
+	// measure size
+	{
+		auto mv = MeasuringVisitor(width, height);
+		model.traversalForward(data, mv);
+	}
+
+	model.header_size.should.be == sizeX;
+	model.header_size.should.be == 101;
+	model.size.should.be == 404;
+
+	model[0].header_size.should.be == sizeX;
+	model[0].i.size.should.be == sizeX;
+	model[0].f.size.should.be == sizeX;
+	model[0].size.should.be == 3*sizeX;
+
+	{
+		auto rm = RelativeMeasurer(width, height);
+		rm.clear;
+		rm.posX = 0;
+		rm.posY = 0;
+		rm.destX = 1000;
+		rm.destY = 1000;
+		model.traversalForward(data, rm);
+
+		printLogToSvg("horizontal.ArrayOfTrivialAggregates.1", 1, rm.output);
+
+		auto expectedData = [
+			TreePosition(0*sizeX, 0, width, height, []),
+			TreePosition(1*sizeX, 0, width, height, [0]),
+			TreePosition(2*sizeX, 0, width, height, [0, 0]),
+			TreePosition(3*sizeX, 0, width, height, [0, 1]),
+		];
+
+		rm.output.length.should.be == expectedData.length;
+
+		foreach(ref given, expected; zip(rm.output, expectedData))
+			given.should.be == expected;
+
+	}
 }
 
 version(unittest) @Name("mixed.Aggregate")
