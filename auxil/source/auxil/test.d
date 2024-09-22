@@ -612,15 +612,15 @@ unittest
 	auto visitor = PrettyPrintingVisitor(14);
 	visitor.processItem;
 	model.traversalForward(data[], visitor);
-	assert(model.sizeYM == visitor.sizeY + model.Spacing);
+	assert(model.sizeYM == visitor.sizeY);
 
 	model.collapsed = false;
 	model.makeDefaultMeasuring(data[], width, height);
 	model.traversalForward(data[], visitor);
 
-	assert(model.sizeYM == 4*(visitor.sizeY + model.Spacing));
+	assert(model.sizeYM == 4*(visitor.sizeY));
 	foreach(e; model.model)
-		assert(e.sizeYM == (visitor.sizeY + model.Spacing));
+		assert(e.sizeYM == (visitor.sizeY));
 
 	visitor.output ~= '\0';
 	version(none)
@@ -665,15 +665,15 @@ unittest
 	auto visitor = PrettyPrintingVisitor(height);
 	visitor.processItem;
 	model.traversalForward(data[], visitor);
-	model.sizeYM.should.be == visitor.sizeY + model.Spacing;
+	model.sizeYM.should.be == visitor.sizeY;
 
 	model.collapsed = false;
 	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data[], visitor);
 
-	assert(model.sizeYM == 4*(visitor.sizeY + model.Spacing));
+	assert(model.sizeYM == 4*(visitor.sizeY));
 	foreach(e; model.model)
-		assert(e.sizeYM == (visitor.sizeY + model.Spacing));
+		assert(e.sizeYM == (visitor.sizeY));
 
 	visitor.output ~= '\0';
 	version(none)
@@ -740,35 +740,35 @@ unittest
 	model.traversalForward(data, visitor);
 
 	model.collapsed.should.be == true;
-	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing);
+	model.sizeYM.should.be ~ visitor.sizeY;
 	model.sizeYM.should.be ~ 18.0;
 	visitor.posY.should.be ~ 0.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [], false);
 	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data, visitor);
-	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing)*7;
+	model.sizeYM.should.be ~ visitor.sizeY*7;
 	model.sizeYM.should.be ~ 18.0*7;
 	visitor.posY.should.be ~ 6*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [3], false);
 	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data, visitor);
-	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing)*9;
+	model.sizeYM.should.be ~ visitor.sizeY*9;
 	model.sizeYM.should.be ~ 18.0*9;
 	visitor.posY.should.be ~ (6+2)*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [4], false);
 	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data, visitor);
-	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing)*12;
+	model.sizeYM.should.be ~ visitor.sizeY*12;
 	model.sizeYM.should.be ~ 18.0*12;
 	visitor.posY.should.be ~ (6+2+3)*18.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [5], false);
 	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data, visitor);
-	model.sizeYM.should.be ~ (visitor.sizeY + model.Spacing)*15;
+	model.sizeYM.should.be ~ visitor.sizeY*15;
 	model.sizeYM.should.be ~ 18.0*15;
 	visitor.posY.should.be ~ (6+2+3+3)*18.0;
 

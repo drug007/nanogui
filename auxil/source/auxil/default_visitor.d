@@ -47,6 +47,11 @@ struct DefaultVisitorImpl(Features)
 	enum sizeEnabled = is(typeof(Features.SizeEnabled));
 	enum treePathEnabled = is(typeof(Features.TreePathEnabled));
 
+	/// In read mode visitor get parameters from model
+	/// In write mode visitor put parameters to model
+	enum RwMode { Read, Write }
+	enum rwMode = RwMode.Read;
+
 	private Orientation _orientation = Orientation.Vertical;
 
 	Orientation orientation() const { return _orientation; }
@@ -342,6 +347,13 @@ struct DefaultVisitorImpl(Features)
 		static if (Model.Collapsable)
 			derivedVisitor._orientation = model.orientation;
 
+		static if (DerivedVisitor.rwMode == RwMode.Read)
+		{
+			import auxil.common : nextAxisIndex;
+			static if (sizeEnabled)
+				derivedVisitor._size[derivedVisitor._orientation] = model.header_size;
+		}
+
 		derivedVisitor.enterNode!(order, Data)(data, model);
 
 		return false;
@@ -368,6 +380,9 @@ struct MeasuringVisitor
 {
 @safe:
 @nogc:
+
+	enum rwMode = impl.RwMode.Write;
+
 	DefaultVisitorImpl!FeaturesSize impl;
 
 	alias impl this;
