@@ -366,6 +366,8 @@ struct DefaultVisitorImpl(Features)
 
 struct MeasuringVisitor
 {
+@safe:
+@nogc:
 	DefaultVisitorImpl!FeaturesSize impl;
 
 	alias impl this;
