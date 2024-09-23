@@ -429,6 +429,77 @@ unittest
 	}
 }
 
+version(unittest) @Name("horizontal.ArrayOfTrivialAggregates.2")
+@safe
+unittest
+{
+	import std.range : zip;
+
+	import unit_threaded : should, be;
+
+	import auxil.common : Orientation;
+
+	static struct TrivialStruct
+	{
+		int i = -1;
+		float f = 10e6;
+	}
+
+	auto data = [TrivialStruct(1, 1)];
+	auto model = makeModel(data);
+
+	model.collapsed = false;
+	model.orientation = Orientation.Vertical;
+
+	model[0].collapsed = false;
+	model[0].orientation = Orientation.Horizontal;
+
+	const width = 100;
+	const height = 9;
+	const spacing = 1;
+	const sizeX = width + spacing;
+	const sizeY = height + spacing;
+
+	// measure size
+	{
+		auto mv = MeasuringVisitor(width, height);
+		model.traversalForward(data, mv);
+	}
+
+	model.header_size.should.be == sizeY;
+	model.header_size.should.be == 10;
+	model.size.should.be == 20;
+
+	model[0].header_size.should.be == sizeX;
+	model[0].i.size.should.be == sizeX;
+	model[0].f.size.should.be == sizeX;
+	model[0].size.should.be == 3*sizeX;
+
+	{
+		auto rm = RelativeMeasurer(width, height);
+		rm.clear;
+		rm.posX = 0;
+		rm.posY = 0;
+		rm.destX = 1000;
+		rm.destY = 1000;
+		model.traversalForward(data, rm);
+
+		printLogToSvg("horizontal.ArrayOfTrivialAggregates.2", 1, rm.output);
+
+		auto expectedData = [
+			TreePosition( 0 + 0*sizeX,     0, width, sizeY, []), // TODO instead of width should be sizeX
+			TreePosition(15 + 0*sizeX, sizeY, sizeX, sizeY, [0]),
+			TreePosition(15 + 0*sizeX, sizeY, sizeX, sizeY, [0, 0]),
+			TreePosition(15 + 1*sizeX, sizeY, sizeX, sizeY, [0, 1]),
+		];
+
+		rm.output.length.should.be == expectedData.length;
+
+		foreach(ref given, expected; zip(rm.output, expectedData))
+			given.should.be == expected;
+	}
+}
+
 version(unittest) @Name("mixed.Aggregate")
 @safe
 unittest
