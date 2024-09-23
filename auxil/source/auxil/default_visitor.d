@@ -223,10 +223,19 @@ struct DefaultVisitorImpl(Features)
 		}
 	}
 
-	package void updatePosition(Change)(Change change)
+	package void updatePosition(Model)(SizeType change, Orientation modelOrientation)
 	{
-		_pos[_orientation] += _deferred_change[_orientation];
-		_deferred_change[_orientation] = change;
+		static if (treePathEnabled)
+		{
+			_pos[_orientation] += _deferred_change[_orientation];
+
+			static if (Model.Collapsable)
+				const newOrientation = modelOrientation;
+			else
+				const newOrientation = _orientation;
+
+			_deferred_change[newOrientation] = change;
+		}
 	}
 
 	package void checkTraversalCompletion(Order order)()
@@ -321,7 +330,7 @@ struct DefaultVisitorImpl(Features)
 			if (!state.among(State.first, State.rest))
 				return false;
 
-			static if (order == Order.Sinking) updatePosition(model.headerSizeY);
+			static if (order == Order.Sinking) updatePosition!Model(model.headerSizeY, model.orientation);
 			checkTraversalCompletion!order();
 		}
 
@@ -350,7 +359,7 @@ struct DefaultVisitorImpl(Features)
 			if (!state.among(State.first, State.rest))
 				return;
 
-			static if (order == Order.Bubbling) updatePosition(-model.headerSizeY);
+			static if (order == Order.Bubbling) updatePosition!Model(-model.headerSizeY, model.orientation);
 			checkTraversalCompletion!order();
 		}
 

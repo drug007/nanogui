@@ -489,8 +489,8 @@ unittest
 		auto expectedData = [
 			TreePosition( 0 + 0*sizeX,     0, width, sizeY, []), // TODO instead of width should be sizeX
 			TreePosition(15 + 0*sizeX, sizeY, sizeX, sizeY, [0]),
-			TreePosition(15 + 0*sizeX, sizeY, sizeX, sizeY, [0, 0]),
-			TreePosition(15 + 1*sizeX, sizeY, sizeX, sizeY, [0, 1]),
+			TreePosition(15 + 1*sizeX, sizeY, sizeX, sizeY, [0, 0]),
+			TreePosition(15 + 2*sizeX, sizeY, sizeX, sizeY, [0, 1]),
 		];
 
 		rm.output.length.should.be == expectedData.length;
@@ -608,30 +608,38 @@ unittest
 		i++;
 
 		rm.output[i].path[].should.be == [1, 0];
-		rm.output[i].x.should.be == 15;
+		rm.output[i].x.should.be == 15 + sizeX;
 		rm.output[i].y.should.be == 40;
 		rm.output[i].w.should.be == sizeX;
 		rm.output[i].h.should.be == sizeY;
 		i++;
 
 		rm.output[i].path[].should.be == [1, 1];
-		rm.output[i].x.should.be == 15 + sizeX; // размер первого элемента плюс размер второго
+		rm.output[i].x.should.be == 15 + 2*sizeX; // размер первого элемента плюс размер второго
 		rm.output[i].y.should.be == 40;
+		rm.output[i].w.should.be == sizeX;
+		rm.output[i].h.should.be == sizeY;
 		i++;
 
 		rm.output[i].path[].should.be == [2];
 		rm.output[i].x.should.be == 15;
 		rm.output[i].y.should.be == 50;
+		rm.output[i].w.should.be == width - rm.output[i].x;
+		rm.output[i].h.should.be == sizeY;
 		i++;
 
 		rm.output[i].path[].should.be == [2, 0];
 		rm.output[i].x.should.be == 30;
 		rm.output[i].y.should.be == 60;
+		rm.output[i].w.should.be == width - rm.output[i].x;
+		rm.output[i].h.should.be == sizeY;
 		i++;
 
 		rm.output[i].path[].should.be == [2, 1];
 		rm.output[i].x.should.be == 30;
 		rm.output[i].y.should.be == 70;
+		rm.output[i].w.should.be == width - rm.output[i].x;
+		rm.output[i].h.should.be == sizeY;
 		i++;
 	} ();
 }
