@@ -532,19 +532,19 @@ unittest
 		rm.output[i].path[].should.be == [1];
 		rm.output[i].x.should.be == 15;
 		rm.output[i].y.should.be == 40;
-		rm.output[i].w.should.be == width - rm.output[i].x;
+		rm.output[i].w.should.be == sizeX;
 		rm.output[i].h.should.be == sizeY;
 		i++;
 
 		rm.output[i].path[].should.be == [1, 0];
-		rm.output[i].x.should.be == sizeX;
+		rm.output[i].x.should.be == 15;
 		rm.output[i].y.should.be == 40;
-		rm.output[i].w.should.be == 85; // width - indentation
+		rm.output[i].w.should.be == sizeX;
 		rm.output[i].h.should.be == sizeY;
 		i++;
 
 		rm.output[i].path[].should.be == [1, 1];
-		rm.output[i].x.should.be == (width + spacing) + (85 + spacing); // размер первого элемента плюс размер второго
+		rm.output[i].x.should.be == 15 + sizeX; // размер первого элемента плюс размер второго
 		rm.output[i].y.should.be == 40;
 		i++;
 
