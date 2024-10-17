@@ -4,7 +4,6 @@ mixin template State()
 {
     import auxil.common : SizeType, Orientation;
 
-	enum Spacing = 1;
 	SizeType sizeYM = 0, headerSizeY = 0;
 	int _placeholder = 1 << Field.Collapsed | 
 	                   1 << Field.Enabled;
@@ -58,7 +57,6 @@ mixin template StateScalar()
 {
     import auxil.common : SizeType, Orientation;
 
-	enum Spacing = 1;
 	SizeType sizeYM = 0;
 	alias headerSizeY = sizeYM;
 

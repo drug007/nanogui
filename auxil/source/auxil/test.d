@@ -110,7 +110,7 @@ unittest
 	m.makeDefaultMeasuring(d, width, height);
 
 	m.traversalForward(d, visitor);
-	m.sizeYM.should.be == 10;
+	m.sizeYM.should.be == 9;
 	d.d = 0;
 	d.l = 1;
 	d.t.f = 2;
@@ -741,49 +741,49 @@ unittest
 
 	model.collapsed.should.be == true;
 	model.sizeYM.should.be ~ visitor.sizeY;
-	model.sizeYM.should.be ~ 18.0;
+	model.sizeYM.should.be ~ 17.0;
 	visitor.posY.should.be ~ 0.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [], false);
 	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data, visitor);
 	model.sizeYM.should.be ~ visitor.sizeY*7;
-	model.sizeYM.should.be ~ 18.0*7;
-	visitor.posY.should.be ~ 6*18.0;
+	model.sizeYM.should.be ~ 17.0*7;
+	visitor.posY.should.be ~ 6*17.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [3], false);
 	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data, visitor);
 	model.sizeYM.should.be ~ visitor.sizeY*9;
-	model.sizeYM.should.be ~ 18.0*9;
-	visitor.posY.should.be ~ (6+2)*18.0;
+	model.sizeYM.should.be ~ 17.0*9;
+	visitor.posY.should.be ~ (6+2)*17.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [4], false);
 	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data, visitor);
 	model.sizeYM.should.be ~ visitor.sizeY*12;
-	model.sizeYM.should.be ~ 18.0*12;
-	visitor.posY.should.be ~ (6+2+3)*18.0;
+	model.sizeYM.should.be ~ 17.0*12;
+	visitor.posY.should.be ~ (6+2+3)*17.0;
 
 	setPropertyByTreePath!"collapsed"(data, model, [5], false);
 	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data, visitor);
 	model.sizeYM.should.be ~ visitor.sizeY*15;
-	model.sizeYM.should.be ~ 18.0*15;
-	visitor.posY.should.be ~ (6+2+3+3)*18.0;
+	model.sizeYM.should.be ~ 17.0*15;
+	visitor.posY.should.be ~ (6+2+3+3)*17.0;
 
 	visitor.destY = visitor.destY.nan;
 	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data, visitor);
-	model.sizeYM.should.be == 270;
-	visitor.posY.should.be == 252;
+	model.sizeYM.should.be == 255;
+	visitor.posY.should.be == 238;
 
 	visitor.posY = 0;
 	visitor.destY = 100;
 	model.makeDefaultMeasuring(data, width, height);
 	model.traversalForward(data, visitor);
-	model.sizeYM.should.be == 270;
-	visitor.posY.should.be == 90;
+	model.sizeYM.should.be == 255;
+	visitor.posY.should.be == 85;
 }
 
 struct RelativeMeasurer
@@ -1180,7 +1180,7 @@ unittest
 
 	model.collapsed = false;
 	{
-		auto mv = MeasuringVisitor(0, 9);
+		auto mv = MeasuringVisitor(0, 10);
 		model.traversalForward(data, mv);
 	}
 	visitor.posY = 0;
@@ -1255,13 +1255,12 @@ unittest
 	model.collapsed = false;
 	model.collapsed.should.be == false;
 	{
-		auto mv = MeasuringVisitor(0, 9);
+		auto mv = MeasuringVisitor(0, 10);
 		model.traversalForward(data, mv);
 	}
 	visitor.posX = 0;
 	visitor.posY = 0;
-import std.stdio;
-debug writeln("---");
+
 	model.traversalForward(data, visitor);
 	visitor.output.should.be == [
 		TreePosition([], 0),

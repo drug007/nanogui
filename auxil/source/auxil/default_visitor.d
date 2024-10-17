@@ -392,7 +392,7 @@ struct MeasuringVisitor
 			const currentOrientation = model.orientation;
 		else
 			const currentOrientation = orientation;
-		model.sizeYM = model.headerSizeY = size[currentOrientation] + model.Spacing;
+		model.sizeYM = model.headerSizeY = size[currentOrientation];
 		return false;
 	}
 
@@ -417,7 +417,7 @@ struct MeasuringVisitor
 			if (parent.orientation != childOrientation)
 			{
 				// if orientations mismatch use parent orientation
-				parent.sizeYM += size[parent.orientation] + parent.Spacing;
+				parent.sizeYM += size[parent.orientation];
 				return;
 			}
 		}

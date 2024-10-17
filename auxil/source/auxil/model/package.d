@@ -825,7 +825,7 @@ unittest
 
 	auto data = [0, 1, 2, 3];
 	auto model = makeModel(data);
-	auto visitor = MeasuringVisitor(0, 9);
+	auto visitor = MeasuringVisitor(0, 10);
 
 	model.collapsed = false;
 	model.traversalForward(data, visitor);

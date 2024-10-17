@@ -169,10 +169,8 @@ unittest
 	model[2].orientation = Orientation.Vertical;
 	model[2].collapsed = false;
 
-	const spacing = 1;
 	const width = 99;
-	const height = 9;
-	const sizeY = height + spacing;
+	const height = 10;
 	// measure size
 	{
 		auto mv = MeasuringVisitor(width, height);
@@ -213,70 +211,70 @@ unittest
 		rm.output[i].x.should.be == 0;
 		rm.output[i].y.should.be == 0;
 		rm.output[i].w.should.be == width;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [0];
 		rm.output[i].x.should.be == 15;
 		rm.output[i].y.should.be == 10;
 		rm.output[i].w.should.be == width - rm.output[i].x;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [0, 0];
 		rm.output[i].x.should.be == 30;
 		rm.output[i].y.should.be == 20;
 		rm.output[i].w.should.be == width - rm.output[i].x;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [0, 1];
 		rm.output[i].x.should.be == 30;
 		rm.output[i].y.should.be == 30;
 		rm.output[i].w.should.be == width - rm.output[i].x;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [1];
 		rm.output[i].x.should.be == 15;
 		rm.output[i].y.should.be == 40;
 		rm.output[i].w.should.be == width - rm.output[i].x;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [1, 0];
 		rm.output[i].x.should.be == 30;
 		rm.output[i].y.should.be == 50;
 		rm.output[i].w.should.be == width - rm.output[i].x;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [1, 1];
 		rm.output[i].x.should.be == 30;
 		rm.output[i].y.should.be == 60;
 		rm.output[i].w.should.be == width - rm.output[i].x;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [2];
 		rm.output[i].x.should.be == 15;
 		rm.output[i].y.should.be == 70;
 		rm.output[i].w.should.be == width - rm.output[i].x;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [2, 0];
 		rm.output[i].x.should.be == 30;
 		rm.output[i].y.should.be == 80;
 		rm.output[i].w.should.be == width - rm.output[i].x;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [2, 1];
 		rm.output[i].x.should.be == 30;
 		rm.output[i].y.should.be == 90;
 		rm.output[i].w.should.be == width - rm.output[i].x;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].h.should.be == height;
 		i++;
 	} ();
 }
@@ -302,10 +300,8 @@ unittest
 
 	model.orientation = Orientation.Horizontal;
 
-	const width = 100;
-	const height = 9;
-	const spacing = 1;
-	const sizeX = width + spacing;
+	const width = 101;
+	const height = 10;
 
 	// measure size
 	{
@@ -313,10 +309,10 @@ unittest
 		model.traversalForward(data, mv);
 	}
 
-	model.header_size.should.be == sizeX;
-	model.i.size.should.be == sizeX;
-	model.f.size.should.be == sizeX;
-	model.size.should.be == 3*sizeX;
+	model.header_size.should.be == width;
+	model.i.size.should.be == width;
+	model.f.size.should.be == width;
+	model.size.should.be == 3*width;
 
 	model.header_size.should.be == 101;
 	model.size.should.be == 303;
@@ -328,7 +324,6 @@ unittest
 		rm.posY = 0;
 		rm.destX = 1000;
 		rm.destY = 1000;
-		enum spacing = 1;
 		model.traversalForward(data, rm);
 
 		printLogToSvg("horizontal.TrivialAggregate", 1, rm.output);
@@ -337,21 +332,21 @@ unittest
 		rm.output[i].path[].length.should.be == 0;
 		rm.output[i].x.should.be == 0;
 		rm.output[i].y.should.be == 0;
-		rm.output[i].w.should.be == sizeX;
+		rm.output[i].w.should.be == width;
 		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [0];
-		rm.output[i].x.should.be == sizeX;
+		rm.output[i].x.should.be == width;
 		rm.output[i].y.should.be == 0;
-		rm.output[i].w.should.be == sizeX;
+		rm.output[i].w.should.be == width;
 		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [1];
-		rm.output[i].x.should.be == 2*sizeX;
+		rm.output[i].x.should.be == 2*width;
 		rm.output[i].y.should.be == 0;
-		rm.output[i].w.should.be == sizeX;
+		rm.output[i].w.should.be == width;
 		rm.output[i].h.should.be == height;
 
 		rm.output.length.should.be == 3;
@@ -383,10 +378,8 @@ unittest
 	model[0].collapsed = false;
 	model[0].orientation = Orientation.Horizontal;
 
-	const width = 100;
-	const height = 9;
-	const spacing = 1;
-	const sizeX = width + spacing;
+	const width = 101;
+	const height = 10;
 
 	// measure size
 	{
@@ -394,14 +387,14 @@ unittest
 		model.traversalForward(data, mv);
 	}
 
-	model.header_size.should.be == sizeX;
+	model.header_size.should.be == width;
 	model.header_size.should.be == 101;
 	model.size.should.be == 404;
 
-	model[0].header_size.should.be == sizeX;
-	model[0].i.size.should.be == sizeX;
-	model[0].f.size.should.be == sizeX;
-	model[0].size.should.be == 3*sizeX;
+	model[0].header_size.should.be == width;
+	model[0].i.size.should.be == width;
+	model[0].f.size.should.be == width;
+	model[0].size.should.be == 3*width;
 
 	{
 		auto rm = RelativeMeasurer(width, height);
@@ -415,10 +408,10 @@ unittest
 		printLogToSvg("horizontal.ArrayOfTrivialAggregates.1", 1, rm.output);
 
 		auto expectedData = [
-			TreePosition(0*sizeX, 0, sizeX, height, []),
-			TreePosition(1*sizeX, 0, sizeX, height, [0]),
-			TreePosition(2*sizeX, 0, sizeX, height, [0, 0]),
-			TreePosition(3*sizeX, 0, sizeX, height, [0, 1]),
+			TreePosition(0*width, 0, width, height, []),
+			TreePosition(1*width, 0, width, height, [0]),
+			TreePosition(2*width, 0, width, height, [0, 0]),
+			TreePosition(3*width, 0, width, height, [0, 1]),
 		];
 
 		rm.output.length.should.be == expectedData.length;
@@ -456,9 +449,6 @@ unittest
 
 	const width = 100;
 	const height = 9;
-	const spacing = 1;
-	const sizeX = width + spacing;
-	const sizeY = height + spacing;
 
 	// measure size
 	{
@@ -466,14 +456,14 @@ unittest
 		model.traversalForward(data, mv);
 	}
 
-	model.header_size.should.be == sizeY;
-	model.header_size.should.be == 10;
-	model.size.should.be == 20;
+	model.header_size.should.be == height;
+	model.header_size.should.be == 9;
+	model.size.should.be == 18;
 
-	model[0].header_size.should.be == sizeX;
-	model[0].i.size.should.be == sizeX;
-	model[0].f.size.should.be == sizeX;
-	model[0].size.should.be == 3*sizeX;
+	model[0].header_size.should.be == width;
+	model[0].i.size.should.be == width;
+	model[0].f.size.should.be == width;
+	model[0].size.should.be == 3*width;
 
 	{
 		auto rm = RelativeMeasurer(width, height);
@@ -487,10 +477,10 @@ unittest
 		printLogToSvg("horizontal.ArrayOfTrivialAggregates.2", 1, rm.output);
 
 		auto expectedData = [
-			TreePosition( 0 + 0*sizeX,     0, width, sizeY, []), // TODO instead of width should be sizeX
-			TreePosition(15 + 0*sizeX, sizeY, sizeX, sizeY, [0]),
-			TreePosition(15 + 1*sizeX, sizeY, sizeX, sizeY, [0, 0]),
-			TreePosition(15 + 2*sizeX, sizeY, sizeX, sizeY, [0, 1]),
+			TreePosition( 0 + 0*width,     0, width, height, []), // TODO instead of width should be width
+			TreePosition(15 + 0*width, height, width, height, [0]),
+			TreePosition(15 + 1*width, height, width, height, [0, 0]),
+			TreePosition(15 + 2*width, height, width, height, [0, 1]),
 		];
 
 		rm.output.length.should.be == expectedData.length;
@@ -531,10 +521,7 @@ unittest
 	model[2].collapsed = false;
 
 	const width = 100;
-	const height = 9;
-	const spacing = 1;
-	const sizeX = width + spacing;
-	const sizeY = height + spacing;
+	const height = 10;
 
 	// measure size
 	{
@@ -542,20 +529,20 @@ unittest
 		model.traversalForward(data, mv);
 	}
 
-	model[0].header_size.should.be == sizeY;
-	model[0].i.size.should.be == sizeY;
-	model[0].f.size.should.be == sizeY;
-	model[0].size.should.be == 3*sizeY;
+	model[0].header_size.should.be == height;
+	model[0].i.size.should.be == height;
+	model[0].f.size.should.be == height;
+	model[0].size.should.be == 3*height;
 
-	model[1].header_size.should.be == sizeX;
-	model[1].i.size.should.be == sizeX;
-	model[1].f.size.should.be == sizeX;
-	model[1].size.should.be == 3*sizeX;
+	model[1].header_size.should.be == width;
+	model[1].i.size.should.be == width;
+	model[1].f.size.should.be == width;
+	model[1].size.should.be == 3*width;
 
-	model[2].header_size.should.be == sizeY;
-	model[2].i.size.should.be == sizeY;
-	model[2].f.size.should.be == sizeY;
-	model[2].size.should.be == 3*sizeY;
+	model[2].header_size.should.be == height;
+	model[2].i.size.should.be == height;
+	model[2].f.size.should.be == height;
+	model[2].size.should.be == 3*height;
 
 	model.header_size.should.be == 10;
 	model.size.should.be == 80;
@@ -576,70 +563,70 @@ unittest
 		rm.output[i].x.should.be == 0;
 		rm.output[i].y.should.be == 0;
 		rm.output[i].w.should.be == width;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [0];
 		rm.output[i].x.should.be == 15;
 		rm.output[i].y.should.be == 10;
 		rm.output[i].w.should.be == width - rm.output[i].x;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [0, 0];
 		rm.output[i].x.should.be == 30;
 		rm.output[i].y.should.be == 20;
 		rm.output[i].w.should.be == width - rm.output[i].x;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [0, 1];
 		rm.output[i].x.should.be == 30;
 		rm.output[i].y.should.be == 30;
 		rm.output[i].w.should.be == width - rm.output[i].x;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [1];
 		rm.output[i].x.should.be == 15;
 		rm.output[i].y.should.be == 40;
-		rm.output[i].w.should.be == sizeX;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].w.should.be == width;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [1, 0];
-		rm.output[i].x.should.be == 15 + sizeX;
+		rm.output[i].x.should.be == 15 + width;
 		rm.output[i].y.should.be == 40;
-		rm.output[i].w.should.be == sizeX;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].w.should.be == width;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [1, 1];
-		rm.output[i].x.should.be == 15 + 2*sizeX; // размер первого элемента плюс размер второго
+		rm.output[i].x.should.be == 15 + 2*width; // размер первого элемента плюс размер второго
 		rm.output[i].y.should.be == 40;
-		rm.output[i].w.should.be == sizeX;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].w.should.be == width;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [2];
 		rm.output[i].x.should.be == 15;
 		rm.output[i].y.should.be == 50;
 		rm.output[i].w.should.be == width - rm.output[i].x;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [2, 0];
 		rm.output[i].x.should.be == 30;
 		rm.output[i].y.should.be == 60;
 		rm.output[i].w.should.be == width - rm.output[i].x;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].h.should.be == height;
 		i++;
 
 		rm.output[i].path[].should.be == [2, 1];
 		rm.output[i].x.should.be == 30;
 		rm.output[i].y.should.be == 70;
 		rm.output[i].w.should.be == width - rm.output[i].x;
-		rm.output[i].h.should.be == sizeY;
+		rm.output[i].h.should.be == height;
 		i++;
 	} ();
 }
